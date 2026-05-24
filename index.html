@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://cdn.jsdelivr.net https://*.googleusercontent.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://identlq.firebaseapp.com https://*.googleapis.com https://*.firebase.com https://securetoken.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com https://identlq.firebaseapp.com; worker-src 'self';">
+    <meta name="theme-color" content="#00a2ff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IdentIQ">
+    
+    <style>input,textarea,select{touch-action:manipulation;}</style>
+    <meta name="description" content="IdentIQ v4.4 — Gulf &amp; South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Jhang, Pakistan. Powered by Creative AI. Supports Iqama, CNIC, Emirates ID, and more.">
+    <meta name="author" content="Creative Men, Pakistan">
+    <link rel="canonical" href="https://nexux-gen.netlify.app/">
+    <title>IdentIQ · Gulf Identity Intelligence Platform</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/settings.css">
+    
+</head>
+<body>
+
+<noscript>
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#080a0d;color:#00d4ff;font-family:monospace;text-align:center;padding:20px;">
+    <div>
+      <h2 style="font-size:22px;margin-bottom:12px;">⚠️ IdentIQ requires JavaScript</h2>
+      <p style="color:#7ab;font-size:14px;">Please enable JavaScript in your browser to use this application.</p>
+    </div>
+  </div>
+</noscript>
+
+    
+    <nav class="main-nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container" role="tablist" aria-label="Main navigation tabs">
+            <button class="nav-tab active" role="tab" data-target="tab-extractor" aria-selected="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <span data-i18n="navIntel">Identity Intel</span>
+            </button>
+            <button class="nav-tab" role="tab" data-target="tab-generator" aria-selected="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h2M12 15h2"/></svg>
+                <span data-i18n="navGen">Realistic ID</span>
+            </button>
+            <button class="nav-tab" role="tab" data-target="tab-analytics" aria-selected="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span data-i18n="navAnalytics">Analytics</span>
+            </button>
+            
+            <button id="themeToggleBtn" class="nav-tab icon-nav-btn" aria-label="Toggle light/dark mode" title="Toggle Light Mode" aria-hidden="true" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span data-i18n="themeToggle">Light Mode</span>
+            </button>
+            
+            <button id="langToggleBtn" class="nav-tab icon-nav-btn" aria-label="Toggle language" title="Switch Language" aria-hidden="true" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/><path d="M2 12h20"/></svg>
+                <span data-i18n="langToggle">اردو</span>
+            </button>
+            <button id="installAppBtn" class="nav-tab install-btn" style="display:none;" aria-label="Install App">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span data-i18n="navInstall">Install</span>
+            </button>
+        </div>
+    </nav>
+
+    
+    <div class="shortcut-legend" aria-label="Keyboard shortcuts">
+        <span class="shortcut-label" data-i18n="shortcutsLabel">Shortcuts:</span>
+        <kbd class="shortcut-key" data-i18n="shortcut1">[Alt+1] Intel</kbd>
+        <kbd class="shortcut-key" data-i18n="shortcut2">[Alt+2] Generator</kbd>
+        <kbd class="shortcut-key" data-i18n="shortcut3">[Alt+3] Analytics</kbd>
+    </div>
+
+    
+    <div id="tab-extractor" class="app-section active-section" role="main">
+        <div class="main-container">
+
+            <header class="app-header" id="headerReload" title="Reload Application" tabindex="0" role="button" aria-label="IdentIQ Identity Intel — click to reload">
+                <div class="logo-area">
+                    <img src="assets/logo.png" alt="IdentIQ Logo" class="app-logo" width="46" height="46" loading="eager" decoding="async">
+                    <div class="title-text">
+                        <h1 data-i18n="headerTitle">IdentIQ · Identity Intel</h1>
+                        <span data-i18n="headerVersion">V4.4 Core Processor</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="header-badge" data-i18n="headerLive">● LIVE</span>
+                </div>
+            </header>
+
+            
+            <fieldset class="data-card" id="dataCard" style="display:none;">
+                <legend class="badge" data-i18n="extractedInfo">EXTRACTED INFORMATION</legend>
+
+                
+                <div id="dataCompleteBanner" class="data-complete-banner" role="status" aria-live="polite">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Data Complete — All fields extracted successfully</span>
+                    <div class="complete-dots" aria-hidden="true">
+                        <span class="complete-dot"></span>
+                        <span class="complete-dot"></span>
+                        <span class="complete-dot"></span>
+                    </div>
+                </div>
+                <div class="grid-layout">
+                    <div class="field-group" id="grp-nameAr" style="display:none;">
+                        <label>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span data-i18n="nameAr">Name (Arabic / Urdu)</span>
+                        </label>
+                        <div class="wrapper">
+                            <textarea id="nameArabic" class="nastaleeq" readonly rows="1" aria-label="Arabic name" lang="ar" dir="rtl"></textarea>
+                            <button class="copy-btn" aria-label="Copy Arabic name"></button>
+                        </div>
+                    </div>
+                    <div class="field-group" id="grp-nameEn" style="display:none;">
+                        <label>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span data-i18n="nameEn">Name (English)</span>
+                        </label>
+                        <div class="wrapper">
+                            <input type="text" id="nameEnglish" readonly aria-label="English name">
+                            <button class="copy-btn" aria-label="Copy English name"></button>
+                        </div>
+                    </div>
+                    <div class="field-group" id="grp-aqama" style="display:none;">
+                        <label>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+                            <span data-i18n="idNumber">Aqama / ID Number</span>
+                        </label>
+                        <div class="wrapper">
+                            <input type="text" id="aqamaNumber" readonly aria-label="Aqama number">
+                            <button class="copy-btn" aria-label="Copy Aqama number"></button>
+                        </div>
+                    </div>
+                    <div class="field-group" id="grp-dobH" style="display:none;">
+                        <label><span data-i18n="dobH">DOB (Hijri)</span></label>
+                        <div class="wrapper">
+                            
+                            <input type="text" id="dobHijri" maxlength="10" readonly aria-label="Date of birth Hijri (read-only, auto-filled)">
+                            <button class="copy-btn" aria-label="Copy Hijri date"></button>
+                        </div>
+                    </div>
+                    <div class="field-group" id="grp-dobG" style="display:none;">
+                        <label><span data-i18n="dobG">DOB (Gregorian)</span></label>
+                        <div class="wrapper">
+                            
+                            <input type="text" id="dobGregorian" maxlength="10" placeholder="DD/MM/YYYY" aria-label="Date of birth Gregorian — type to auto-convert to Hijri">
+                            <button class="copy-btn" aria-label="Copy Gregorian date"></button>
+                        </div>
+                        <span class="age-badge" id="ageBadge" aria-live="polite" style="display:none;"></span>
+                    </div>
+                    <div class="field-group full-width" id="grp-nat" style="display:none;">
+                        <label><span data-i18n="natSelect">Nationality Quick Select</span></label>
+                        <div id="natSelector" class="nat-container" role="group" aria-label="Nationality selector">
+                            <button type="button" class="nat-btn" data-en="Pakistan"   data-ar="باكستان">Pakistan</button>
+                            <button type="button" class="nat-btn" data-en="India"      data-ar="الهند">India</button>
+                            <button type="button" class="nat-btn" data-en="Nepal"      data-ar="نيبال">Nepal</button>
+                            <button type="button" class="nat-btn" data-en="Bangladesh" data-ar="بنجلاديش">Bangladesh</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="no-data-msg" id="noDataMsg" role="alert" aria-live="assertive">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span data-i18n="noData">No recognisable data found — check input and try again.</span>
+            </div>
+
+            
+            <div class="terminal-box">
+                <div class="terminal-header">
+                    <label for="inputText" data-i18n="inputLabel">INPUT TERMINAL</label>
+                    <div class="terminal-actions">
+                        <span class="char-counter" id="charCounter" aria-live="polite"></span>
+                        
+                        <div class="voice-combo" id="voiceCombo">
+                            <button id="voiceBtn" class="voice-btn bubble-btn" title="Voice Input" aria-label="Start voice input">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </button>
+                            
+                            <select id="voiceLangSelect" class="voice-lang-select" aria-label="Select voice input language" title="Bolne ki zaban chunein">
+                                <option value="ar-SA">🇸🇦 Arabic</option>
+                                <option value="en-US" selected>🇺🇸 English</option>
+                                <option value="ur-PK">🇵🇰 Urdu</option>
+                                <option value="hi-IN">🇮🇳 Hindi</option>
+                                <option value="bn-BD">🇧🇩 Bengali</option>
+                                <option value="ne-NP">🇳🇵 Nepali</option>
+                            </select>
+                        </div>
+                        <button id="kbdBtn" class="kbd-btn bubble-btn" title="Virtual Keyboard" aria-label="Open virtual keyboard">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"/></svg>
+                        </button>
+                        <button id="clearAllBtn" class="danger-btn" aria-label="Clear all input">
+                            <span data-i18n="clearBtn">✕ Clear</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="input-highlight-wrap">
+                    <div id="inputHighlight" class="input-highlight" aria-hidden="true"></div>
+                    <textarea id="inputText"
+                        data-i18n-placeholder="inputPlaceholder"
+                        placeholder="Paste Iqama / ID text here…"
+                        aria-label="Input terminal for identity data"
+                        spellcheck="false"></textarea>
+                </div>
+                <div class="terminal-footer">
+                    <span class="hint-tag" data-i18n="hintPaste">Auto-extracts on paste</span>
+                    <span class="hint-tag"><kbd>Enter</kbd> = New line</span>
+                    <span class="hint-tag" data-i18n="hintLang">Arabic &amp; English supported</span>
+                    <span class="hint-tag" id="voiceStatus" aria-live="polite"></span>
+                </div>
+            </div>
+
+            
+            <div id="virtualKbd" class="vkbd-panel" style="display:none;" role="dialog" aria-label="Virtual keyboard" aria-modal="false">
+                <div class="vkbd-header">
+                    <div class="vkbd-tabs">
+                        <button class="vkbd-lang active" data-lang="en" aria-pressed="true">EN</button>
+                        <button class="vkbd-lang" data-lang="ar" aria-pressed="false">AR</button>
+                    </div>
+                    <button id="vkbdCloseBtn" class="vkbd-close" aria-label="Close keyboard">✕</button>
+                </div>
+                <div id="vkbdKeys" class="vkbd-keys"></div>
+            </div>
+
+        </div>
+    </div>
+
+    
+    <div id="tab-generator" class="app-section" style="display:none;" role="region" aria-label="Realistic ID Generator">
+        <div class="gen-wrapper">
+            <div class="gen-container">
+
+                <header class="gen-header">
+                    <h1 data-i18n="genTitle">Realistic Digital Identity</h1>
+                    <span class="gen-version-tag">v4.4</span>
+                </header>
+
+                <main>
+                    
+                    <div class="gen-selection-grid">
+                        <div class="gen-control-group">
+                            <label for="country-select" data-i18n="countryLabel">Select Country</label>
+                            <select id="country-select" class="gen-dropdown" aria-label="Select country">
+                                <option value="Pakistan">🇵🇰 Pakistan</option>
+                                <option value="India">🇮🇳 India</option>
+                                <option value="UAE">🇦🇪 UAE</option>
+                                <option value="Qatar">🇶🇦 Qatar</option>
+                                <option value="Bangladesh">🇧🇩 Bangladesh</option>
+                                <option value="Nepal">🇳🇵 Nepal</option>
+                                <option value="Afghanistan">🇦🇫 Afghanistan</option>
+                                <option value="SaudiArabia">🇸🇦 Saudi Arabia</option>
+                                <option value="Kuwait">🇰🇼 Kuwait</option>
+                                <option value="Bahrain">🇧🇭 Bahrain</option>
+                                <option value="Oman">🇴🇲 Oman</option>
+                            </select>
+                        </div>
+                        <div class="gen-control-group" id="city-selection-container">
+                            <label for="city-select" data-i18n="cityLabel">Select City / Region</label>
+                            <select id="city-select" class="gen-dropdown" aria-label="Select city">
+                                <option value="Punjab">Punjab</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    
+                    <div class="gen-grid">
+                        <div class="gen-data-box">
+                            <label data-i18n="labelCNIC">CNIC / National ID</label>
+                            <div class="gen-data-content">
+                                <span id="id-number"></span>
+                                <button class="gen-copy-btn" data-target="id-number" data-tip="Copy ID" aria-label="Copy ID number"></button>
+                            </div>
+                        </div>
+                        <div class="gen-data-box">
+                            <label data-i18n="labelLicense">License Number</label>
+                            <div class="gen-data-content">
+                                <span id="license-number"></span>
+                                <button class="gen-copy-btn" data-target="license-number" data-tip="Copy License" aria-label="Copy license number"></button>
+                            </div>
+                        </div>
+                        <div class="gen-data-box">
+                            <label data-i18n="labelIssue">Issue Date</label>
+                            <div class="gen-data-content">
+                                <span id="issue-date"></span>
+                                <button class="gen-copy-btn" data-target="issue-date" data-tip="Copy Date" aria-label="Copy issue date"></button>
+                            </div>
+                        </div>
+                        <div class="gen-data-box">
+                            <label>
+                                <span data-i18n="labelExpiry">Expiry Date</span>
+                                <span class="expiry-rule-tag">Issue + 5Y − 1D</span>
+                            </label>
+                            <div class="gen-data-content">
+                                <span id="expiry-date"></span>
+                                <button class="gen-copy-btn" data-target="expiry-date" data-tip="Copy Date" aria-label="Copy expiry date"></button>
+                            </div>
+                        </div>
+                        <div class="gen-data-box gen-full-width">
+                            <label data-i18n="labelAddress">Full Address</label>
+                            <div class="gen-data-content">
+                                <span id="full-address"></span>
+                                <button class="gen-copy-btn" data-target="full-address" data-tip="Copy Address" aria-label="Copy address"></button>
+                            </div>
+                        </div>
+
+                        
+                        <div class="gen-data-box gen-date-box gen-full-width" id="date-card" style="position:relative;">
+                            <div class="date-box-header">
+                                <label data-i18n="labelDate">Current Date</label>
+                                <button class="cal-open-btn" id="calOpenBtn" aria-label="Open calendar">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                                    <span data-i18n="calBtn">Calendar</span>
+                                </button>
+                            </div>
+                            <div class="gen-data-content">
+                                <span id="current-date" class="date-display" aria-live="polite"></span>
+                                <button class="gen-copy-btn" data-target="current-date" data-tip="Copy Date" aria-label="Copy current date"></button>
+                            </div>
+                            
+                            <div class="cal-popup" id="calPopup" role="dialog" aria-label="Calendar" aria-modal="true">
+                                <div class="cal-inner">
+                                    <div class="cal-top-bar">
+                                        <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">&#8249;</button>
+                                        <div class="cal-month-info">
+                                            <div class="cal-greg-month" id="calGregMonth"></div>
+                                            <div class="cal-hijri-month" id="calHijriMonth"></div>
+                                        </div>
+                                        <button class="cal-nav-btn" id="calNext" aria-label="Next month">&#8250;</button>
+                                    </div>
+                                    <div class="cal-weekdays" aria-hidden="true">
+                                        <span>Su</span><span>Mo</span><span>Tu</span>
+                                        <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                                    </div>
+                                    <div class="cal-grid" id="calGrid" role="grid" aria-label="Calendar days"></div>
+                                    <div class="cal-actions">
+                                        <button class="cal-btn-today" id="calTodayBtn">Today</button>
+                                        <button class="cal-btn-close" id="calCloseBtn">✕ Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gen-data-box">
+                            <label data-i18n="labelWeekday">Weekday</label>
+                            <div class="gen-data-content">
+                                <span id="weekday"></span>
+                                <button class="gen-copy-btn" data-target="weekday" data-tip="Copy" aria-label="Copy weekday"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="gen-button-group">
+                        <button id="generate-btn" class="gen-generate-button gen-generate-3d" aria-label="Generate new identity">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.71"/></svg>
+                            <span data-i18n="genBtn">Generate New Identity</span>
+                        </button>
+                    </div>
+
+                </main>
+
+                <footer class="gen-footer">
+                    <p data-i18n="footerText">© 2025 IdentIQ · Creative Men · Gulf Identity Intelligence Platform v4.4</p>
+                </footer>
+
+            </div>
+
+        </div>
+    </div>
+
+    
+    <div id="gen-toast" class="gen-toast" role="status" aria-live="polite"></div>
+
+    
+    <div class="gen-fab" id="genFab" aria-hidden="true">
+        <span class="gen-fab-label">Generate Identity</span>
+        <button class="gen-fab-btn gen-fab-3d" id="genFabBtn" aria-label="Generate New Identity" title="Generate New Identity">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.71"/></svg>
+        </button>
+    </div>
+
+    
+    <div id="tab-analytics" class="app-section" style="display:none;" role="region" aria-label="Analytics Dashboard">
+        <div class="main-container analytics-container">
+
+            <header class="analytics-header">
+                <h2 data-i18n="analyticsTitle">Analytics Dashboard</h2>
+                <button id="clearAnalyticsBtn" class="danger-btn" aria-label="Clear analytics data">
+                    <span data-i18n="clearData">✕ Clear Data</span>
+                </button>
+            </header>
+
+            <div class="analytics-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label" data-i18n="statDocs">Documents Processed</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statSuccess">0</div>
+                        <div class="stat-label" data-i18n="statSuccess">Successful Extractions</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-cyan">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statExports">0</div>
+                        <div class="stat-label" data-i18n="statExports">Total Exports</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-yellow">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statRate">0%</div>
+                        <div class="stat-label" data-i18n="statRate">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="recent-exports-card">
+                <h3 class="recent-label" data-i18n="recentExports">Recent Exports</h3>
+                <ul class="recent-list" id="recentExportsList">
+                    <li class="recent-empty" data-i18n="noExports">No exports yet.</li>
+                </ul>
+            </div>
+
+            
+            <div class="recent-exports-card" style="margin-top:14px;">
+                <h3 class="recent-label" data-i18n="extractHistory">Extraction History</h3>
+                <ul class="recent-list history-list" id="extractionHistoryList">
+                    <li class="recent-empty" data-i18n="noHistory">No history yet.</li>
+                </ul>
+            </div>
+
+            <div class="privacy-info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span data-i18n="privacyText">Auto-wipe after <strong>5 minutes</strong> of inactivity.</span>
+                <span id="wipeCountdown" class="wipe-countdown" aria-live="off"></span>
+                <span id="wipeWarnRegion" class="sr-only" aria-live="assertive" aria-atomic="true"></span>
+            </div>
+
+        </div>
+    </div>
+
+    
+
+    
+
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script>
+    (function() {
+        try {
+            if (window.NexusAuth && typeof window.NexusAuth.onAuthChanged === 'function') {
+                var _checked = false;
+                var _unsub = window.NexusAuth.onAuthChanged(function(user) {
+                    if (_checked) return;
+                    _checked = true;
+                    if (_unsub) _unsub();
+                    if (!user) {
+                        window.location.replace('./login.html');
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('[IdentIQ] Auth guard error:', e);
+        }
+    })();
+    </script>
+    <script>
+    (function() {
+        function loadScript(src, onload) {
+            var s = document.createElement('script');
+            s.src = src;
+            s.onload = onload || function(){};
+            s.onerror = onload || function(){};
+            document.head.appendChild(s);
+        }
+        var momentCDN     = 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js';
+        var momentHijriCDN= 'https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.min.js';
+        var momentLocal   = 'lib/moment.min.js';
+        var hijriLocal    = 'lib/moment-hijri.min.js';
+
+        function setMomentLoading(loading) {
+            var input = document.getElementById('inputText');
+            if (!input) return;
+            if (loading) {
+                input.setAttribute('placeholder', 'Loading date library\u2026 please wait');
+                input.disabled = true;
+            } else {
+                if (window.IS && IS.i18n && typeof IS.i18n.get === 'function') {
+                    input.placeholder = IS.i18n.get('inputPlaceholder');
+                } else {
+                    input.placeholder = 'Paste Iqama / ID text here\u2026';
+                }
+                input.disabled = false;
+            }
+        }
+
+        setMomentLoading(true);
+
+        function onMomentReady() {
+            setMomentLoading(false);
+        }
+
+        function loadHijri(useCDN) {
+            loadScript(useCDN ? momentHijriCDN : hijriLocal, onMomentReady);
+        }
+
+        var timer = setTimeout(function() {
+            if (typeof moment === 'undefined') {
+                loadScript(momentLocal, function() { loadHijri(false); });
+            } else {
+                onMomentReady();
+            }
+        }, 3000);
+        loadScript(momentCDN, function() {
+            clearTimeout(timer);
+
+            loadHijri(true);
+        });
+    })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/extractor.js" defer></script>
+    <script src="js/generator.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/settings.js" defer></script>
+    <script src="js/mouse.js" defer></script>
+    
+</body>
+</html>

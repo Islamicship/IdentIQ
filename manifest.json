@@ -1,0 +1,96 @@
+{
+    "name": "IdentIQ — Gulf Identity Intelligence",
+    "short_name": "IdentIQ",
+    "description": "IdentIQ v4.4 — Gulf & South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Pakistan. Powered by Creative AI Engine.",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#080a0d",
+    "theme_color": "#00a2ff",
+    "lang": "en",
+    "dir": "ltr",
+    "categories": [
+        "productivity",
+        "utilities"
+    ],
+    "iarc_rating_id": "",
+    "icons": [
+        {
+            "src": "logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Identity Intel",
+            "short_name": "Intel",
+            "description": "Extract identity data from text in real-time using Creative AI",
+            "url": "./index.html#tab-extractor",
+            "icons": [
+                {
+                    "src": "logo.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "ID Generator",
+            "short_name": "Generator",
+            "description": "Generate realistic Gulf & South-Asian identity data",
+            "url": "./index.html#tab-generator",
+            "icons": [
+                {
+                    "src": "logo.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Analytics Dashboard",
+            "short_name": "Analytics",
+            "description": "View extraction statistics and session history",
+            "url": "./index.html#tab-analytics",
+            "icons": [
+                {
+                    "src": "logo.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Settings",
+            "short_name": "Settings",
+            "description": "Open IdentIQ settings panel",
+            "url": "./index.html#settings",
+            "icons": [
+                {
+                    "src": "logo.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "_developer": {
+        "name": "Creative Men",
+        "url": "https://github.com/Islamicship",
+        "location": "Jhang, Punjab, Pakistan",
+        "contact": "creativemen70@gmail.com",
+        "projects": [
+            "https://nexux-gen.netlify.app",
+            "https://personal-ocr-tool.netlify.app",
+            "https://deen-toolkit.netlify.app"
+        ]
+    }
+}
