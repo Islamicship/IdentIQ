@@ -249,32 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 } catch(e) {}
             }
-            var ageBadge = document.getElementById('ageBadge');
-            var dobGVal = f.dobG ? f.dobG.value : '';
-            if (ageBadge && dobGVal) {
-                var parts = dobGVal.split('/');
-                var birthDate = null;
-                if (parts.length === 3) {
-                    var dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10) - 1, yyyy = parseInt(parts[2], 10);
-                    if (!isNaN(dd) && !isNaN(mm) && !isNaN(yyyy)) birthDate = new Date(yyyy, mm, dd);
-                }
-                if (birthDate && !isNaN(birthDate.getTime())) {
-                    var now = new Date();
-                    var age = now.getFullYear() - birthDate.getFullYear();
-                    var mDiff = now.getMonth() - birthDate.getMonth();
-                    if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDate.getDate())) age--;
-                    if (age >= 0 && age < 130) {
-                        ageBadge.textContent = age + (age === 1 ? ' year old' : ' years old');
-                        ageBadge.style.display = 'inline-flex';
-                    } else {
-                        ageBadge.style.display = 'none';
-                    }
-                } else {
-                    ageBadge.style.display = 'none';
-                }
-            } else if (ageBadge) {
-                ageBadge.style.display = 'none';
-            }
+            updateAgeBadge(f.dobG ? f.dobG.value : '');
 
             var snap = [
                 f.nameAr ? f.nameAr.value : '',
@@ -313,6 +288,32 @@ document.addEventListener('DOMContentLoaded', function () {
         showCard(found, true);
     }
 
+    function updateAgeBadge(ddmmyyyy) {
+        var ageBadge = document.getElementById('ageBadge');
+        if (!ageBadge) return;
+        if (!ddmmyyyy) { ageBadge.style.display = 'none'; return; }
+        var parts = ddmmyyyy.split('/');
+        var birthDate = null;
+        if (parts.length === 3) {
+            var dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10) - 1, yyyy = parseInt(parts[2], 10);
+            if (!isNaN(dd) && !isNaN(mm) && !isNaN(yyyy)) birthDate = new Date(yyyy, mm, dd);
+        }
+        if (birthDate && !isNaN(birthDate.getTime())) {
+            var now = new Date();
+            var age = now.getFullYear() - birthDate.getFullYear();
+            var mDiff = now.getMonth() - birthDate.getMonth();
+            if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDate.getDate())) age--;
+            if (age >= 0 && age < 130) {
+                ageBadge.textContent = age + (age === 1 ? ' year old' : ' years old');
+                ageBadge.style.display = 'inline-flex';
+            } else {
+                ageBadge.style.display = 'none';
+            }
+        } else {
+            ageBadge.style.display = 'none';
+        }
+    }
+
     var _debounceTimer = null;
 
     f.input.addEventListener('paste', function (e) {
@@ -340,10 +341,9 @@ document.addEventListener('DOMContentLoaded', function () {
             f.input.value = cur.substring(0, start) + clean + cur.substring(end);
             f.input.selectionStart = f.input.selectionEnd = start + clean.length;
             f.input.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+            f.input.dispatchEvent(new Event('input', { bubbles: true }));
         }
-
-        clearTimeout(_debounceTimer);
-        extract();
     });
 
     f.input.addEventListener('input', function () {
@@ -379,6 +379,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         _ro.observe(f.input);
     }
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var recognition = null;
+    var isListening  = false;
+    var voiceLangSelect = document.getElementById('voiceLangSelect');
 
     if (f.clear) {
         f.clear.addEventListener('click', function () {
@@ -437,11 +442,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-
-    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    var recognition = null;
-    var isListening  = false;
-    var voiceLangSelect = document.getElementById('voiceLangSelect');
 
     if (f.voiceBtn && SpeechRecognition) {
         recognition = new SpeechRecognition();
@@ -533,24 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             f.dobH.value = hFormatted;
                             if (f.grpDobH) f.grpDobH.style.display = 'block';
                         }
-                        var ageBadge = document.getElementById('ageBadge');
-                        if (ageBadge) {
-                            var parts = formatted.split('/');
-                            var dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10) - 1, yyyy = parseInt(parts[2], 10);
-                            var birthDate = new Date(yyyy, mm, dd);
-                            if (!isNaN(birthDate.getTime())) {
-                                var now = new Date();
-                                var age = now.getFullYear() - birthDate.getFullYear();
-                                var mDiff = now.getMonth() - birthDate.getMonth();
-                                if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDate.getDate())) age--;
-                                if (age >= 0 && age < 130) {
-                                    ageBadge.textContent = age + (age === 1 ? ' year old' : ' years old');
-                                    ageBadge.style.display = 'inline-flex';
-                                } else {
-                                    ageBadge.style.display = 'none';
-                                }
-                            }
-                        }
+                        updateAgeBadge(formatted);
                         IS.showToast('\u2705 Gregorian \u2192 Hijri: ' + hFormatted);
                     } else {
                         if (f.dobH) f.dobH.value = '';
@@ -560,8 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } else if (formatted.length < 10) {
                 if (f.dobH) f.dobH.value = '';
-                var ageBadge2 = document.getElementById('ageBadge');
-                if (ageBadge2) ageBadge2.style.display = 'none';
+                updateAgeBadge('');
             }
         });
 

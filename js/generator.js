@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (country==='Kuwait') {
             var kw=DS.kuwait.areas[city]||DS.kuwait.areas['Kuwait City'];
             var ky=rand(1970,2003);
-            idNum=ky.toString()+IS.pad(rand(1,12))+IS.pad(rand(1,28))+rand(1000,9999).toString();
+            idNum=String(ky).slice(-2)+IS.pad(rand(1,12))+IS.pad(rand(1,28))+rand(1000,9999).toString();
             addr='Block '+rand(1,12)+', Street '+rand(1,50)+', Building '+rand(1,120)+', '+pick(kw)+', '+city+', Kuwait';
         } else if (country==='Bahrain') {
             var bh=DS.bahrain.areas[city]||DS.bahrain.areas.Manama;

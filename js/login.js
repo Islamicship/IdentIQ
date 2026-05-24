@@ -1,26 +1,5 @@
-/* ════════════════════════════════════════════════════════════════════
-   login.js  v1.2.0  — FULLY FIXED
-   NexusID v4.3 — Creative Men · Pakistan
-   Login-page controller: tabs, validation, Firebase auth, animations
-
-   FIXES:
-   [FIX-1] NexusAuth null-guard — if Firebase config is placeholder /
-           SDK fails to load, page no longer crashes with TypeError.
-           All NexusAuth calls are wrapped in safety checks.
-   [FIX-2] onAuthChanged guard wrapped in try/catch — prevents uncaught
-           promise rejection crashing the page on bad config.
-   [FIX-3] Canvas resize: debounced to prevent excessive redraws.
-   [FIX-4] Canvas RAF leak fixed — resize no longer spawns duplicate loops.
-   [FIX-5] switchTab now also updates aria-selected on tab buttons.
-   [FIX-6] clearAlerts no longer throws if a DOM element is null.
-   [FIX-7] Remember-me duplicate event listener removed (was added twice).
-   ════════════════════════════════════════════════════════════════════ */
-
 'use strict';
 
-/* ════════════════════════════════════════════════════════════════════
-   1. DOM REFERENCES
-   ════════════════════════════════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 
 const DOM = {
@@ -64,11 +43,6 @@ const DOM = {
     successScreen: $('successScreen'),
 };
 
-/* ════════════════════════════════════════════════════════════════════
-   FIX-1: NexusAuth safety wrapper
-   If Firebase SDK / config failed, window.NexusAuth is undefined.
-   Provide a no-op stub so the page degrades gracefully instead of crashing.
-   ════════════════════════════════════════════════════════════════════ */
 if (!window.NexusAuth) {
     console.warn('[NexusID Login] NexusAuth not found — Firebase may not be configured. Running in stub mode.');
     window.NexusAuth = {
@@ -98,14 +72,8 @@ if (!window.NexusAuth) {
     };
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   2. TAB SWITCHING
-   FIX-5: aria-selected is now kept in sync with active state
-   ════════════════════════════════════════════════════════════════════ */
 function switchTab(tab) {
     const isLogin = tab === 'login';
-
-    /* FIX-8: null-guard every element before touching it */
     if (DOM.tabLogin) {
         DOM.tabLogin.classList.toggle('active', isLogin);
         DOM.tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
@@ -116,12 +84,10 @@ function switchTab(tab) {
     }
     if (DOM.panelLogin) {
         DOM.panelLogin.classList.toggle('active', isLogin);
-        /* FIX-INERT: inert prevents keyboard Tab reaching hidden panel fields */
         DOM.panelLogin.inert = !isLogin;
     }
     if (DOM.panelReg) {
         DOM.panelReg.classList.toggle('active', !isLogin);
-        /* FIX-INERT: inert prevents keyboard Tab reaching hidden panel fields */
         DOM.panelReg.inert = isLogin;
     }
 
@@ -131,9 +97,6 @@ function switchTab(tab) {
 DOM.tabLogin    && DOM.tabLogin.addEventListener('click',    () => switchTab('login'));
 DOM.tabRegister && DOM.tabRegister.addEventListener('click', () => switchTab('register'));
 
-/* ════════════════════════════════════════════════════════════════════
-   3. PASSWORD VISIBILITY TOGGLE
-   ════════════════════════════════════════════════════════════════════ */
 function makeToggle(btn, input) {
     if (!btn || !input) return;
     btn.addEventListener('click', () => {
@@ -150,9 +113,6 @@ makeToggle(DOM.toggleLoginPass,    DOM.loginPass);
 makeToggle(DOM.toggleRegPass,      DOM.regPass);
 makeToggle(DOM.toggleRegConfirm,   DOM.regConfirm);
 
-/* ════════════════════════════════════════════════════════════════════
-   4. PASSWORD STRENGTH METER
-   ════════════════════════════════════════════════════════════════════ */
 DOM.regPass && DOM.regPass.addEventListener('input', () => {
     const val = DOM.regPass.value;
     const bar = DOM.strengthBar;
@@ -180,15 +140,12 @@ DOM.regPass && DOM.regPass.addEventListener('input', () => {
     }
 });
 
-/* ════════════════════════════════════════════════════════════════════
-   5. VALIDATION HELPERS
-   ════════════════════════════════════════════════════════════════════ */
 function isValidEmail(e) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 }
 
 function setFieldError(input, msg) {
-    if (!input) return;                              // FIX-6: null guard
+    if (!input) return;
     const wrap = input.closest('.login-field');
     const err  = wrap && wrap.querySelector('.field-error');
     input.classList.toggle('input-error', !!msg);
@@ -203,7 +160,6 @@ function clearFieldError(input) {
 }
 
 function clearAlerts() {
-    /* FIX-6: filter out nulls before forEach */
     [DOM.loginAlert, DOM.regAlert, DOM.forgotAlert].forEach(el => {
         if (!el) return;
         el.classList.remove('visible', 'error', 'success', 'info');
@@ -226,21 +182,13 @@ function showAlert(el, type, msg) {
         <span>${msg}</span>`;
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   6. BUTTON LOADING STATE + RATE-LIMIT GUARD
-   FIX-RATELIMIT: prevents spam-clicking auth buttons before Firebase responds.
-   Each button gets a 1500ms cooldown after being enabled again on error,
-   so rapid repeated attempts are blocked client-side.
-   ════════════════════════════════════════════════════════════════════ */
 const _btnCooldowns = new WeakMap();
 
 function setLoading(btn, loading) {
     if (!btn) return;
-    /* If re-enabling after an error, apply a short cooldown */
     if (!loading) {
         const cooldownTimer = _btnCooldowns.get(btn);
         if (cooldownTimer) clearTimeout(cooldownTimer);
-        /* Keep disabled for 1.5s after error to prevent rapid re-submission */
         btn.disabled = true;
         btn.classList.remove('loading');
         const t = setTimeout(() => { btn.disabled = false; }, 1500);
@@ -251,9 +199,6 @@ function setLoading(btn, loading) {
     btn.classList.add('loading');
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   7. SUCCESS ANIMATION → REDIRECT
-   ════════════════════════════════════════════════════════════════════ */
 function showSuccess(redirectTo = './index.html') {
     if (DOM.successScreen) {
         DOM.successScreen.classList.add('visible');
@@ -263,9 +208,6 @@ function showSuccess(redirectTo = './index.html') {
     }, 1600);
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   8. LOGIN FORM
-   ════════════════════════════════════════════════════════════════════ */
 DOM.loginBtn && DOM.loginBtn.addEventListener('click', async () => {
     const email = DOM.loginEmail ? DOM.loginEmail.value.trim() : '';
     const pass  = DOM.loginPass  ? DOM.loginPass.value         : '';
@@ -305,9 +247,6 @@ DOM.loginBtn && DOM.loginBtn.addEventListener('click', async () => {
 DOM.loginEmail && DOM.loginEmail.addEventListener('input', () => clearFieldError(DOM.loginEmail));
 DOM.loginPass  && DOM.loginPass.addEventListener('input',  () => clearFieldError(DOM.loginPass));
 
-/* ════════════════════════════════════════════════════════════════════
-   9. GOOGLE LOGIN
-   ════════════════════════════════════════════════════════════════════ */
 function handleGoogleLogin(alertEl, btn) {
     setLoading(btn, true);
     window.NexusAuth.googleLogin()
@@ -324,9 +263,6 @@ DOM.loginGoogleBtn && DOM.loginGoogleBtn.addEventListener('click',
 DOM.regGoogleBtn && DOM.regGoogleBtn.addEventListener('click',
     () => handleGoogleLogin(DOM.regAlert, DOM.regGoogleBtn));
 
-/* ════════════════════════════════════════════════════════════════════
-   10. REGISTER FORM
-   ════════════════════════════════════════════════════════════════════ */
 DOM.regBtn && DOM.regBtn.addEventListener('click', async () => {
     const name    = DOM.regName    ? DOM.regName.value.trim()   : '';
     const email   = DOM.regEmail   ? DOM.regEmail.value.trim()  : '';
@@ -380,9 +316,6 @@ DOM.regBtn && DOM.regBtn.addEventListener('click', async () => {
     el && el.addEventListener('input', () => clearFieldError(el));
 });
 
-/* ════════════════════════════════════════════════════════════════════
-   11. FORGOT PASSWORD OVERLAY
-   ════════════════════════════════════════════════════════════════════ */
 function openForgot() {
     if (DOM.forgotOverlay) {
         DOM.forgotOverlay.classList.add('open');
@@ -441,29 +374,14 @@ DOM.forgotEmail && DOM.forgotEmail.addEventListener('keydown', e => {
     if (e.key === 'Enter') DOM.forgotBtn && DOM.forgotBtn.click();
 });
 
-/* ════════════════════════════════════════════════════════════════════
-   12. AUTH STATE GUARD — redirect if already logged in
-   FIX-2:      Wrapped in try/catch — bad Firebase config no longer crashes page
-   FIX-TIMING: onAuthChanged fires immediately if user is cached (already logged in).
-               This can happen before DOM is fully painted, skipping the success
-               screen. We now wait for DOMContentLoaded before subscribing, and
-               use a 200ms guard so the success animation has time to render
-               before window.location.replace fires.
-   ════════════════════════════════════════════════════════════════════ */
 function _attachAuthGuard() {
     try {
         window.NexusAuth.onAuthChanged(user => {
             if (user) {
-                /* Small guard: ensure success screen is visible before redirect */
                 if (DOM.successScreen &&
                     DOM.successScreen.classList.contains('visible')) {
-                    /* Already showing success — redirect is already scheduled */
                     return;
                 }
-                /*
-                 * User was already logged in when page loaded (cached session).
-                 * Show success briefly then redirect — avoids jarring blank flash.
-                 */
                 if (DOM.successScreen) {
                     DOM.successScreen.classList.add('visible');
                 }
@@ -476,19 +394,12 @@ function _attachAuthGuard() {
         console.warn('[NexusID Login] onAuthChanged error:', e);
     }
 }
-
-/* FIX-TIMING: subscribe only after DOM is ready */
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _attachAuthGuard);
 } else {
     _attachAuthGuard(); // already ready (script deferred or at end of body)
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   13. CANVAS PARTICLE ANIMATION
-   FIX-3: Debounced resize — no more excessive canvas resets on drag-resize
-   FIX-4: resize no longer spawns a second RAF loop
-   ════════════════════════════════════════════════════════════════════ */
 (function initCanvas() {
     const canvas = $('login-bg-canvas');
     if (!canvas) return;
@@ -558,14 +469,12 @@ if (document.readyState === 'loading') {
     }
 
     function startDraw() {
-        if (raf) cancelAnimationFrame(raf); // FIX-4: cancel before starting
+        if (raf) cancelAnimationFrame(raf);
         raf = requestAnimationFrame(draw);
     }
 
     init();
     startDraw();
-
-    /* FIX-3: debounced resize — only triggers 150ms after user stops resizing */
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
@@ -583,20 +492,12 @@ if (document.readyState === 'loading') {
         if (document.hidden) {
             if (raf) { cancelAnimationFrame(raf); raf = null; }
         } else {
-            /* FIX-CANVAS-RACE: if tab was hidden before init() completed,
-               W and H are undefined — ctx.clearRect(NaN) would silently fail.
-               Re-init if dimensions are missing before restarting draw loop. */
             if (!W || !H) init();
             startDraw();
         }
     });
 })();
 
-/* ════════════════════════════════════════════════════════════════════
-   14. REMEMBER ME — pre-fill email from localStorage
-   FIX-7: Removed duplicate event listener (was added twice in original)
-          Remember-me logic merged into the single loginBtn click handler
-   ════════════════════════════════════════════════════════════════════ */
 (function initRemember() {
     try {
         const saved = localStorage.getItem('nexusid_remember_email');
@@ -622,7 +523,3 @@ DOM.loginBtn && DOM.loginBtn.addEventListener('click', () => {
     } catch (e) { /* localStorage blocked */ }
 }, true); // capture phase — runs before the async login handler
 
-/* ════════════════════════════════════════════════════════════════════
-   READY
-   ════════════════════════════════════════════════════════════════════ */
-console.log('[NexusID Login] login.js v1.2.0 ready');

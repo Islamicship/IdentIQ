@@ -477,12 +477,27 @@
         try {
             if (window.NexusAuth && typeof window.NexusAuth.onAuthChanged === 'function') {
                 var _checked = false;
+                var _fallbackTimer = setTimeout(function() {
+                    if (!_checked) {
+                        _checked = true;
+                        window.location.replace('./login.html');
+                    }
+                }, 3000);
                 var _unsub = window.NexusAuth.onAuthChanged(function(user) {
                     if (_checked) return;
-                    _checked = true;
-                    if (_unsub) _unsub();
-                    if (!user) {
-                        window.location.replace('./login.html');
+                    if (user) {
+                        _checked = true;
+                        clearTimeout(_fallbackTimer);
+                        if (_unsub) _unsub();
+                    } else {
+                        clearTimeout(_fallbackTimer);
+                        _fallbackTimer = setTimeout(function() {
+                            if (!_checked) {
+                                _checked = true;
+                                if (_unsub) _unsub();
+                                window.location.replace('./login.html');
+                            }
+                        }, 3000);
                     }
                 });
             }

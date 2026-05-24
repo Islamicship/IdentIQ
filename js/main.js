@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var tabs    = document.querySelectorAll('.nav-tab[data-target]');
     var sections = document.querySelectorAll('.app-section');
 
+    var wipeTimer  = null;
+    var wipeStart  = null;
+    var wipeEl     = document.getElementById('wipeCountdown');
+    var _wipeWarnShown = false;
+
     var _analyticsTimer;
     function switchTab(targetId) {
         tabs.forEach(function (t) {
@@ -271,10 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var _savedWipeMins = 5;
     try { if (window.IS && IS.settings) _savedWipeMins = IS.settings.read().wipeMinutes || 5; } catch(e) {}
     var WIPE_MS    = _savedWipeMins * 60 * 1000;
-    var wipeTimer  = null;
-    var wipeStart  = null;
-    var wipeEl     = document.getElementById('wipeCountdown');
-    var _wipeWarnShown = false;
 
     function doWipe() {
         var inputText = document.getElementById('inputText');

@@ -1,5 +1,7 @@
 'use strict';
 
+window.IS = window.IS || {};
+
 try {
 
 (function () {
@@ -770,8 +772,6 @@ try {
     }
 
     function buildAbout() {
-        var showInstall = !!window._IS_deferredInstall;
-
         var changelogItems = ['changelog1','changelog2','changelog3','changelog4','changelog5'].map(function(k){
             return '<li class="sp-changelog-item">' + ICONS.zap + '<span>' + t(k) + '</span></li>';
         }).join('');
@@ -1043,6 +1043,7 @@ try {
     }
 
     function renderPanel() {
+        _aboutBound = false;
         var cfg = readSettings();
         _panel.innerHTML = buildPanelHTML(cfg);
         bindEvents(cfg);
@@ -1103,6 +1104,7 @@ try {
 
     function switchSection(id) {
         _activeNav = id;
+        _aboutBound = false;
         try { sessionStorage.setItem('SP_lastNav', id); } catch(e) {}
 
         _panel.querySelectorAll('.sp-nav-item').forEach(function (btn) {
@@ -1380,7 +1382,11 @@ try {
         }
     }
 
+    var _aboutBound = false;
+
     function bindAbout() {
+        if (_aboutBound) return;
+        _aboutBound = true;
         var installBtn = document.getElementById('spInstallBtn');
         if (installBtn) {
             var _alreadyInstalled = sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed');
