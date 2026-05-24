@@ -300,6 +300,7 @@
     (function(){
         let _deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', function(e) {
+            if (sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed')) return;
             e.preventDefault();
             _deferredPrompt = e;
             var wrap = document.getElementById('loginInstallWrap');
@@ -314,6 +315,10 @@
                     _deferredPrompt = null;
                     var wrap = document.getElementById('loginInstallWrap');
                     if (wrap) wrap.style.display = 'none';
+                    if (result.outcome === 'accepted') {
+                        sessionStorage.setItem('pwa_installed', '1');
+                        localStorage.setItem('pwa_installed', '1');
+                    }
                 });
             });
         }
@@ -321,6 +326,8 @@
             var wrap = document.getElementById('loginInstallWrap');
             if (wrap) wrap.style.display = 'none';
             _deferredPrompt = null;
+            sessionStorage.setItem('pwa_installed', '1');
+            localStorage.setItem('pwa_installed', '1');
         });
     })();
     </script>
@@ -380,7 +387,6 @@
 
 <!-- Login page controller -->
 <script src="js/login.js"></script>
-
 
 </body>
 </html>

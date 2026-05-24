@@ -378,6 +378,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var installBtn = document.getElementById('installAppBtn');
 
     window.addEventListener('beforeinstallprompt', function (e) {
+
+        if (sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed')) {
+            if (installBtn) installBtn.style.display = 'none';
+            return;
+        }
         e.preventDefault();
         window._IS_deferredInstall = e;
         if (installBtn) {
@@ -390,7 +395,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!window._IS_deferredInstall) return;
             window._IS_deferredInstall.prompt();
             window._IS_deferredInstall.userChoice.then(function (result) {
-                if (result.outcome === 'accepted') installBtn.style.display = 'none';
+                if (result.outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                    sessionStorage.setItem('pwa_installed', '1');
+                    localStorage.setItem('pwa_installed', '1');
+                }
                 window._IS_deferredInstall = null;
             });
         });
@@ -399,6 +408,8 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('appinstalled', function () {
         if (installBtn) installBtn.style.display = 'none';
         window._IS_deferredInstall = null;
+        sessionStorage.setItem('pwa_installed', '1');
+        localStorage.setItem('pwa_installed', '1');
         IS.showToast('App installed successfully!');
     });
 

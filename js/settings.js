@@ -370,6 +370,11 @@ try {
     function _syncInstallBtnVisibility() {
         var btn = _getInstallBtn();
         if (!btn) return;
+        if (sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed')) {
+            btn.style.display = 'none';
+            _updateGearDot();
+            return;
+        }
         btn.style.display = window._IS_deferredInstall ? '' : 'none';
         _updateGearDot();
     }
@@ -1377,19 +1382,30 @@ try {
 
     function bindAbout() {
         var installBtn = document.getElementById('spInstallBtn');
-        if (installBtn && window._IS_deferredInstall) {
-            installBtn.style.display = '';
-            installBtn.addEventListener('click', function () {
-                if (!window._IS_deferredInstall) return;
-
-                var deferred = window._IS_deferredInstall;
-                window._IS_deferredInstall = null;
+        if (installBtn) {
+            var _alreadyInstalled = sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed');
+            if (_alreadyInstalled) {
                 installBtn.style.display = 'none';
-                deferred.prompt();
-                deferred.userChoice.then(function () {}).catch(function () {});
-            });
+            } else if (window._IS_deferredInstall) {
+                installBtn.style.display = '';
+                installBtn.addEventListener('click', function () {
+                    if (!window._IS_deferredInstall) return;
+
+                    var deferred = window._IS_deferredInstall;
+                    window._IS_deferredInstall = null;
+                    installBtn.style.display = 'none';
+                    deferred.prompt();
+                    deferred.userChoice.then(function (result) {
+                        if (result.outcome === 'accepted') {
+                            sessionStorage.setItem('pwa_installed', '1');
+                            localStorage.setItem('pwa_installed', '1');
+                        }
+                    }).catch(function () {});
+                });
+            }
         }
         window.addEventListener('beforeinstallprompt', function() {
+            if (sessionStorage.getItem('pwa_installed') || localStorage.getItem('pwa_installed')) return;
             var btn = document.getElementById('spInstallBtn');
             if (btn) btn.style.display = '';
         }, { once: true });
