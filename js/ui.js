@@ -16,7 +16,8 @@ window.IS = window.IS || {};
         }
         if (_sharedAC.state === "suspended") {
             try {
-                _sharedAC.resume();
+                var rp = _sharedAC.resume();
+                if (rp && rp.catch) rp.catch(function() {});
             } catch (e) {}
         }
         return _sharedAC;
@@ -77,30 +78,58 @@ window.IS = window.IS || {};
         var shrink = Math.max(0, before.replace(/\s/g, "").length - after.replace(/\s/g, "").length);
         return removed + Math.floor(shrink / 4);
     };
-    IS.fastCopy = function(text) {
-        if (!text) return false;
-        IS.playCopySound();
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).catch(function() {
-                IS.fastCopy._legacyCopy(text);
-            });
-            return true;
-        }
-        IS.fastCopy._legacyCopy(text);
-        return true;
-    };
-    IS.fastCopy._legacyCopy = function(text) {
+    function legacyCopy(text) {
+        var prev = document.activeElement;
         var ta = document.createElement("textarea");
         ta.value = text;
+        ta.setAttribute("readonly", "");
         ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none";
         document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
+        var ok = false;
         try {
-            document.execCommand("copy");
-        } catch (e) {}
-        document.body.removeChild(ta);
+            ta.focus({
+                preventScroll: true
+            });
+            ta.select();
+            ta.setSelectionRange(0, ta.value.length);
+            ok = document.execCommand("copy") === true;
+        } catch (e) {
+            ok = false;
+        }
+        if (ta.parentNode) ta.parentNode.removeChild(ta);
+        if (prev && prev !== document.body && typeof prev.focus === "function") {
+            try {
+                prev.focus({
+                    preventScroll: true
+                });
+            } catch (e) {}
+        }
+        return ok;
+    }
+    IS.copyText = function(text) {
+        if (!text) return Promise.resolve(false);
+        IS.playCopySound();
+        if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+            var p;
+            try {
+                p = navigator.clipboard.writeText(text);
+            } catch (e) {
+                return Promise.resolve(legacyCopy(text));
+            }
+            return p.then(function() {
+                return true;
+            }, function() {
+                return legacyCopy(text);
+            });
+        }
+        return Promise.resolve(legacyCopy(text));
     };
+    IS.fastCopy = function(text) {
+        if (!text) return false;
+        IS.copyText(text);
+        return true;
+    };
+    IS.fastCopy._legacyCopy = legacyCopy;
     IS.toLatin = function(s) {
         if (!s) return "";
         s = s.replace(/[\u0660-\u0669]/g, function(d) {
@@ -181,14 +210,18 @@ window.IS = window.IS || {};
         }, FX_END_MS);
     };
     IS.setupCopyBtn = function(btn, getValue) {
+        btn._getCopyValue = getValue;
+        if (btn._copyBound) return;
+        btn._copyBound = true;
         btn.innerHTML = IS.COPY_SVG;
         btn._copying = false;
         if (!btn.hasAttribute("data-tip")) btn.setAttribute("data-tip", "Copy");
         btn.addEventListener("click", function() {
-            var val = getValue();
+            var val = typeof btn._getCopyValue === "function" ? btn._getCopyValue() : "";
             if (!val) return;
-            IS.fastCopy(val);
-            IS.copyFx(btn);
+            IS.copyText(val).then(function(ok) {
+                if (ok) IS.copyFx(btn); else IS.showToast(IS.i18n.get("copyFailed"), "error");
+            });
         });
     };
     IS.triggerConfetti = function(opts) {
@@ -199,11 +232,14 @@ window.IS = window.IS || {};
             origin: {
                 y: .55
             },
+            disableForReducedMotion: true,
             colors: [ "#00f5e8", "#00e87a", "#00a2ff", "#ffffff", "#ffcc00" ]
         }, opts || {}));
     };
+    var _exportConfettiRunning = false;
     IS.triggerExportConfetti = function() {
-        if (typeof window.confetti !== "function") return;
+        if (typeof window.confetti !== "function" || _exportConfettiRunning) return;
+        _exportConfettiRunning = true;
         var end = Date.now() + 900;
         (function frame() {
             window.confetti({
@@ -213,6 +249,7 @@ window.IS = window.IS || {};
                 origin: {
                     x: 0
                 },
+                disableForReducedMotion: true,
                 colors: [ "#00f5e8", "#00e87a", "#00a2ff" ]
             });
             window.confetti({
@@ -222,9 +259,10 @@ window.IS = window.IS || {};
                 origin: {
                     x: 1
                 },
+                disableForReducedMotion: true,
                 colors: [ "#00f5e8", "#00e87a", "#ffcc00" ]
             });
-            if (Date.now() < end) requestAnimationFrame(frame);
+            if (Date.now() < end) requestAnimationFrame(frame); else _exportConfettiRunning = false;
         })();
     };
     function _escToast(s) {
@@ -316,6 +354,7 @@ window.IS = window.IS || {};
             namesSpeakUnsupported: "Speech is not supported in this browser",
             namesSpeakNoVoice: "No Arabic voice found on this device",
             namesRef: "Quran {r}",
+            copyFailed: "Copy failed",
             namesNoteHusna: "Names of Allah as they appear in the Quran, arranged by first occurrence (surah:ayah).",
             namesNoteNabi: "Names and titles of the Prophet \uFDFA found in the Quran, arranged by first occurrence (surah:ayah)."
         },
@@ -393,6 +432,7 @@ window.IS = window.IS || {};
             namesSpeakUnsupported: "اس براؤزر میں آواز کی سہولت موجود نہیں",
             namesSpeakNoVoice: "اس ڈیوائس پر عربی آواز دستیاب نہیں",
             namesRef: "قرآن {r}",
+            copyFailed: "کاپی نہیں ہو سکا",
             namesNoteHusna: "اللہ تعالیٰ کے وہ نام جو قرآن مجید میں آئے ہیں، پہلی بار آنے کی ترتیب سے (سورت:آیت)۔",
             namesNoteNabi: "نبی کریم \uFDFA کے وہ نام اور القاب جو قرآن مجید میں آئے ہیں، پہلی بار آنے کی ترتیب سے (سورت:آیت)۔"
         }
@@ -414,7 +454,7 @@ window.IS = window.IS || {};
             var prev = this._lang;
             try {
                 var s = localStorage.getItem("IS_lang_v4");
-                if (s) this._lang = s;
+                if (s === "en" || s === "ur") this._lang = s;
             } catch (e) {}
             this._apply();
             if (this._lang !== prev) {
@@ -480,7 +520,11 @@ window.IS = window.IS || {};
         _max: IS.HISTORY_MAX,
         get: function() {
             try {
-                return JSON.parse(localStorage.getItem(HKEY) || "[]");
+                var a = JSON.parse(localStorage.getItem(HKEY) || "[]");
+                if (!Array.isArray(a)) return [];
+                return a.filter(function(x) {
+                    return x && typeof x === "object";
+                });
             } catch (e) {
                 return [];
             }
@@ -510,11 +554,21 @@ window.IS = window.IS || {};
             };
         },
         get: function() {
+            var d = this._defaults();
             try {
-                return Object.assign(this._defaults(), JSON.parse(localStorage.getItem(AKEY) || "{}"));
+                var p = JSON.parse(localStorage.getItem(AKEY) || "{}");
+                if (p && typeof p === "object" && !Array.isArray(p)) Object.assign(d, p);
             } catch (e) {
-                return this._defaults();
+                d = this._defaults();
             }
+            [ "totalProcessed", "successfulExtractions", "totalExports" ].forEach(function(k) {
+                var n = Number(d[k]);
+                d[k] = isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+            });
+            d.recentExports = Array.isArray(d.recentExports) ? d.recentExports.filter(function(x) {
+                return x && typeof x === "object";
+            }) : [];
+            return d;
         },
         save: function(d) {
             try {

@@ -34,6 +34,7 @@
         if (speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", pickArabicVoice);
     }
     var player = null;
+    var liveUtterance = null;
     var audioFailed = {};
     function clearSpeaking() {
         document.querySelectorAll(".name-speak.speaking").forEach(function(b) {
@@ -47,6 +48,10 @@
                 player.pause();
             } catch (e) {}
             player = null;
+        }
+        if (liveUtterance) {
+            liveUtterance.onstart = liveUtterance.onend = liveUtterance.onerror = null;
+            liveUtterance = null;
         }
         if ("speechSynthesis" in window) speechSynthesis.cancel();
         clearSpeaking();
@@ -64,8 +69,10 @@
         u.onstart = function() {
             btn.classList.add("speaking");
         };
+        liveUtterance = u;
         u.onend = u.onerror = function() {
             btn.classList.remove("speaking");
+            if (liveUtterance === u) liveUtterance = null;
         };
         speechSynthesis.speak(u);
         if (!arVoice && window.IS && IS.showToast) IS.showToast(tr("namesSpeakNoVoice"), "info");
@@ -82,17 +89,23 @@
             };
             a.onended = a.onpause = function() {
                 btn.classList.remove("speaking");
-            };
-            a.onerror = function() {
-                audioFailed[info.src] = true;
                 if (player === a) player = null;
+            };
+            var fallback = function() {
+                if (player !== a) return;
+                audioFailed[info.src] = true;
+                player = null;
                 btn.classList.remove("speaking");
                 speakTTS(info.ar, btn);
             };
+            a.onerror = fallback;
             var pr = a.play();
             if (pr && pr.catch) pr.catch(function(err) {
-                if (err && err.name === "NotAllowedError") return;
-                a.onerror && a.onerror();
+                if (err && (err.name === "NotAllowedError" || err.name === "AbortError")) {
+                    if (player === a) player = null;
+                    return;
+                }
+                fallback();
             });
             return;
         }
@@ -108,13 +121,13 @@
         return s;
     }
     function normAr(s) {
-        return s.replace(/[ً-ٰٟۖ-ۭـ]/g, "").replace(/[آأإٱ]/g, "ا").replace(/ى/g, "ي");
+        return s.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "").replace(/[\u0622\u0623\u0625\u0671]/g, "\u0627").replace(/\u0649/g, "\u064A");
     }
     function normLatin(s) {
-        return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’`\-\s]+/g, "").replace(/ee/g, "i").replace(/oo/g, "u").replace(/(.)\1+/g, "$1");
+        return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036F]/g, "").replace(/['\u2019`\-\s]+/g, "").replace(/ee/g, "i").replace(/oo/g, "u").replace(/(.)\1+/g, "$1");
     }
     function hasArabic(s) {
-        return /[؀-ۿ]/.test(s);
+        return /[\u0600-\u06FF]/.test(s);
     }
     function toLatinDigits(s) {
         return window.IS && IS.toLatin ? IS.toLatin(s) : s;
@@ -177,7 +190,7 @@
             var grid = document.getElementById(COLLECTIONS[key].gridId);
             var frag = document.createDocumentFragment();
             var items = [];
-            data[key].forEach(function(n) {
+            (data[key] || []).forEach(function(n) {
                 var li = mk("li", "name-card");
                 li.dataset.id = n.id;
                 var head = mk("div", "name-card-head");
@@ -255,7 +268,8 @@
             if (noteEl) noteEl.textContent = tr(COLLECTIONS[state.collection].noteKey);
         }
         function setCollection(key) {
-            if (!COLLECTIONS[key]) key = "husna";
+            if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, key)) key = "husna";
+            stopAll();
             state.collection = key;
             renderCollection(key);
             root.dataset.collection = key;
@@ -330,13 +344,25 @@
             if (!btn) return;
             var text = copyText.get(btn.closest(".name-card"));
             if (!text) return;
-            if (window.IS && IS.fastCopy) {
-                IS.fastCopy(text);
-            } else if (navigator.clipboard) {
-                navigator.clipboard.writeText(text).catch(function() {});
+            var onCopied = function(ok) {
+                if (ok) {
+                    if (window.IS && IS.copyFx) IS.copyFx(btn); else console.warn("[names] IS.copyFx not found - js/ui.js is outdated.");
+                    if (window.IS && IS.showToast) IS.showToast(tr("namesCopied"));
+                } else if (window.IS && IS.showToast) {
+                    IS.showToast(tr("copyFailed"), "error");
+                }
+            };
+            if (window.IS && IS.copyText) {
+                IS.copyText(text).then(onCopied);
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    onCopied(true);
+                }, function() {
+                    onCopied(false);
+                });
+            } else {
+                onCopied(false);
             }
-            if (window.IS && IS.copyFx) IS.copyFx(btn); else console.warn("[names] IS.copyFx not found - js/ui.js is outdated.");
-            if (window.IS && IS.showToast) IS.showToast(tr("namesCopied"));
         });
         window.addEventListener("IS_lang_changed", function() {
             var q = state.query.trim();
@@ -367,7 +393,8 @@
         IS.names = {
             show: setCollection,
             setScript: setScript,
-            filter: setQuery
+            filter: setQuery,
+            stop: stopAll
         };
     });
 })();

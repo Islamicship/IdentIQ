@@ -37,11 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
             _analyticsTimer = setTimeout(renderAnalytics, 80);
         }
         window._activeTab = targetId;
-        if (wipeTimer && targetId !== "tab-extractor") {
-            clearInterval(wipeTimer);
-            wipeTimer = null;
-            if (wipeEl) wipeEl.textContent = "";
-        }
+        if (targetId !== "tab-names" && window.IS && IS.names && IS.names.stop) IS.names.stop();
         var fab = document.getElementById("genFab");
         if (fab) {
             if (targetId === "tab-generator") fab.classList.add("fab-visible"); else fab.classList.remove("fab-visible");
@@ -61,6 +57,8 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
         if (window.IS && IS.settings) savedTab = IS.settings.read().defaultTab || savedTab;
     } catch (e) {}
+    var savedTabEl = document.getElementById(savedTab);
+    if (!savedTabEl || !savedTabEl.classList.contains("app-section")) savedTab = "tab-extractor";
     if (hash === "settings") {
         switchTab(savedTab);
         setTimeout(function() {
@@ -153,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 expList.innerHTML = data.recentExports.map(function(ex) {
                     var d = new Date(ex.ts);
-                    var label = ex.label.replace(/_/g, " ").replace(/\d{13}$/, "").trim();
+                    var label = String(ex && ex.label || "").replace(/_/g, " ").replace(/\d{13}$/, "").trim();
                     return '<li class="recent-item">' + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' + '<span class="recent-label-text">' + IS.escHtml(label) + "</span>" + '<span class="recent-time">' + formatRelTime(d) + "</span>" + "</li>";
                 }).join("");
             }
@@ -269,9 +267,13 @@ document.addEventListener("DOMContentLoaded", function() {
             IS.showToast("All data cleared.");
         });
     }
+    function normWipeMins(v) {
+        var n = Number(v);
+        return isFinite(n) && n > 0 ? n : 5;
+    }
     var _savedWipeMins = 5;
     try {
-        if (window.IS && IS.settings) _savedWipeMins = IS.settings.read().wipeMinutes || 5;
+        if (window.IS && IS.settings) _savedWipeMins = normWipeMins(IS.settings.read().wipeMinutes);
     } catch (e) {}
     var WIPE_MS = _savedWipeMins * 60 * 1e3;
     function syncWipeLabel(mins) {
@@ -346,8 +348,9 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     resetWipeTimer();
     window.addEventListener("IS_wipe_mins_changed", function(e) {
-        WIPE_MS = e.detail * 60 * 1e3;
-        syncWipeLabel(e.detail);
+        var mins = normWipeMins(e.detail);
+        WIPE_MS = mins * 60 * 1e3;
+        syncWipeLabel(mins);
         resetWipeTimer();
     });
     window.addEventListener("IS_lang_changed", function() {
@@ -369,7 +372,9 @@ document.addEventListener("DOMContentLoaded", function() {
         suffix = suffix || "";
         var dur = 600;
         var start = performance.now();
+        var animId = el._animId = (el._animId || 0) + 1;
         function step(now) {
+            if (el._animId !== animId) return;
             var p = Math.min((now - start) / dur, 1);
             var v = Math.round(from + (to - from) * easeOut(p));
             el.textContent = v + suffix;
@@ -381,16 +386,12 @@ document.addEventListener("DOMContentLoaded", function() {
         return 1 - Math.pow(1 - t, 3);
     }
     var installBtn = document.getElementById("installAppBtn");
+    var isStandalone = !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
     window.addEventListener("beforeinstallprompt", function(e) {
-        if (sessionStorage.getItem("pwa_installed") || localStorage.getItem("pwa_installed")) {
-            if (installBtn) installBtn.style.display = "none";
-            return;
-        }
         e.preventDefault();
+        if (isStandalone) return;
         window._IS_deferredInstall = e;
-        if (installBtn) {
-            installBtn.style.display = "";
-        }
+        if (installBtn) installBtn.style.display = "";
     });
     if (installBtn) {
         installBtn.addEventListener("click", function() {
@@ -398,20 +399,16 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!deferred) return;
             window._IS_deferredInstall = null;
             installBtn.style.display = "none";
-            deferred.prompt();
-            deferred.userChoice.then(function(result) {
-                if (result.outcome === "accepted") {
-                    sessionStorage.setItem("pwa_installed", "1");
-                    localStorage.setItem("pwa_installed", "1");
-                }
+            Promise.resolve().then(function() {
+                return deferred.prompt();
+            }).then(function() {
+                return deferred.userChoice;
             }).catch(function() {});
         });
     }
     window.addEventListener("appinstalled", function() {
         if (installBtn) installBtn.style.display = "none";
         window._IS_deferredInstall = null;
-        sessionStorage.setItem("pwa_installed", "1");
-        localStorage.setItem("pwa_installed", "1");
         IS.showToast("App installed successfully!");
     });
     var genFabBtn = document.getElementById("genFabBtn");
@@ -427,88 +424,94 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 520);
         });
     }
-    if ("serviceWorker" in navigator) {
-        var hadController = !!navigator.serviceWorker.controller;
-        var swToastShown = false;
-        var showUpdateToast = function() {
-            if (swToastShown) return;
-            swToastShown = true;
-            setTimeout(function() {
-                swToastShown = false;
-            }, 5e3);
-            IS.showToast('Update ready <button type="button" data-reload style="background:rgba(0,180,255,0.2);border:1px solid rgba(0,180,255,0.4);color:#00d4ff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;margin-left:6px;">Reload now</button>', "info", 0, true);
-            var toast = document.getElementById("gen-toast");
-            var btn = toast && toast.querySelector("[data-reload]");
-            if (btn) btn.addEventListener("click", function() {
-                location.reload();
-            });
-        };
-        navigator.serviceWorker.addEventListener("message", function(e) {
-            if (e.data && e.data.type === "SW_UPDATED" && hadController) showUpdateToast();
+
+});
+
+(function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    var hadController = !!navigator.serviceWorker.controller;
+    var userAccepted = false;
+    var reloading = false;
+    var toastShown = false;
+
+    function reloadOnce() {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+    }
+
+    // Reload only when the user explicitly accepted the update (avoids wiping extracted data unexpectedly)
+    navigator.serviceWorker.addEventListener("controllerchange", function() {
+        if (userAccepted) reloadOnce();
+    });
+
+    function showUpdateToast(worker) {
+        if (toastShown || !(window.IS && IS.showToast)) return;
+        toastShown = true;
+        setTimeout(function() {
+            toastShown = false;
+        }, 5000);
+        IS.showToast("Update ready", "info", 0);
+        var toast = document.getElementById("gen-toast");
+        if (!toast) return;
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.setAttribute("data-reload", "");
+        btn.textContent = "Reload now";
+        btn.style.cssText = "background:rgba(0,180,255,0.2);border:1px solid rgba(0,180,255,0.4);color:#00d4ff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;margin-left:6px;";
+        toast.appendChild(btn);
+        btn.addEventListener("click", function() {
+            if (worker && worker.state === "installed") {
+                userAccepted = true;
+                try {
+                    worker.postMessage({
+                        type: "SKIP_WAITING"
+                    });
+                } catch (e) {
+                    reloadOnce();
+                    return;
+                }
+                setTimeout(reloadOnce, 3000);
+            } else {
+                reloadOnce();
+            }
+        }, {
+            once: true
         });
-        navigator.serviceWorker.register("./service-worker.js", {
-            scope: "./"
+    }
+
+    navigator.serviceWorker.addEventListener("message", function(e) {
+        if (e.data && e.data.type === "SW_UPDATED" && hadController) showUpdateToast(null);
+    });
+
+    window.addEventListener("load", function() {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            // Remove the legacy js/-scoped SW if it was registered earlier
+            return Promise.all(regs.filter(function(r) {
+                return /\/js\/$/.test(r.scope);
+            }).map(function(r) {
+                return r.unregister();
+            }));
+        }).then(function() {
+            return navigator.serviceWorker.register("/service-worker.js", {
+                scope: "/",
+                updateViaCache: "none"
+            });
         }).then(function(reg) {
+            if (reg.waiting && navigator.serviceWorker.controller) showUpdateToast(reg.waiting);
             reg.addEventListener("updatefound", function() {
                 var worker = reg.installing;
                 if (!worker) return;
                 worker.addEventListener("statechange", function() {
-                    if (worker.state === "installed" && navigator.serviceWorker.controller) showUpdateToast();
+                    if (worker.state === "installed" && navigator.serviceWorker.controller) showUpdateToast(worker);
                 });
             });
-        }).catch(function() {});
-    }
-});
-
-(() => {
-  if (!('serviceWorker' in navigator)) return;
-
-  const hadController = !!navigator.serviceWorker.controller;
-  let reloading = false;
-
-  // Naya SW active hone par ek hi dafa reload (first install par nahi)
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || reloading) return;
-    reloading = true;
-    window.location.reload();
-  });
-
-  window.addEventListener('load', async () => {
-    try {
-      // Purana js/ scope wala SW (agar pehle register hua tha) unregister karo
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(
-        regs.filter(r => r.scope.endsWith('/js/')).map(r => r.unregister())
-      );
-
-      const reg = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/',
-        updateViaCache: 'none'
-      });
-
-      const promptUpdate = worker => {
-        // TODO: confirm() ki jagah apni UI ka toast/banner lagao
-        if (window.confirm('Naya version available hai. Abhi update karein?')) {
-          worker.postMessage({ type: 'SKIP_WAITING' });
-        }
-      };
-
-      if (reg.waiting && navigator.serviceWorker.controller) promptUpdate(reg.waiting);
-
-      reg.addEventListener('updatefound', () => {
-        const worker = reg.installing;
-        if (!worker) return;
-        worker.addEventListener('statechange', () => {
-          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-            promptUpdate(worker);
-          }
+            // Hourly update check for long-running tabs / installed PWA
+            setInterval(function() {
+                reg.update().catch(function() {});
+            }, 60 * 60 * 1000);
+        }).catch(function(err) {
+            console.error("[SW] registration failed:", err);
         });
-      });
-
-      // Long-running tab/PWA ke liye har ghante update check
-      setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
-    } catch (err) {
-      console.error('[SW] registration failed:', err);
-    }
-  });
+    });
 })();
