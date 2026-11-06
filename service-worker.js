@@ -6,7 +6,7 @@
  * ===================================================================== */
 'use strict';
 
-const VERSION      = '5.1.0';
+const VERSION      = '5.2.0';
 const CACHE_PREFIX = 'identiq-';
 const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
 

@@ -29,15 +29,49 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     if (!f.input) return;
     f.input.setAttribute("maxlength", "50000");
+    /* ───────── Helpers: IS fallbacks, locale-safe moment ───────── */
+    function toLatin(s) { return (window.IS && IS.toLatin) ? IS.toLatin(s) : s; }
+    function stripHidden(s) { return (window.IS && IS.stripHiddenChars) ? IS.stripHiddenChars(s) : s; }
+    function escHtml(s) {
+        if (window.IS && IS.escHtml) return IS.escHtml(s);
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+    }
+    // moment-hijri ka default locale 'ar-sa' hai => Arabic-Indic digits. Hamesha 'en' mein format karo.
+    function fmt(m, pattern) { return m.clone().locale("en").format(pattern); }
+    function hijriReady() { return !!(window.moment && moment.fn && moment.fn.iYear); }
+
+    var LIMITS = { SCAN_CHARS: 20000, LINES: 300, DATES: 24, HL_CHARS: 8000, HL_SPANS: 400 };
+    var AR_L = "\\u0621-\\u064A\\u066E-\\u06D3\\u06D5\\u06FA-\\u06FF";   // sirf huroof (digits/punctuation nahi)
+    var AR_M = "\\u064B-\\u065F\\u0670\\u06D6-\\u06ED";                 // harkat/diacritics
+    var MARKS_RE = new RegExp("[" + AR_M + "]", "g");
+
+    // Sab regexes linear hain: nested/ambiguous quantifier nahi => ReDoS ka khatra nahi
+    var RE = {
+        id10: /\b[0-9]{10}\b/g,
+        date: /[0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2}|[0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4}/g,
+        enRun: /[A-Za-z][A-Za-z'’.\-]*(?: +[A-Za-z][A-Za-z'’.\-]*)*/g,
+        arName: new RegExp("[" + AR_L + "][" + AR_L + AR_M + " ]{7,}"),
+        nameLead: /^\s*(?:FULL\s+)?NAME\b\s*/i,
+        birthHint: /BIRTH|DOB|B\.?DATE|ميلاد|مولد/i,
+        otherDateHint: /EXPIR|VALID|ISSUE|انتهاء|صلاحية|اصدار|إصدار/i
+    };
+
     function cleanArabic(text) {
         if (!text) return "";
-        var t = text;
-        t = t.replace(/\uFDF2/g, "اللّہ");
-        t = t.replace(/[\u064B-\u0652\u0670\u06D6-\u06ED]/g, "");
-        t = t.replace(/\u0627\u0644\u0644\u0647/g, "اللّه");
-        t = t.replace(/\u0627\u0644\u0644\u06C1/g, "اللّہ");
-        return t.trim();
+        var t = String(text).replace(/ﷲ/g, "اللّہ");
+        t = t.replace(MARKS_RE, "");
+        t = t.replace(/الله/g, "اللّه");
+        t = t.replace(/اللہ/g, "اللّہ");
+        return t.replace(/\s+/g, " ").trim();
     }
+    function normAr(w) {
+        return String(w).replace(MARKS_RE, "").replace(/[آأإٱ]/g, "ا")
+            .replace(/ى/g, "ي").replace(/ة/g, "ه");
+    }
+    function lettersOnly(s) { return s.replace(/[^A-Za-z]/g, "").length; }
+
     function clearFields() {
         [ f.nameAr, f.nameEn, f.aqama, f.dobH, f.dobG ].forEach(function(el) {
             if (el) el.value = "";
@@ -156,63 +190,41 @@ document.addEventListener("DOMContentLoaded", function() {
     window.IS = window.IS || {};
     IS.cancelTypewriter = cancelTypewriter;
 
+    function scanSpans(re, str, cls, spans, accept) {
+        var r = new RegExp(re.source, "g"), m;
+        while (spans.length < LIMITS.HL_SPANS && (m = r.exec(str))) {
+            if (!m[0].length) { r.lastIndex++; continue; }
+            if (!accept || accept(m[0])) spans.push({ s: m.index, e: m.index + m[0].length, cls: cls });
+        }
+    }
+    function buildHighlightHtml(input) {
+        var all = typeof input === "string" ? input : "";
+        var text = all.slice(0, LIMITS.HL_CHARS), rest = all.slice(LIMITS.HL_CHARS);
+        var latin = toLatin(text);
+        if (latin.length !== text.length) latin = text;          // offsets misalign na hon
+        var spans = [];
+        scanSpans(RE.id10, latin, "hl-id", spans);
+        scanSpans(RE.date, latin, "hl-date", spans);
+        scanSpans(RE.arName, text, "hl-name-ar", spans);
+        scanSpans(RE.enRun, text, "hl-name-en", spans, function (x) {
+            return lettersOnly(x) >= 4 && (x.indexOf(" ") !== -1 || x.length >= 6);
+        });
+        spans.sort(function (a, b) { return a.s - b.s || b.e - a.e; });
+        var html = "", cur = 0, lastEnd = 0;
+        spans.forEach(function (sp) {
+            if (sp.s < lastEnd) return;
+            if (sp.s > cur) html += escHtml(text.slice(cur, sp.s));
+            html += '<mark class="' + sp.cls + '">' + escHtml(text.slice(sp.s, sp.e)) + "</mark>";
+            cur = lastEnd = sp.e;
+        });
+        return html + escHtml(text.slice(cur)) + escHtml(rest) + "\n";
+    }
+    var _lastHlText = null;
     function buildHighlight(text) {
         if (!f.highlight) return;
-        var latinText = IS.toLatin(text);
-        var spans = [];
-        var idRe = /\b([0-9]{10})\b/g;
-        var m;
-        while ((m = idRe.exec(latinText)) !== null) {
-            spans.push({
-                s: m.index,
-                e: m.index + m[0].length,
-                cls: "hl-id"
-            });
-        }
-        var dateRe = /([0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2})|([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/g;
-        while ((m = dateRe.exec(latinText)) !== null) {
-            spans.push({
-                s: m.index,
-                e: m.index + m[0].length,
-                cls: "hl-date"
-            });
-        }
-        var arRe = /[\u0600-\u06FF][\u0600-\u06FF ]{7,}/g;
-        while ((m = arRe.exec(text)) !== null) {
-            spans.push({
-                s: m.index,
-                e: m.index + m[0].length,
-                cls: "hl-name-ar"
-            });
-        }
-        var enRe = /[A-Za-z][A-Za-z ]*[A-Za-z]/g;
-        while ((m = enRe.exec(text)) !== null) {
-            var matched = m[0];
-            var nonSpaceCount = matched.replace(/ /g, "").length;
-            if (nonSpaceCount >= 4 && (matched.indexOf(" ") !== -1 || matched.length >= 6)) {
-                spans.push({
-                    s: m.index,
-                    e: m.index + matched.length,
-                    cls: "hl-name-en"
-                });
-            }
-        }
-        spans.sort(function(a, b) {
-            return a.s - b.s || b.e - a.e;
-        });
-        var result = "";
-        var cursor = 0;
-        var lastEnd = 0;
-        spans.forEach(function(sp) {
-            if (sp.s < lastEnd) return;
-            if (sp.s > cursor) result += IS.escHtml(text.slice(cursor, sp.s));
-            result += '<mark class="' + sp.cls + '">' + IS.escHtml(text.slice(sp.s, sp.e)) + "</mark>";
-            cursor = sp.e;
-            lastEnd = sp.e;
-        });
-        if (cursor < text.length) result += IS.escHtml(text.slice(cursor));
-        result += "\n";
-        f.highlight.innerHTML = result;
+        if (text === _lastHlText) return;       // wahi text: DOM dobara na banao
+        _lastHlText = text;
+        f.highlight.innerHTML = buildHighlightHtml(text);
     }
     function syncHighlightScroll() {
         if (f.highlight) {
@@ -220,11 +232,113 @@ document.addEventListener("DOMContentLoaded", function() {
             f.highlight.scrollLeft = f.input.scrollLeft;
         }
     }
-    var EN_LABEL_BLACKLIST = [ "NATIONALITY", "NATIONAL", "EXPIRED", "EXPIRY", "EXPIRATION", "IQAMA", "IQAMA NUMBER", "RESIDENCE", "RESIDENT", "PERMIT", "KINGDOM", "KINGDOM OF", "SAUDI ARABIA", "UNITED ARAB EMIRATES", "DATE OF BIRTH", "DATE OF ISSUE", "DATE OF EXPIRY", "VALID", "VALID THRU", "VALID UNTIL", "VALID FROM", "IDENTITY", "IDENTITY CARD", "IDENTITY NUMBER", "CIVIL", "CIVIL ID", "CIVIL NUMBER", "PASSPORT", "PASSPORT NUMBER", "SPONSOR", "PROFESSION", "OCCUPATION", "MALE", "FEMALE", "GENDER", "SEX", "ISSUED", "ISSUE DATE", "ISSUE NO", "CARD NUMBER", "CARD NO", "REPUBLIC", "ISLAMIC", "MINISTRY", "INTERIOR", "AFGHANISTAN", "BANGLADESH", "BAHRAIN", "INDIA", "KUWAIT", "NEPAL", "OMAN", "PAKISTAN", "QATAR", "PLACE OF BIRTH", "PLACE OF ISSUE", "EMIRATES ID", "EMIRATES", "LABOUR", "LABOR", "BLOOD GROUP", "BLOOD TYPE" ];
-    var EN_LABEL_RE = new RegExp("\\b(" + EN_LABEL_BLACKLIST.concat([ "NAME", "FULL NAME", "ADDRESS", "EMPLOYER", "SIGNATURE" ]).join("|") + ")\\b", "i");
-    var AR_BLACKLIST = [ "الجنسية", "بنجلاديش", "نيبال", "الهند", "باكستان" ];
+    var EN_LABELS = [ "NATIONALITY", "NATIONAL", "EXPIRED", "EXPIRY", "EXPIRATION", "IQAMA", "IQAMA NUMBER", "RESIDENCE", "RESIDENT", "PERMIT", "KINGDOM", "KINGDOM OF", "SAUDI ARABIA", "UNITED ARAB EMIRATES", "DATE OF BIRTH", "DATE OF ISSUE", "DATE OF EXPIRY", "VALID", "VALID THRU", "VALID UNTIL", "VALID FROM", "IDENTITY", "IDENTITY CARD", "IDENTITY NUMBER", "CIVIL", "CIVIL ID", "CIVIL NUMBER", "PASSPORT", "PASSPORT NUMBER", "SPONSOR", "PROFESSION", "OCCUPATION", "MALE", "FEMALE", "GENDER", "SEX", "ISSUED", "ISSUE DATE", "ISSUE NO", "CARD NUMBER", "CARD NO", "REPUBLIC", "ISLAMIC", "MINISTRY", "INTERIOR", "AFGHANISTAN", "BANGLADESH", "BAHRAIN", "INDIA", "KUWAIT", "NEPAL", "OMAN", "PAKISTAN", "QATAR", "PLACE OF BIRTH", "PLACE OF ISSUE", "EMIRATES ID", "EMIRATES", "LABOUR", "LABOR", "BLOOD GROUP", "BLOOD TYPE", "NAME", "FULL NAME", "ADDRESS", "EMPLOYER", "SIGNATURE" ];
+    var EN_LABEL_RE = new RegExp("\\b(?:" + EN_LABELS.join("|") + ")\\b", "i");
+    var AR_LABELS = {};
+    [ "الاسم", "الجنسية", "رقم", "الإقامة", "الهوية", "المملكة", "العربية", "السعودية", "وزارة", "الداخلية", "تاريخ", "الميلاد", "الانتهاء", "الإصدار", "المهنة", "الديانة", "الكفيل", "جواز", "السفر", "هجري", "ميلادي", "بنجلاديش", "نيبال", "الهند", "باكستان", "أفغانستان" ].forEach(function (w) { AR_LABELS[normAr(w)] = 1; });
+
+    function arabicNameFromLine(raw) {
+        var m = raw.match(RE.arName);
+        if (!m) return "";
+        var name = cleanArabic(m[0]).split(" ").filter(function (t) { return t && !AR_LABELS[normAr(t)]; }).join(" ");
+        return name.replace(/ /g, "").length >= 6 ? name : "";
+    }
+    function englishNameFromLine(raw) {
+        var tail = raw.split(/[:：]/).pop().replace(RE.nameLead, "");
+        var runs = tail.match(RE.enRun);
+        if (!runs) return null;
+        var best = "";
+        runs.forEach(function (r) { if (lettersOnly(r) > lettersOnly(best)) best = r; });
+        var cand = best.replace(/\s+/g, " ").replace(/^[\s.'’\-]+|[\s.'’\-]+$/g, "").toUpperCase();
+        if (lettersOnly(cand) < 4 || EN_LABEL_RE.test(cand)) return null;
+        var labeled = /^\s*(?:FULL\s+)?NAME\b/i.test(raw) || /\bNAME\b[^:]*[:：]/i.test(raw);
+        return { text: cand, score: (labeled ? 2 : 0) + (cand.indexOf(" ") !== -1 ? 1 : 0) };
+    }
+    function parseDate(ds, hijriOk) {
+        var std = ds.replace(/-/g, "/"), p = std.split("/");
+        var yrFirst = p[0].length === 4;
+        var yr = parseInt(yrFirst ? p[0] : p[2], 10);
+        var m;
+        if (yr >= 1900) {
+            m = moment(std, yrFirst ? "YYYY/M/D" : "D/M/YYYY", "en", true);
+            return m.isValid() ? { m: m, hijri: false } : null;
+        }
+        if (yr >= 1300 && yr <= 1500 && hijriOk) {
+            m = moment(std, yrFirst ? "iYYYY/iM/iD" : "iD/iM/iYYYY", "en", true);
+            return m.isValid() ? { m: m, hijri: true } : null;
+        }
+        return null;
+    }
+    function pickDob(c, now) {
+        var pool = c.filter(function (x) { return x.hint === 2; });
+        if (!pool.length) pool = c.filter(function (x) { return x.hint >= 0; });
+        if (!pool.length) pool = c;
+        pool = pool.filter(function (x) { return !x.m.isAfter(now); });   // DOB future mein nahi
+        if (!pool.length) return null;
+        pool.sort(function (a, b) { return a.m.valueOf() - b.m.valueOf(); });
+        return pool[0];
+    }
+    // Pure function: kabhi throw nahi karta; null/undefined/non-string safe.
+    function extractFields(input) {
+        var out = { nameAr: "", nameEn: "", aqama: "", dobH: "", dobG: "" };
+        var text = typeof input === "string" ? input : "";
+        if (text.normalize) { try { text = text.normalize("NFKC"); } catch (e) {} }
+        text = text.slice(0, LIMITS.SCAN_CHARS);
+        if (!text.trim()) return { found: false, values: out };
+
+        var hijriOk = hijriReady(), now = new Date();
+        var ids = [], en = [], ar = [], dates = [];
+
+        text.split(/\r?\n/).slice(0, LIMITS.LINES).forEach(function (line) {
+            var raw = line.trim();
+            if (!raw) return;
+            var clean = toLatin(raw);
+
+            var idm = clean.match(RE.id10);
+            if (idm) ids.push.apply(ids, idm);
+
+            var e = englishNameFromLine(raw);
+            if (e) en.push(e);
+
+            if (clean.replace(/\D/g, "").length < 8) {
+                var a = arabicNameFromLine(raw);
+                if (a) ar.push(a);
+            }
+
+            if (window.moment && dates.length < LIMITS.DATES) {
+                var hint = RE.birthHint.test(raw) ? 2 : (RE.otherDateHint.test(raw) ? -1 : 0);
+                (clean.match(RE.date) || []).slice(0, 6).forEach(function (ds) {
+                    var d = parseDate(ds, hijriOk);
+                    if (d && dates.length < LIMITS.DATES) { d.hint = hint; dates.push(d); }
+                });
+            }
+        });
+
+        for (var i = 0; i < ids.length; i++) { if (/^[12]/.test(ids[i])) { out.aqama = ids[i]; break; } }
+        if (!out.aqama && ids.length) out.aqama = ids[0];
+
+        var bestE = null;
+        en.forEach(function (c) { if (!bestE || c.score > bestE.score) bestE = c; });
+        if (bestE) out.nameEn = bestE.text;
+
+        for (var j = 0; j < ar.length; j++) { if (ar[j].indexOf(" ") !== -1) { out.nameAr = ar[j]; break; } }
+        if (!out.nameAr && ar.length) out.nameAr = ar[0];
+
+        var best = pickDob(dates, now);
+        if (best) {
+            var G = "DD/MM/YYYY", H = "iYYYY/iMM/iDD";
+            out.dobG = fmt(best.m, G);
+            out.dobH = hijriOk ? fmt(best.m, H) : "";
+            dates.forEach(function (o) {   // card par dono printed hon to printed value rakho (±2 din)
+                if (o.hijri === best.hijri || Math.abs(o.m.diff(best.m, "days")) > 2) return;
+                if (o.hijri) out.dobH = fmt(o.m, H); else out.dobG = fmt(o.m, G);
+            });
+        }
+        return { found: !!(out.nameAr || out.nameEn || out.aqama || out.dobG || out.dobH), values: out };
+    }
+
     function extract() {
-        var rawInput = IS.stripHiddenChars(f.input.value);
+        var rawInput = stripHidden(f.input.value);
         var text = rawInput.trim();
 
         buildHighlight(rawInput);
@@ -247,72 +361,10 @@ document.addEventListener("DOMContentLoaded", function() {
             if (window.IS && IS.analytics) IS.analytics.increment("totalProcessed");
         }
 
+        var res = extractFields(text);
+        var found = res.found;
         clearFields();
-        var lines = text.split("\n");
-        var found = false;
-
-        lines.forEach(function (line) {
-            var raw = line.trim();
-            if (!raw) return;
-            var clean = IS.toLatin(raw);
-
-            if (!f.aqama.value) {
-                var mA = clean.match(/\b([0-9]{10})\b/);
-                if (mA) { f.aqama.value = mA[1]; found = true; }
-            }
-
-            if (!f.nameEn.value) {
-                var tail = raw.split(/[:：]/).pop();
-                var mE = tail.match(/[A-Za-z][A-Za-z ]*[A-Za-z]/);
-                if (mE) {
-                    var candidate = mE[0].trim().toUpperCase();
-                    if (candidate.replace(/ /g, "").length >= 4 && !EN_LABEL_RE.test(candidate)) {
-                        f.nameEn.value = candidate; found = true;
-                    }
-                }
-            }
-
-            if (!f.nameAr.value) {
-                var mAr = raw.match(/[\u0600-\u06FF][\u0600-\u06FF ]{7,}/);
-                var isBlacklisted = AR_BLACKLIST.some(function (w) { return raw.indexOf(w) !== -1; });
-                var tooManyDigits = clean.replace(/\D/g, "").length >= 8;
-                if (mAr && !isBlacklisted && !tooManyDigits) {
-                    f.nameAr.value = cleanArabic(mAr[0]); found = true;
-                }
-            }
-
-            var datePattern = /([0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2})|([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/g;
-            var dates = clean.match(datePattern);
-            if (dates && window.moment) {
-                var gregorianCandidates = [];
-                dates.forEach(function (ds) {
-                    var std     = ds.replace(/-/g, "/");
-                    var parts   = std.split("/");
-                    var yrFirst = parts[0].length === 4;
-                    var yr      = yrFirst ? parseInt(parts[0]) : parseInt(parts[2]);
-                    var fmtG    = yrFirst ? "YYYY/M/D" : "D/M/YYYY";
-                    var fmtH    = yrFirst ? "iYYYY/iM/iD" : "iD/iM/iYYYY";
-                    if (yr >= 1900) {
-                        var g = moment(std, fmtG, true);
-                        if (!g.isValid()) return;
-                        gregorianCandidates.push({ g: g, yr: yr });
-                        found = true;
-                    } else if (yr >= 1300 && yr <= 1500) {
-                        var h = moment(std, fmtH, true);
-                        if (!h.isValid()) return;
-                        if (!f.dobH.value) f.dobH.value = h.format("iYYYY/iMM/iDD");
-                        if (!f.dobG.value) f.dobG.value = h.format("DD/MM/YYYY");
-                        found = true;
-                    }
-                });
-                if (gregorianCandidates.length > 0 && !f.dobG.value) {
-                    gregorianCandidates.sort(function (a, b) { return a.yr - b.yr; });
-                    var dobCandidate = gregorianCandidates[0].g;
-                    f.dobG.value = dobCandidate.format("DD/MM/YYYY");
-                    if (!f.dobH.value && moment.fn.iYear) f.dobH.value = dobCandidate.format("iYYYY/iMM/iDD");
-                }
-            }
-        });
+        writeFields(res.values);
 
         /* ───────── Result handling ───────── */
         if (!found) {
@@ -328,8 +380,8 @@ document.addEventListener("DOMContentLoaded", function() {
         // Hijri fallback (Gregorian se)
         if (f.dobG && f.dobG.value && f.dobH && !f.dobH.value && window.moment && moment.fn.iYear) {
             try {
-                var _gd = moment(f.dobG.value, "DD/MM/YYYY", true);
-                if (_gd.isValid()) f.dobH.value = _gd.format("iYYYY/iMM/iDD");
+                var _gd = moment(f.dobG.value, "DD/MM/YYYY", "en", true);
+                if (_gd.isValid()) f.dobH.value = fmt(_gd, "iYYYY/iMM/iDD");
             } catch (e) {}
         }
 
@@ -350,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 dobG:   f.dobG   ? f.dobG.value   : "",
                 ts: Date.now()
             });
-            IS.triggerConfetti({ particleCount: 40, spread: 50, origin: { y: 0.4 } });
+            if (window.IS && IS.triggerConfetti) IS.triggerConfetti({ particleCount: 40, spread: 50, origin: { y: 0.4 } });
             if (window._robotReact) window._robotReact("extraction", found);
         }
 
@@ -409,28 +461,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     var _debounceTimer = null;
+    var HIDDEN_RE = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\u206A-\u206F\uFEFF\u00AD\uFFF9-\uFFFB\u2060-\u2064\u0007\u001F\u00A0\u202F\u205F\u2028\u2029\u000C\u0085\r]/;
     f.input.addEventListener("input", function(e) {
-        if (e.inputType === "insertFromPaste" && IS.ocrClean) {
-            var before = f.input.value;
-            var cleaned = IS.ocrClean(before);
-            if (before.trim().length >= 5 && cleaned.length < 5) cleaned = IS.stripHiddenChars(before);
-            if (cleaned !== before) {
-                var diff = IS.ocrDiffCount ? IS.ocrDiffCount(before, cleaned) : 1;
-                f.input.value = cleaned;
-                f.input.selectionStart = f.input.selectionEnd = cleaned.length;
-                if (diff > 0) IS.showToast("OCR cleaned (" + diff + " fix" + (diff === 1 ? "" : "es") + ")");
+        var value = f.input.value, next = value, ocrFixes = 0, isPaste = !!(e && e.inputType === "insertFromPaste");
+        if (isPaste && window.IS && IS.ocrClean) {
+            var oc = IS.ocrClean(value);
+            if (value.trim().length >= 5 && oc.length < 5) oc = value;   // OCR clean ne sab uda diya => original rakho
+            if (oc !== value) {
+                ocrFixes = IS.ocrDiffCount ? IS.ocrDiffCount(value, oc) : 1;
+                next = oc;
             }
         }
-        var raw = f.input.value;
-        var hasHidden = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\u206A-\u206F\uFEFF\u00AD\uFFF9-\uFFFB\u2060-\u2064\u0007\u001F\u00A0\u202F\u205F\u2028\u2029\u000C\u0085\r]/.test(raw);
-        if (hasHidden && IS.stripHiddenChars) {
-            var cleaned = IS.stripHiddenChars(raw);
-            if (cleaned !== raw) {
-                var sel = f.input.selectionStart;
-                f.input.value = cleaned;
-                var removed = raw.length - cleaned.length;
-                f.input.selectionStart = f.input.selectionEnd = Math.max(0, sel - removed);
-            }
+        if (HIDDEN_RE.test(next)) next = stripHidden(next);               // sirf ek baar strip
+        if (next !== value) {
+            var sel = f.input.selectionStart;
+            f.input.value = next;
+            var caret = isPaste ? next.length : Math.max(0, Math.min(next.length, sel - (value.length - next.length)));
+            f.input.selectionStart = f.input.selectionEnd = caret;
+            if (ocrFixes > 0 && IS.showToast) IS.showToast("OCR cleaned (" + ocrFixes + " fix" + (ocrFixes === 1 ? "" : "es") + ")");
         }
         buildHighlight(f.input.value);
         if (f.counter) {
@@ -438,9 +486,7 @@ document.addEventListener("DOMContentLoaded", function() {
             f.counter.textContent = len > 0 ? len + " chars" : "";
         }
         clearTimeout(_debounceTimer);
-        _debounceTimer = setTimeout(function() {
-            extract();
-        }, 500);
+        _debounceTimer = setTimeout(extract, 500);
     });
     f.input.addEventListener("scroll", syncHighlightScroll);
     if (window.ResizeObserver && f.highlight) {
@@ -615,9 +661,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             if (formatted.length === 10 && window.moment && moment.fn.iYear) {
                 try {
-                    var gDate = moment(formatted, "DD/MM/YYYY", true);
+                    var gDate = moment(formatted, "DD/MM/YYYY", "en", true);
                     if (gDate.isValid()) {
-                        var hFormatted = gDate.format("iYYYY/iMM/iDD");
+                        var hFormatted = fmt(gDate, "iYYYY/iMM/iDD");
                         if (f.dobH) {
                             f.dobH.value = hFormatted;
                             if (f.grpDobH) f.grpDobH.style.display = "block";
@@ -667,148 +713,26 @@ document.addEventListener("DOMContentLoaded", function() {
     var shiftLock = false;
     var lastShiftTap = 0;
     var KBD_EN = [ [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ], [ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" ], [ "a", "s", "d", "f", "g", "h", "j", "k", "l" ], [ "z", "x", "c", "v", "b", "n", "m" ] ];
-    var KBD_AR_ROWS = [ [ {
-        ch: "٩",
-        label: "٩"
-    }, {
-        ch: "٨",
-        label: "٨"
-    }, {
-        ch: "٧",
-        label: "٧"
-    }, {
-        ch: "٦",
-        label: "٦"
-    }, {
-        ch: "٥",
-        label: "٥"
-    }, {
-        ch: "٤",
-        label: "٤"
-    }, {
-        ch: "٣",
-        label: "٣"
-    }, {
-        ch: "٢",
-        label: "٢"
-    }, {
-        ch: "١",
-        label: "١"
-    }, {
-        ch: "٠",
-        label: "٠"
-    } ], [ {
-        ch: "ض",
-        label: "ض"
-    }, {
-        ch: "ص",
-        label: "ص"
-    }, {
-        ch: "ث",
-        label: "ث"
-    }, {
-        ch: "ق",
-        label: "ق"
-    }, {
-        ch: "ف",
-        label: "ف"
-    }, {
-        ch: "غ",
-        label: "غ"
-    }, {
-        ch: "ع",
-        label: "ع"
-    }, {
-        ch: "ه",
-        label: "ه"
-    }, {
-        ch: "خ",
-        label: "خ"
-    }, {
-        ch: "ح",
-        label: "ح"
-    }, {
-        ch: "ج",
-        label: "ج"
-    }, {
-        ch: "د",
-        label: "د"
-    }, {
-        ch: "ذ",
-        label: "ذ"
-    } ], [ {
-        ch: "ش",
-        label: "ش"
-    }, {
-        ch: "س",
-        label: "س"
-    }, {
-        ch: "ي",
-        label: "ي"
-    }, {
-        ch: "ب",
-        label: "ب"
-    }, {
-        ch: "ل",
-        label: "ل"
-    }, {
-        ch: "ا",
-        label: "ا"
-    }, {
-        ch: "ت",
-        label: "ت"
-    }, {
-        ch: "ن",
-        label: "ن"
-    }, {
-        ch: "م",
-        label: "م"
-    }, {
-        ch: "ك",
-        label: "ك"
-    }, {
-        ch: "ط",
-        label: "ط"
-    } ], [ {
-        ch: "ئ",
-        label: "ئ"
-    }, {
-        ch: "ء",
-        label: "ء"
-    }, {
-        ch: "ؤ",
-        label: "ؤ"
-    }, {
-        ch: "ر",
-        label: "ر"
-    }, {
-        ch: "لا",
-        label: "لا"
-    }, {
-        ch: "ى",
-        label: "ى"
-    }, {
-        ch: "ة",
-        label: "ة"
-    }, {
-        ch: "و",
-        label: "و"
-    }, {
-        ch: "ز",
-        label: "ز"
-    }, {
-        ch: "ظ",
-        label: "ظ"
-    }, {
-        ch: "أ",
-        label: "أ"
-    }, {
-        ch: "إ",
-        label: "إ"
-    }, {
-        ch: "آ",
-        label: "آ"
-    } ] ];
+    var KBD_AR_ROWS = [
+        [ "٩", "٨", "٧", "٦", "٥", "٤", "٣", "٢", "١", "٠" ],
+        [ "ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح", "ج", "د", "ذ" ],
+        [ "ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك", "ط" ],
+        [ "ئ", "ء", "ؤ", "ر", "لا", "ى", "ة", "و", "ز", "ظ", "أ", "إ", "آ" ]
+    ];
+    // pointerdown: mouse + touch + pen ek hi event => double-insert nahi; mousedown sirf focus bachane ke liye
+    function bindPress(btn, handler) {
+        btn.style.touchAction = "manipulation";
+        btn.addEventListener("mousedown", function(e) { e.preventDefault(); });
+        if (window.PointerEvent) {
+            btn.addEventListener("pointerdown", function(e) {
+                if (e.pointerType === "mouse" && e.button !== 0) return;
+                e.preventDefault();
+                handler(btn);
+            });
+        } else {
+            btn.addEventListener("click", function(e) { e.preventDefault(); handler(btn); });
+        }
+    }
     function renderVkbd() {
         if (!f.vkbdKeys) return;
         var isAr = vkbdLang === "ar";
@@ -821,8 +745,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 var rowDiv = document.createElement("div");
                 rowDiv.className = "vkbd-row";
                 row.forEach(function(key) {
-                    var ch = typeof key === "object" ? key.ch : key;
-                    var label = typeof key === "object" ? key.label : key;
+                    var ch = key, label = key;
                     var btn = document.createElement("button");
                     btn.className = "vkbd-key" + (isAr ? " vkbd-key-ar" : "");
                     btn.setAttribute("data-key", ch);
@@ -848,16 +771,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             renderVkbd();
                         }
                     }
-                    btn.addEventListener("mousedown", function(e) {
-                        e.preventDefault();
-                        pressKey();
-                    });
-                    btn.addEventListener("touchstart", function(e) {
-                        e.preventDefault();
-                        pressKey();
-                    }, {
-                        passive: false
-                    });
+                    bindPress(btn, pressKey);
                     rowDiv.appendChild(btn);
                 });
                 f.vkbdKeys.appendChild(rowDiv);
@@ -902,16 +816,7 @@ document.addEventListener("DOMContentLoaded", function() {
         btn.className = cls;
         btn.textContent = label;
         btn.setAttribute("type", "button");
-        btn.addEventListener("mousedown", function(e) {
-            e.preventDefault();
-            handler(btn);
-        });
-        btn.addEventListener("touchstart", function(e) {
-            e.preventDefault();
-            handler(btn);
-        }, {
-            passive: false
-        });
+        bindPress(btn, handler);
         return btn;
     }
     function ripple(btn) {

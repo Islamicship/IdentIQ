@@ -240,6 +240,50 @@ document.addEventListener("DOMContentLoaded", function() {
         for (var i = 0; i < n; i++) s += rand(i === 0 ? 1 : 0, 9);
         return s;
     }
+    // Weekend days (0=Sun ... 6=Sat). UAE: 2022 se Sat-Sun.
+    var WEEKEND = {
+        Pakistan: [ 0 ], India: [ 0 ], Bangladesh: [ 5, 6 ], Nepal: [ 6 ], Afghanistan: [ 5 ],
+        UAE: [ 0, 6 ], Qatar: [ 5, 6 ], SaudiArabia: [ 5, 6 ], Kuwait: [ 5, 6 ], Bahrain: [ 5, 6 ], Oman: [ 5, 6 ]
+    };
+    function pickIssueDate(weekend) {
+        // Aakhri 4 saal mein, aaj se kam az kam 30 din pehle (hardcoded 2022 khatam)
+        var end = new Date();
+        end.setHours(0, 0, 0, 0);
+        end.setDate(end.getDate() - 30);
+        var start = new Date(end.getFullYear() - 4, end.getMonth(), end.getDate());
+        var span = Math.round((end - start) / 864e5);
+        var d, tries = 0;
+        do {
+            d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + rand(0, span));
+            tries++;
+        } while (weekend.indexOf(d.getDay()) !== -1 && tries < 60);
+        while (weekend.indexOf(d.getDay()) !== -1) d.setDate(d.getDate() - 1);   // guarantee
+        return d;
+    }
+    function padN(n, len) {
+        var t = String(n);
+        while (t.length < len) t = "0" + t;
+        return t;
+    }
+    // Qatar QID: 11 digits = C(1) + YY(2) + nationality ISO code(3) + serial(5)
+    var QID_NAT = [ "586", "356", "050", "524", "004", "634", "818", "608" ];
+    function qatarQid() {
+        var y = rand(1970, 2003);
+        return (y >= 2000 ? "3" : "2") + padN(y % 100, 2) + pick(QID_NAT) + padN(rand(0, 99999), 5);
+    }
+    // Kuwait Civil ID: 12 digits = C(1) + YYMMDD(6) + serial(4) + check(1)
+    var KW_W = [ 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 ];
+    function kuwaitCivilId() {
+        for (var n = 0; n < 200; n++) {
+            var y = rand(1970, 2003);
+            var body = (y >= 2000 ? "3" : "2") + padN(y % 100, 2) + padN(rand(1, 12), 2) + padN(rand(1, 28), 2) + padN(rand(0, 9999), 4);
+            var sum = 0;
+            for (var i = 0; i < 11; i++) sum += KW_W[i] * (body.charCodeAt(i) - 48);
+            var chk = 11 - (sum % 11);
+            if (chk <= 9) return body + chk;
+        }
+        return "2900101000" + "01";   // practically unreachable
+    }
     var el = {
         country: document.getElementById("country-select"),
         cityBox: document.getElementById("city-selection-container"),
@@ -268,17 +312,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     function generateData() {
         var country = el.country.value, city = el.city.value;
-        var GULF_COUNTRIES = [ "UAE", "Qatar", "SaudiArabia", "Kuwait", "Bahrain", "Oman" ];
-        var isGulf = GULF_COUNTRIES.indexOf(country) !== -1;
-        var issueDate, attempts = 0;
-        do {
-            var m = rand(0, 11), maxDay = new Date(2022, m + 1, 0).getDate(), d = rand(1, maxDay);
-            issueDate = new Date(2022, m, d);
-            issueDate.setHours(0, 0, 0, 0);
-            attempts++;
-            var day = issueDate.getDay();
-            var isWeekend = isGulf ? day === 5 || day === 6 : day === 0;
-        } while (isWeekend && attempts < 60);
+        var issueDate = pickIssueDate(WEEKEND[country] || [ 0 ]);
         var expiryDate = IS.computeExpiryDate(issueDate);
         var idNum = "", addr = "";
         if (country === "Pakistan") {
@@ -295,7 +329,7 @@ document.addEventListener("DOMContentLoaded", function() {
             addr = "Flat " + rand(101, 3005) + ", " + pick(cu.buildings) + ", " + pick(cu.areas) + ", " + city + ", UAE";
         } else if (country === "Qatar") {
             var cq = DS.qatar.cities[city] || DS.qatar.cities.Doha, zr = pick(cq.zones);
-            idNum = "2" + rand(80, 99) + safeId(7);
+            idNum = qatarQid();
             addr = "Zone " + rand(zr[0], zr[1]) + ", Street " + rand(200, 999) + ", Building " + rand(1, 150) + ", " + pick(cq.areas) + ", " + city + ", Qatar";
         } else if (country === "Bangladesh") {
             var cb = DS.bangladesh.cities[city] || DS.bangladesh.cities.Dhaka;
@@ -315,8 +349,7 @@ document.addEventListener("DOMContentLoaded", function() {
             addr = "Villa " + rand(1, 500) + ", " + pick(sp.areas) + ", " + city + ", Kingdom of Saudi Arabia";
         } else if (country === "Kuwait") {
             var kw = DS.kuwait.areas[city] || DS.kuwait.areas["Kuwait City"];
-            var ky = rand(1970, 2003);
-            idNum = String(ky).slice(-2) + IS.pad(rand(1, 12)) + IS.pad(rand(1, 28)) + rand(1e3, 9999).toString();
+            idNum = kuwaitCivilId();
             addr = "Block " + rand(1, 12) + ", Street " + rand(1, 50) + ", Building " + rand(1, 120) + ", " + pick(kw) + ", " + city + ", Kuwait";
         } else if (country === "Bahrain") {
             var bh = DS.bahrain.areas[city] || DS.bahrain.areas.Manama;
@@ -361,39 +394,48 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }, 280);
     }
+    var _hijriTimer = null, _hijriStart = 0, _hijriPending = null, _liveReq = 0;
+    function hijriReady() {
+        return !!(window.moment && window.moment.fn && typeof window.moment.fn.iYear !== "undefined");
+    }
+    // Sirf EK timer, sirf EK pending callback (latest). Timeout par khud band.
+    function whenHijriReady(cb) {
+        if (hijriReady()) {
+            cb();
+            return;
+        }
+        _hijriPending = cb;
+        if (_hijriTimer) return;
+        _hijriStart = Date.now();
+        _hijriTimer = setInterval(function() {
+            var ready = hijriReady();
+            if (!ready && Date.now() - _hijriStart < 6e4) return;
+            clearInterval(_hijriTimer);
+            _hijriTimer = null;
+            var run = _hijriPending;
+            _hijriPending = null;
+            if (ready && run) run();
+        }, 400);
+    }
     function setLiveDate(dateObj) {
         var d = dateObj || new Date;
         var eng = IS.pad(d.getDate()) + "-" + IS.pad(d.getMonth() + 1) + "-" + d.getFullYear();
+        var req = ++_liveReq;
         if (el.out.weekday) el.out.weekday.textContent = d.toLocaleString("en-US", {
             weekday: "long"
         });
-        function tryHijri(tries) {
-            if (window.moment && typeof window.moment.fn.iYear !== "undefined") {
-                var hijri = window.moment(d).format("iDD-iMM-iYYYY");
-                if (el.out.currentDate) el.out.currentDate.innerHTML = hijri + "&nbsp;&nbsp;&#8212;<br>" + eng;
-            } else if (tries < 20) {
-                setTimeout(function() {
-                    tryHijri(tries + 1);
-                }, 400);
-            } else {
-                if (el.out.currentDate) el.out.currentDate.innerHTML = "--/--/----&nbsp;&#8212;<br>" + eng;
-                if (!setLiveDate._hijriWatcher) {
-                    setLiveDate._hijriWatcher = true;
-                    var checkInterval = setInterval(function() {
-                        if (window.moment && typeof window.moment.fn.iYear !== "undefined") {
-                            clearInterval(checkInterval);
-                            setLiveDate._hijriWatcher = false;
-                            setLiveDate(d);
-                        }
-                    }, 1e3);
-                    setTimeout(function() {
-                        clearInterval(checkInterval);
-                        setLiveDate._hijriWatcher = false;
-                    }, 6e4);
-                }
-            }
+        function paint(hijri) {
+            if (req !== _liveReq || !el.out.currentDate) return;
+            el.out.currentDate.innerHTML = hijri + "&nbsp;&nbsp;&#8212;<br>" + eng;
         }
-        tryHijri(0);
+        if (hijriReady()) {
+            paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));   // 'en': Arabic digits nahi
+        } else {
+            paint("--/--/----");
+            whenHijriReady(function() {
+                paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));
+            });
+        }
     }
     function setupGenCopyBtns() {
         document.querySelectorAll(".gen-copy-btn").forEach(function(btn) {
@@ -475,33 +517,15 @@ document.addEventListener("DOMContentLoaded", function() {
             })(day);
         }
     }
-    function openCalendar() {
-        calYear = (selectedDate || today).getFullYear();
-        calMonth = (selectedDate || today).getMonth();
-        renderCalendar();
-        if (calPopup) calPopup.classList.add("open");
-        setTimeout(function() {
-            document.addEventListener("click", outsideClick);
-            window._calOutsideClick = outsideClick;
-        }, 10);
-    }
-    function closeCalendar() {
-        if (calPopup) calPopup.classList.remove("open");
-        document.removeEventListener("click", outsideClick);
-        window._calOutsideClick = null;
-    }
-    function outsideClick(e) {
-        var card = document.getElementById("date-card");
-        if (card && !card.contains(e.target)) closeCalendar();
-    }
-    document.addEventListener("keydown", function(e) {
+    var _calOutsideTimer = null;
+    function onCalKeydown(e) {
         if (!calPopup || !calPopup.classList.contains("open")) return;
         var focused = document.activeElement;
         if (!calGrid || !calGrid.contains(focused)) return;
         var days = Array.from(calGrid.querySelectorAll(".cal-day:not(.cal-blank)"));
         var idx = days.indexOf(focused);
         if (idx === -1) return;
-        var newIdx = idx;
+        var newIdx = idx, newDays;
         if (e.key === "ArrowRight") {
             if (idx === days.length - 1) {
                 calMonth++;
@@ -510,7 +534,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     calYear++;
                 }
                 renderCalendar();
-                var newDays = Array.from(calGrid.querySelectorAll(".cal-day:not(.cal-blank)"));
+                newDays = Array.from(calGrid.querySelectorAll(".cal-day:not(.cal-blank)"));
                 if (newDays[0]) newDays[0].focus();
                 e.preventDefault();
                 return;
@@ -525,7 +549,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     calYear--;
                 }
                 renderCalendar();
-                var newDays = Array.from(calGrid.querySelectorAll(".cal-day:not(.cal-blank)"));
+                newDays = Array.from(calGrid.querySelectorAll(".cal-day:not(.cal-blank)"));
                 if (newDays[newDays.length - 1]) newDays[newDays.length - 1].focus();
                 e.preventDefault();
                 return;
@@ -538,9 +562,34 @@ document.addEventListener("DOMContentLoaded", function() {
         } else if (e.key === "ArrowUp") {
             newIdx = Math.max(idx - 7, 0);
             e.preventDefault();
+        } else if (e.key === "Escape") {
+            closeCalendar();
+            if (calOpenBtn) calOpenBtn.focus();
+            return;
         }
         if (newIdx !== idx) days[newIdx].focus();
-    });
+    }
+    function openCalendar() {
+        calYear = (selectedDate || today).getFullYear();
+        calMonth = (selectedDate || today).getMonth();
+        renderCalendar();
+        if (calPopup) calPopup.classList.add("open");
+        clearTimeout(_calOutsideTimer);
+        _calOutsideTimer = setTimeout(function() {
+            document.addEventListener("click", outsideClick);
+        }, 10);
+        document.addEventListener("keydown", onCalKeydown);      // sirf jab calendar khula ho
+    }
+    function closeCalendar() {
+        if (calPopup) calPopup.classList.remove("open");
+        clearTimeout(_calOutsideTimer);
+        document.removeEventListener("click", outsideClick);
+        document.removeEventListener("keydown", onCalKeydown);
+    }
+    function outsideClick(e) {
+        var card = document.getElementById("date-card");
+        if (card && !card.contains(e.target)) closeCalendar();
+    }
     if (calOpenBtn) calOpenBtn.addEventListener("click", function(e) {
         e.stopPropagation();
         calPopup && calPopup.classList.contains("open") ? closeCalendar() : openCalendar();
