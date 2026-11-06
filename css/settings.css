@@ -15,7 +15,6 @@
     transition: background var(--t-fast), color var(--t-fast);
     flex-shrink: 0;
     position: relative;
-    outline: none;
 }
 .sp-gear-btn:hover {
     background: var(--c-surface2);
@@ -55,7 +54,7 @@ body.sp-no-scroll { overflow: hidden; }
 .sp-overlay {
     position: fixed;
     inset: 0;
-    z-index: 2000;
+    z-index: var(--z-overlay, 2000);
     background: rgba(2, 6, 14, 0.72);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -64,18 +63,22 @@ body.sp-no-scroll { overflow: hidden; }
     justify-content: center;
     padding: 24px 16px;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.28s ease;
+    transition: opacity 0.28s ease, visibility 0s linear 0.28s;
 }
 .sp-overlay.sp-open {
     opacity: 1;
-    pointer-events: all;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
 }
 
 .sp-panel {
     width: 100%;
     max-width: 660px;
     max-height: 88vh;
+    max-height: 88dvh;
     background: var(--c-surface);
     border: 1px solid var(--c-border2);
     border-radius: 18px;
@@ -123,6 +126,7 @@ body.theme-light .sp-panel {
     );
     background-size: 200% 200%;
     animation: sp-gradientSweep 3s ease infinite;
+    animation-play-state: paused;
     z-index: 1;
     pointer-events: none;
 }
@@ -134,8 +138,6 @@ body.theme-light .sp-panel {
     padding: 14px 18px 14px 20px;
     border-bottom: 1px solid var(--c-border);
     background: linear-gradient(135deg, rgba(0,180,255,.05) 0%, rgba(0,180,255,.01) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     flex-shrink: 0;
 }
 .sp-header-inner {
@@ -409,6 +411,7 @@ body.lang-ur .sp-seg-btn:last-child { border-left: none; }
 }
 
 .sp-toggle {
+    position: relative;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
@@ -1141,7 +1144,7 @@ body.lang-ur .sp-copyright-notice { text-align: right; }
 .sp-privacy-overlay {
     position: fixed;
     inset: 0;
-    z-index: 3000;
+    z-index: var(--z-modal, 3000);
     background: rgba(2,6,14,.82);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -1150,18 +1153,22 @@ body.lang-ur .sp-copyright-notice { text-align: right; }
     justify-content: center;
     padding: 24px 16px;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    visibility: hidden;
     pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
 }
 .sp-privacy-overlay.sp-privacy-open {
     opacity: 1;
-    pointer-events: all;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
 }
 
 .sp-privacy-modal {
     width: 100%;
     max-width: 560px;
     max-height: 85vh;
+    max-height: 85dvh;
     background: var(--c-surface);
     border: 1px solid var(--c-border2);
     border-radius: 16px;
@@ -1291,6 +1298,7 @@ body.lang-ur .sp-micro-toast {
     .sp-panel {
         max-width: 100%;
         max-height: 92vh;
+        max-height: 92dvh;
         border-radius: 18px 18px 0 0;
         border-bottom: none;
         transform: translateY(40px) scale(1);
@@ -1310,6 +1318,7 @@ body.lang-ur .sp-micro-toast {
         overflow-y: hidden;
     }
     .sp-sidebar::-webkit-scrollbar { height: 0; }
+    body.lang-ur .sp-sidebar { border-left: none; border-bottom: 1px solid var(--c-border); }
 
     .sp-nav-item {
         flex-direction: column;
@@ -1337,7 +1346,7 @@ body.lang-ur .sp-micro-toast {
     }
     .sp-nav-label { font-size: .6rem; text-align: center; }
 
-    .sp-content-inner { padding: 14px 14px 22px; }
+    .sp-content-inner { padding: 14px 14px calc(22px + env(safe-area-inset-bottom, 0px)); }
 
     .sp-theme-cards, .sp-lang-cards { gap: 8px; }
 
@@ -1353,6 +1362,7 @@ body.lang-ur .sp-micro-toast {
     .sp-privacy-modal {
         max-width: 100%;
         max-height: 88vh;
+        max-height: 88dvh;
         border-radius: 16px 16px 0 0;
         border-bottom: none;
     }
@@ -1557,14 +1567,6 @@ body.theme-light .sp-cursor-preview--default {
 body.theme-light .sp-cursor-preview--default svg {
     color: var(--c-text);
 }
-@media (max-width: 600px) {
-    .sp-cursor-cards {
-        grid-template-columns: 1fr 1fr;
-    }
-    .sp-cursor-card[data-cursor="default"] {
-        grid-column: 1 / -1; 
-    }
-}
 
 .sp-cursor-preview--blaze {
     background: radial-gradient(ellipse at center, #1a1500 0%, #0d0b00 100%);
@@ -1605,3 +1607,37 @@ body.theme-light .sp-cursor-card--blaze .sp-cursor-label {
     color: #9a6f00;
 }
 
+
+/* =====================================================================
+   FIXES ADDED IN CLEANUP
+   ===================================================================== */
+
+/* panel gradient bar animates only while the panel is open */
+.sp-overlay.sp-open .sp-panel::before { animation-play-state: running; }
+
+/* RTL toggle: thumb started at left and then moved further left (out of the track) */
+body.lang-ur .sp-toggle-thumb { left: auto; right: 2px; }
+
+/* toggle input is visually hidden, so show focus on the track */
+.sp-toggle input:focus-visible + .sp-toggle-track {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+}
+
+/* two margin-left:auto siblings split the free space (icon button floated mid-bar) */
+.icon-nav-btn ~ .sp-gear-btn,
+.sp-gear-btn ~ .icon-nav-btn { margin-left: 0; }
+
+/* iOS zooms into fields below 16px */
+@media (hover: none) and (pointer: coarse) {
+    .sp-input,
+    .sp-select { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sp-overlay,
+    .sp-privacy-overlay,
+    .sp-panel,
+    .sp-privacy-modal { transition-duration: .01ms !important; }
+    .sp-panel::before { animation: none; }
+}

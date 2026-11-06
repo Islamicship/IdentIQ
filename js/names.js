@@ -162,6 +162,51 @@
             }));
         } catch (e) {}
     }
+    // Scroll progress (slim bar at the top of the viewport).
+    // CSS lives in names.css (.names-progress). JS only writes one number, --np (0..1);
+    // the bar is animated by CSS with transform: scaleX() on the GPU (no layout, no width animation).
+    function initScrollProgress(section) {
+        var bar = document.getElementById("namesProgress");
+        if (!bar) {
+            bar = document.createElement("div");
+            bar.id = "namesProgress";
+            bar.className = "names-progress";
+            bar.setAttribute("aria-hidden", "true");
+            document.body.appendChild(bar);
+        }
+        var raf = 0;
+        var last = -1;
+        function update() {
+            raf = 0;
+            var shown = section.getClientRects().length > 0;
+            bar.classList.toggle("is-active", shown);
+            if (!shown) return;
+            var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+            var docMax = document.documentElement.scrollHeight - window.innerHeight;
+            var max = Math.min(section.getBoundingClientRect().bottom + y - window.innerHeight, docMax);
+            var p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+            if (max > 0 && max - y <= 3) p = 1;
+            if (p !== 0 && p !== 1 && Math.abs(p - last) < 5e-4) return;
+            last = p;
+            bar.style.setProperty("--np", p.toFixed(4));
+        }
+        function schedule() {
+            if (!raf) raf = requestAnimationFrame(update);
+        }
+        window.addEventListener("scroll", schedule, {
+            passive: true
+        });
+        window.addEventListener("resize", schedule, {
+            passive: true
+        });
+        // Fires when the tab is shown/hidden, when a collection renders or switches,
+        // when search filters cards, and on language change (text length).
+        if (window.ResizeObserver) new ResizeObserver(schedule).observe(section);
+        schedule();
+        return {
+            refresh: schedule
+        };
+    }
     document.addEventListener("DOMContentLoaded", function() {
         var root = document.getElementById("tab-names");
         var data = window.IS && IS.namesData;
@@ -390,11 +435,13 @@
         });
         setScript(prefs.script);
         setCollection(prefs.collection);
+        var progress = initScrollProgress(root);
         IS.names = {
             show: setCollection,
             setScript: setScript,
             filter: setQuery,
-            stop: stopAll
+            stop: stopAll,
+            progress: progress
         };
     });
 })();

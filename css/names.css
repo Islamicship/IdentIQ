@@ -115,7 +115,7 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
 
 .names-tab:hover:not([aria-selected="true"]) {
     color: var(--c-text);
-    background: rgba(255, 255, 255, .04);
+    background: var(--c-surface2);
 }
 .names-tab[aria-selected="true"] {
     color: var(--tab-accent);
@@ -298,32 +298,7 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     color: var(--c-text2);
 }
 
-.name-copy {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--c-text2);
-    cursor: pointer;
-    transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
-}
-.name-copy:hover {
-    color: var(--names-accent);
-    background: var(--c-bg3);
-    border-color: var(--c-border2);
-}
-.name-copy:focus-visible { outline-color: var(--names-accent); }
-
-.name-actions {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-}
+.name-copy,
 .name-speak {
     position: relative;
     display: grid;
@@ -338,12 +313,20 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     cursor: pointer;
     transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
 }
+.name-copy:hover,
 .name-speak:hover {
     color: var(--names-accent);
     background: var(--c-bg3);
     border-color: var(--c-border2);
 }
+.name-copy:focus-visible,
 .name-speak:focus-visible { outline-color: var(--names-accent); }
+
+.name-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
 .name-speak.speaking {
     color: var(--names-accent);
     background: var(--names-tint);
@@ -450,15 +433,17 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     .name-card-head               { min-height: 44px; }
     .names-tab                    { min-height: 44px; }
     .names-script button          { min-height: 42px; }
-    .names-search input           { min-height: 46px; }
+    .names-search input           { min-height: 46px; font-size: 16px; }
 }
 
 @media (max-width: 560px) {
     .names-container    { padding: 16px 12px 48px; }
     .names-tabs         { display: flex; width: 100%; }
     .names-tab          { flex: 1; padding: 8px 8px; font-size: .8rem; }
-    .names-tools        { flex-basis: 100%; justify-content: stretch; }
+    .names-tools        { flex-basis: 100%; justify-content: flex-start; }
     .names-search       { flex-basis: 100%; max-width: none; }
+    .names-script       { display: flex; width: 100%; }
+    .names-script button { flex: 1; }
     .names-grid-container { gap: 12px; }
     .name-arabic        { font-size: 1.75rem; }
 }
@@ -474,4 +459,62 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     .name-speak.speaking { animation: none !important; }
     .name-card:hover,
     .name-card:active { transform: none; }
+}
+
+
+/* empty-state button had no hover / focus feedback */
+.names-empty button { transition: background var(--t-fast), box-shadow var(--t-fast); }
+.names-empty button:hover { box-shadow: 0 0 0 3px var(--names-glow); }
+.names-empty button:focus-visible { outline: 2px solid var(--names-accent); outline-offset: 3px; }
+
+/* =====================================================================
+   SCROLL PROGRESS  (Names tab)
+   One element, GPU-only: width never changes, only transform: scaleX().
+   JS sets --np (0..1) on #namesProgress; see names-progress.js
+   The element lives on <body> (not inside the section) so a transformed
+   ancestor can never break position: fixed.
+   ===================================================================== */
+.names-progress {
+    --np: 0;
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 3px;
+    z-index: var(--z-progress, 950);
+    pointer-events: none;
+    contain: layout style;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility 0s linear .25s;
+}
+.names-progress.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.names-progress::before,
+.names-progress::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    transform: scaleX(var(--np));
+    background: linear-gradient(90deg,
+        var(--c-purple, #b066ff) 0%,
+        var(--c-accent, #00b4ff) 28%,
+        var(--c-accent3, #00f5e8) 52%,
+        var(--c-accent2, #00f080) 76%,
+        var(--names-gold, #f2c14e) 100%);
+    will-change: transform;
+}
+/* soft glow: same transform, blurred copy underneath */
+.names-progress::after {
+    z-index: -1;
+    filter: blur(6px);
+    opacity: .55;
+}
+
+@media print {
+    .names-progress { display: none !important; }
 }
