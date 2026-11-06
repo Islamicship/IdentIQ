@@ -1,3 +1,12 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
 /service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
 
@@ -7,8 +16,3 @@
 
 /index.html
   Cache-Control: no-cache
-
-# Sirf tab uncomment karo jab SW ko js/ folder mein hi rakhna ho (root behtar hai):
-# /js/service-worker.js
-#   Service-Worker-Allowed: /
-#   Cache-Control: no-cache, no-store, must-revalidate
