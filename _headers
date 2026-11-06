@@ -1,18 +1,14 @@
-# =====================================================================
-# IdentIQ - Security Headers (Netlify)
-#
-# NOTE: Strict-Transport-Security (HSTS) yahan JAAN-BOOJH KAR nahi hai.
-#       Netlify khud HSTS lagata hai; yahan dobara daalne se duplicate
-#       header ban sakta hai. Verify: curl -sI https://nexux-gen.netlify.app/
-#
-# Agar console mein "Refused to ..." CSP error aaye to sirf wohi exact
-# origin us directive mein add karo - poori policy dheeli mat karo.
-# =====================================================================
-/*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), serial=(), hid=(), accelerometer=(), gyroscope=(), magnetometer=()
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Resource-Policy: same-origin
+/service-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.json
+  Cache-Control: no-cache
+  Content-Type: application/manifest+json
+
+/index.html
+  Cache-Control: no-cache
+
+# Sirf tab uncomment karo jab SW ko js/ folder mein hi rakhna ho (root behtar hai):
+# /js/service-worker.js
+#   Service-Worker-Allowed: /
+#   Cache-Control: no-cache, no-store, must-revalidate

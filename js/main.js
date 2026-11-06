@@ -459,3 +459,56 @@ document.addEventListener("DOMContentLoaded", function() {
         }).catch(function() {});
     }
 });
+
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+
+  // Naya SW active hone par ek hi dafa reload (first install par nahi)
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async () => {
+    try {
+      // Purana js/ scope wala SW (agar pehle register hua tha) unregister karo
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(
+        regs.filter(r => r.scope.endsWith('/js/')).map(r => r.unregister())
+      );
+
+      const reg = await navigator.serviceWorker.register('/service-worker.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+
+      const promptUpdate = worker => {
+        // TODO: confirm() ki jagah apni UI ka toast/banner lagao
+        if (window.confirm('Naya version available hai. Abhi update karein?')) {
+          worker.postMessage({ type: 'SKIP_WAITING' });
+        }
+      };
+
+      if (reg.waiting && navigator.serviceWorker.controller) promptUpdate(reg.waiting);
+
+      reg.addEventListener('updatefound', () => {
+        const worker = reg.installing;
+        if (!worker) return;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            promptUpdate(worker);
+          }
+        });
+      });
+
+      // Long-running tab/PWA ke liye har ghante update check
+      setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+    } catch (err) {
+      console.error('[SW] registration failed:', err);
+    }
+  });
+})();
