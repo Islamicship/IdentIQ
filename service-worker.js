@@ -6,7 +6,7 @@
  * ===================================================================== */
 'use strict';
 
-const VERSION      = '5.7.0';
+const VERSION      = '5.9.1';
 const CACHE_PREFIX = 'identiq-';
 const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
 
@@ -30,7 +30,6 @@ const PRECACHE = [
   './js/main.js',
   './js/names-data.js',
   './js/names.js',
-  './js/mouse.js',
   './lib/moment.min.js',
   './lib/moment-hijri.min.js',
   './lib/confetti.browser.min.js',

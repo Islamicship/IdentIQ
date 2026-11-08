@@ -15,8 +15,7 @@ try {
             wipeMinutes: 5,
             soundEnabled: true,
             shortcutsVisible: true,
-            shortcutsEnabled: true,
-            cursorStyle: "default"
+            shortcutsEnabled: true
         };
         var COUNTRY_CITIES = {
             pakistan: [ "Punjab", "Lahore", "Karachi", "Islamabad", "Peshawar", "Quetta", "Azad Kashmir" ],
@@ -180,16 +179,7 @@ try {
                 changelog5: "14+ bug fixes across all sections",
                 saved: "Saved ✓",
                 on: "On",
-                off: "Off",
-                labelCursor: "Cursor Style",
-                cursorNexus: "Nexus",
-                cursorNexusDesc: "Cyberpunk scanner",
-                cursorBlade: "Blade",
-                cursorBladeDesc: "Precision reticle",
-                cursorBlaze: "Blaze",
-                cursorBlazeDesc: "Gaming gold pointer",
-                cursorDefault: "Default",
-                cursorDefaultDesc: "System cursor"
+                off: "Off"
             },
             ur: {
                 settingsTitle: "ترتیبات",
@@ -308,16 +298,7 @@ try {
                 changelog5: "14+ بگ فکسز تمام سیکشنز میں",
                 saved: "محفوظ ✓",
                 on: "آن",
-                off: "آف",
-                labelCursor: "کرسر اسٹائل",
-                cursorNexus: "نیکسس",
-                cursorNexusDesc: "سائبر پنک اسکینر",
-                cursorBlade: "بلیڈ",
-                cursorBladeDesc: "درست نشانہ",
-                cursorBlaze: "بلیز",
-                cursorBlazeDesc: "گیمنگ گولڈ پوائنٹر",
-                cursorDefault: "ڈیفالٹ",
-                cursorDefaultDesc: "سسٹم کرسر"
+                off: "آف"
             }
         };
         var ICONS = {
@@ -499,7 +480,7 @@ try {
             var isDark = !(window.IS && IS.theme && IS.theme._mode === "light");
             var isLight = !isDark;
             var L = lang();
-            return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("appearanceTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelTheme") + "</label>" + '<div class="sp-theme-cards" id="spThemeCards">' + '<button class="sp-theme-card' + (isDark ? " active" : "") + '" data-theme="dark">' + '<div class="sp-theme-preview sp-theme-preview--dark">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeDark") + "</span>" + '<span class="sp-theme-desc">' + t("themeDarkDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + '<button class="sp-theme-card' + (isLight ? " active" : "") + '" data-theme="light">' + '<div class="sp-theme-preview sp-theme-preview--light">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeLight") + "</span>" + '<span class="sp-theme-desc">' + t("themeLightDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelLanguage") + "</label>" + '<div class="sp-lang-cards" id="spLangCards">' + '<button class="sp-lang-card' + (L === "en" ? " active" : "") + '" data-lang="en">' + '<span class="sp-lang-flag">' + t("langEnFlag") + "</span>" + '<span class="sp-lang-name">' + t("langEn") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + '<button class="sp-lang-card' + (L === "ur" ? " active" : "") + '" data-lang="ur">' + '<span class="sp-lang-flag">' + t("langUrFlag") + "</span>" + '<span class="sp-lang-name">' + t("langUr") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelCursor") + "</label>" + '<div class="sp-cursor-cards" id="spCursorCards">' + '<button class="sp-cursor-card' + (cfg.cursorStyle === "nexus" ? " active" : "") + '" data-cursor="nexus">' + '<div class="sp-cursor-preview sp-cursor-preview--nexus">' + '<svg width="60" height="40" viewBox="0 0 60 40" fill="none" aria-hidden="true">' + '<circle cx="30" cy="20" r="13" stroke="rgba(0,162,255,0.7)" stroke-width="1.5"/>' + '<circle cx="30" cy="20" r="16" stroke="rgba(0,162,255,0.18)" stroke-width="1"/>' + '<line x1="22" y1="20" x2="38" y2="20" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>' + '<circle cx="30" cy="20" r="3" fill="#00d4ff"/>' + '<circle cx="30" cy="20" r="6" fill="rgba(0,212,255,0.12)"/>' + "</svg>" + "</div>" + '<span class="sp-cursor-label">' + t("cursorNexus") + "</span>" + '<span class="sp-cursor-desc">' + t("cursorNexusDesc") + "</span>" + '<span class="sp-cursor-check">✓</span>' + "</button>" + '<button class="sp-cursor-card' + (cfg.cursorStyle === "blade" ? " active" : "") + '" data-cursor="blade">' + '<div class="sp-cursor-preview sp-cursor-preview--blade">' + '<svg width="60" height="40" viewBox="0 0 60 40" fill="none" aria-hidden="true">' + '<circle cx="30" cy="20" r="13" stroke="rgba(255,107,53,0.8)" stroke-width="1" stroke-dasharray="7 5 7 5 7 5 7 5"/>' + '<line x1="22" y1="20" x2="38" y2="20" stroke="#ff6b35" stroke-width="1"/>' + '<line x1="30" y1="12" x2="30" y2="28" stroke="#ff6b35" stroke-width="1"/>' + '<circle cx="30" cy="20" r="2" fill="rgba(255,107,53,0.6)"/>' + '<circle cx="30" cy="20" r="5" fill="rgba(255,107,53,0.1)"/>' + "</svg>" + "</div>" + '<span class="sp-cursor-label">' + t("cursorBlade") + "</span>" + '<span class="sp-cursor-desc">' + t("cursorBladeDesc") + "</span>" + '<span class="sp-cursor-check">✓</span>' + "</button>" + '<button class="sp-cursor-card sp-cursor-card--blaze' + (cfg.cursorStyle === "blaze" ? " active" : "") + '" data-cursor="blaze">' + '<div class="sp-cursor-preview sp-cursor-preview--blaze">' + '<svg width="60" height="40" viewBox="0 0 60 40" fill="none" aria-hidden="true">' + '<circle cx="31" cy="21" r="5" fill="rgba(255,215,0,0.18)"/>' + '<circle cx="31" cy="21" r="3" fill="rgba(255,215,0,0.35)"/>' + '<circle cx="31" cy="21" r="9" stroke="rgba(255,215,0,0.3)" stroke-width="1"/>' + '<circle cx="31" cy="21" r="13" stroke="rgba(255,215,0,0.12)" stroke-width="1"/>' + '<polygon points="24,10 24,30 28,25.5 31,32 33.5,31 30.5,24.5 36,24.5" fill="#ffd700" opacity="0.92"/>' + '<polygon points="24,10 24,30 28,25.5 31,32 33.5,31 30.5,24.5 36,24.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.7" stroke-linejoin="round"/>' + "</svg>" + "</div>" + '<span class="sp-cursor-label">' + t("cursorBlaze") + "</span>" + '<span class="sp-cursor-desc">' + t("cursorBlazeDesc") + "</span>" + '<span class="sp-cursor-check">✓</span>' + "</button>" + '<button class="sp-cursor-card' + ((cfg.cursorStyle === "default" || !cfg.cursorStyle) ? " active" : "") + '" data-cursor="default">' + '<div class="sp-cursor-preview sp-cursor-preview--default">' + '<svg width="60" height="40" viewBox="0 0 60 40" fill="none" aria-hidden="true">' + '<path d="M26 10 L26 30 L30 26 L34 34 L37 33 L33 25 L39 25 Z" fill="currentColor" stroke="none"/>' + '<path d="M26 10 L26 30 L30 26 L34 34 L37 33 L33 25 L39 25 Z" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linejoin="round"/>' + "</svg>" + "</div>" + '<span class="sp-cursor-label">' + t("cursorDefault") + "</span>" + '<span class="sp-cursor-desc">' + t("cursorDefaultDesc") + "</span>" + '<span class="sp-cursor-check">✓</span>' + "</button>" + "</div>" + "</div>" + "</div>";
+            return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("appearanceTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelTheme") + "</label>" + '<div class="sp-theme-cards" id="spThemeCards">' + '<button class="sp-theme-card' + (isDark ? " active" : "") + '" data-theme="dark">' + '<div class="sp-theme-preview sp-theme-preview--dark">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeDark") + "</span>" + '<span class="sp-theme-desc">' + t("themeDarkDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + '<button class="sp-theme-card' + (isLight ? " active" : "") + '" data-theme="light">' + '<div class="sp-theme-preview sp-theme-preview--light">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeLight") + "</span>" + '<span class="sp-theme-desc">' + t("themeLightDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelLanguage") + "</label>" + '<div class="sp-lang-cards" id="spLangCards">' + '<button class="sp-lang-card' + (L === "en" ? " active" : "") + '" data-lang="en">' + '<span class="sp-lang-flag">' + t("langEnFlag") + "</span>" + '<span class="sp-lang-name">' + t("langEn") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + '<button class="sp-lang-card' + (L === "ur" ? " active" : "") + '" data-lang="ur">' + '<span class="sp-lang-flag">' + t("langUrFlag") + "</span>" + '<span class="sp-lang-name">' + t("langUr") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + "</div>" + "</div>" + "</div>";
         }
         function buildProfile(cfg) {
             var avatarContent = cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName));
@@ -852,21 +833,6 @@ try {
                     });
                 });
             }
-            var cursorCards = document.getElementById("spCursorCards");
-            if (cursorCards) {
-                cursorCards.querySelectorAll(".sp-cursor-card").forEach(function(card) {
-                    card.addEventListener("click", function() {
-                        cursorCards.querySelectorAll(".sp-cursor-card").forEach(function(c) {
-                            c.classList.remove("active");
-                        });
-                        card.classList.add("active");
-                        var style = card.getAttribute("data-cursor");
-                        saveProp("cursorStyle", style);
-                        if (window._NexusCursor) _NexusCursor.setStyle(style);
-                        microToast(card);
-                    });
-                });
-            }
         }
         function bindProfile(cfg) {
             var nameInput = document.getElementById("spUserName");
@@ -1115,9 +1081,6 @@ try {
             window.dispatchEvent(new CustomEvent("IS_settings_changed", {
                 detail: cfg
             }));
-            if (window._NexusCursor && cfg.cursorStyle) {
-                _NexusCursor.setStyle(cfg.cursorStyle);
-            }
         }
         function applyShortcutsVisibility(show) {
             var bar = document.querySelector(".shortcut-legend");

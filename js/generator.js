@@ -240,24 +240,20 @@ document.addEventListener("DOMContentLoaded", function() {
         for (var i = 0; i < n; i++) s += rand(i === 0 ? 1 : 0, 9);
         return s;
     }
-    // Weekend days (0=Sun ... 6=Sat). UAE: 2022 se Sat-Sun.
     var WEEKEND = {
         Pakistan: [ 0 ], India: [ 0 ], Bangladesh: [ 5, 6 ], Nepal: [ 6 ], Afghanistan: [ 5 ],
         UAE: [ 0, 6 ], Qatar: [ 5, 6 ], SaudiArabia: [ 5, 6 ], Kuwait: [ 5, 6 ], Bahrain: [ 5, 6 ], Oman: [ 5, 6 ]
     };
     function pickIssueDate(weekend) {
-        // Aakhri 4 saal mein, aaj se kam az kam 30 din pehle (hardcoded 2022 khatam)
-        var end = new Date();
-        end.setHours(0, 0, 0, 0);
-        end.setDate(end.getDate() - 30);
-        var start = new Date(end.getFullYear() - 4, end.getMonth(), end.getDate());
+        var start = new Date(2023, 0, 2);
+        var end = new Date(2023, 11, 31);
         var span = Math.round((end - start) / 864e5);
         var d, tries = 0;
         do {
-            d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + rand(0, span));
+            d = new Date(2023, 0, 2 + rand(0, span));
             tries++;
         } while (weekend.indexOf(d.getDay()) !== -1 && tries < 60);
-        while (weekend.indexOf(d.getDay()) !== -1) d.setDate(d.getDate() - 1);   // guarantee
+        while (weekend.indexOf(d.getDay()) !== -1) d.setDate(d.getDate() - 1);
         return d;
     }
     function padN(n, len) {
@@ -265,13 +261,11 @@ document.addEventListener("DOMContentLoaded", function() {
         while (t.length < len) t = "0" + t;
         return t;
     }
-    // Qatar QID: 11 digits = C(1) + YY(2) + nationality ISO code(3) + serial(5)
     var QID_NAT = [ "586", "356", "050", "524", "004", "634", "818", "608" ];
     function qatarQid() {
         var y = rand(1970, 2003);
         return (y >= 2000 ? "3" : "2") + padN(y % 100, 2) + pick(QID_NAT) + padN(rand(0, 99999), 5);
     }
-    // Kuwait Civil ID: 12 digits = C(1) + YYMMDD(6) + serial(4) + check(1)
     var KW_W = [ 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 ];
     function kuwaitCivilId() {
         for (var n = 0; n < 200; n++) {
@@ -282,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var chk = 11 - (sum % 11);
             if (chk <= 9) return body + chk;
         }
-        return "2900101000" + "01";   // practically unreachable
+        return "2900101000" + "01";
     }
     var el = {
         country: document.getElementById("country-select"),
@@ -398,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function() {
     function hijriReady() {
         return !!(window.moment && window.moment.fn && typeof window.moment.fn.iYear !== "undefined");
     }
-    // Sirf EK timer, sirf EK pending callback (latest). Timeout par khud band.
     function whenHijriReady(cb) {
         if (hijriReady()) {
             cb();
@@ -429,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function() {
             el.out.currentDate.innerHTML = hijri + "&nbsp;&nbsp;&#8212;<br>" + eng;
         }
         if (hijriReady()) {
-            paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));   // 'en': Arabic digits nahi
+            paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));
         } else {
             paint("--/--/----");
             whenHijriReady(function() {
@@ -578,7 +571,7 @@ document.addEventListener("DOMContentLoaded", function() {
         _calOutsideTimer = setTimeout(function() {
             document.addEventListener("click", outsideClick);
         }, 10);
-        document.addEventListener("keydown", onCalKeydown);      // sirf jab calendar khula ho
+        document.addEventListener("keydown", onCalKeydown);
     }
     function closeCalendar() {
         if (calPopup) calPopup.classList.remove("open");
