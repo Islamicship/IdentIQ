@@ -1,195 +1,139 @@
 # ⚡ IdentIQ · Gulf Identity Intelligence Platform
 
 <p align="center">
-  <img src="logo.png" alt="IdentIQ Logo" width="80"/>
+  <img src="../assets/logo.png" alt="IdentIQ Logo" width="80"/>
 </p>
 
 <p align="center">
-  <strong>v4.4 · Progressive Web App · Offline-First · Privacy-Focused</strong>
+  <strong>v5.9.1 · Progressive Web App · Offline-First · Zero-Backend Privacy</strong>
 </p>
 
 <p align="center">
-  <a href="https://nexux-gen.netlify.app"><img src="https://img.shields.io/badge/Live%20Demo-nexux--gen.netlify.app-00a2ff?style=flat-square" alt="Live Demo"/></a>
-  <img src="https://img.shields.io/badge/Version-4.4-00d4ff?style=flat-square" alt="Version"/>
-  <img src="https://img.shields.io/badge/License-Proprietary-ff4466?style=flat-square" alt="License"/>
-  <img src="https://img.shields.io/badge/Built%20With-Vanilla%20JS-f5c542?style=flat-square" alt="Vanilla JS"/>
+  <a href="https://ident-lq.netlify.app"><img src="https://img.shields.io/badge/Live%20Demo-ident--lq.netlify.app-00a2ff?style=flat-square" alt="Live Demo"/></a>
+  <img src="https://img.shields.io/badge/Version-5.9.1-00d4ff?style=flat-square" alt="Version"/>
+  <img src="https://img.shields.io/badge/PWA-Offline%20Ready-00e676?style=flat-square" alt="PWA"/>
+  <img src="https://img.shields.io/badge/Stack-Vanilla%20JS-f5c542?style=flat-square" alt="Vanilla JS"/>
 </p>
 
 ---
 
 ## Overview
 
-IdentIQ is an **offline, client-side** web application designed to work with Gulf and South Asian identity documents. There is no server and no backend — everything runs entirely within your browser.
+IdentIQ is an **offline-first, zero-backend** client-side intelligence platform tailored for Gulf (GCC) and South Asian identity data processing, synthetic ID generation, and Quranic reference exploration.
 
-**Two core modules:**
-
-| Module | Description |
-|--------|-------------|
-| **Identity Intel** | Paste text from an Iqama, CNIC, or Emirates ID — Name, ID Number, and Date of Birth are extracted automatically |
-| **ID Generator** | Generates realistic identity data for 11 countries — CNIC, License, Address, and Dates |
-| **Analytics** | Tracks extraction history, success rate, and export statistics |
+All processing, parsing, and state management run 100% inside your local browser sandbox. No user data, pasted documents, or queries are ever sent to an external server.
 
 ---
 
-## Live Demo
+## Core Modules
 
-**[nexux-gen.netlify.app](https://nexux-gen.netlify.app)**
-
-The app can also be installed as a PWA — works on both mobile and desktop, even without an internet connection.
-
----
-
-## Features
-
-**Identity Extractor**
-- Supports both Arabic and English text
-- Automatically converts between Gregorian and Hijri dates
-- Age badge — calculates age automatically from the date of birth
-- Voice input — supports 6 languages: Arabic, English, Urdu, Hindi, Bengali, and Nepali
-- Virtual keyboard — available in both Arabic and English
-- OCR text cleaning — handles output from ABBYY FineReader and similar tools
-
-**ID Generator**
-- 11 countries: Pakistan, UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman, India, Bangladesh, Nepal, and Afghanistan
-- Realistic addresses with actual city and area data for each country
-- Issue date, expiry date (Issue + 5Y − 1D), and license number
-- Hijri calendar — displays the current date in both Gregorian and Hijri formats
-
-**App**
-- Dark / Light theme
-- UI language support: English, Urdu, and Arabic
-- Keyboard shortcuts: `Alt+1` `Alt+2` `Alt+3`
-- 5-minute privacy auto-wipe — clears all data after inactivity
-- PWA — works offline and can be installed on any device
-- Custom cursor styles — Nexus, Blade, Blaze
+| #   | Module                       | Primary Capability                                                                                                                                  |
+| --- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Identity Intel**           | Extracts Name, ID Number, and DOB from raw/OCR identity documents (Iqama, CNIC, Emirates ID, QID, etc.)                                             |
+| 2   | **Realistic ID**             | Generates verified synthetic identity profiles, realistic residential addresses, and issue/expiry dates across 11 countries                         |
+| 3   | **Analytics**                | Tracks local document parsing metrics, success rates, processing counters, and manual/auto history cleanup                                          |
+| 4   | **Divine & Prophetic Names** | Comprehensive Quranic repository featuring 85 Names of Allah and 25 Names of Prophet Muhammad ﷺ with native audio pronunciations and ayah citations |
 
 ---
 
-## Supported Countries
+## Detailed Features
 
-| # | Country | ID Type |
-|---|---------|---------|
-| 1 | 🇵🇰 Pakistan | CNIC (13-digit) |
-| 2 | 🇸🇦 Saudi Arabia | Iqama / National ID |
-| 3 | 🇦🇪 UAE | Emirates ID |
-| 4 | 🇶🇦 Qatar | QID |
-| 5 | 🇰🇼 Kuwait | Civil ID |
-| 6 | 🇧🇭 Bahrain | CPR |
-| 7 | 🇴🇲 Oman | National ID |
-| 8 | 🇮🇳 India | Aadhaar-style |
-| 9 | 🇧🇩 Bangladesh | NID |
-| 10 | 🇳🇵 Nepal | National ID |
-| 11 | 🇦🇫 Afghanistan | Tazkira |
+### 1. Identity Intel (Extractor)
 
----
+- **Multi-Script OCR Ingestion:** Normalizes and parses raw text outputs from ABBYY FineReader, Google Lens, and standard scanners.
+- **Bi-Directional Date Conversion:** Seamless calculation between Gregorian and Hijri calendar systems.
+- **Automated Demographics:** Dynamic age calculation based on extracted Date of Birth.
+- **Multilingual Voice Dictation:** Voice-to-text input supporting 6 regional languages (Arabic, English, Urdu, Hindi, Bengali, Nepali).
+- **Embedded Virtual Keyboards:** On-screen English and Arabic input layouts for clean data entry.
 
-## How to Use
+### 2. Realistic ID (Generator)
 
-### Identity Extractor (Tab 1)
+- **11 Supported Nations:** Pakistan (CNIC), Saudi Arabia (Iqama/National ID), UAE (Emirates ID), Qatar (QID), Kuwait (Civil ID), Bahrain (CPR), Oman (Civil ID), India (Aadhaar), Bangladesh (NID), Nepal (National ID), Afghanistan (Tazkira).
+- **Geographic Precision:** Generates realistic local administrative addresses, cities, and postal regions per country.
+- **Regulatory Date Logic:** Automatic calculation of legal validity cycles (`Issue + 5Y − 1D`).
 
-1. Copy the text from your Iqama, CNIC, or ID document
-2. Paste it into the **INPUT TERMINAL**
-3. Data is extracted automatically — Name, ID Number, and Date of Birth
-4. Use the copy button to copy any individual field
-5. You can also use the voice button to provide input by speaking
+### 3. Divine & Prophetic Names
 
-> **Tip:** Text scanned with ABBYY FineReader or any other OCR tool can be pasted directly — the app cleans it automatically.
+- **Quranic First Occurrence:** 85 Divine Names (Asma-ul-Husna) and 25 Prophetic Titles (Asma-un-Nabi) ordered by their first chronological appearance in the Quran (`Surah:Ayah`).
+- **High-Fidelity Audio:** 110 pre-rendered, crystal-clear Arabic pronunciations playable directly via offline cache.
+- **Typography Engine:** One-click live toggle between classical **Naskh** and **Nastaliq** calligraphic scripts.
+- **Multi-Parameter Search:** Real-time search by English translation, Arabic script, chronological index, or Quranic reference (e.g., `2:255`).
 
-### ID Generator (Tab 2)
+### 4. Platform & Security
 
-1. Select a country
-2. Select a city or region
-3. Click the **Generate New Identity** button
-4. Use the copy button on any field to copy its value
-
-### Analytics (Tab 3)
-
-- View total documents processed, success rate, and export history
-- Use the **Clear Data** button to wipe all history
+- **Privacy Engine:** 5-minute inactivity auto-wipe securely clears all local clipboard and parsing memory.
+- **PWA Capabilities:** Fully installable on Desktop (Chrome, Edge) and Mobile (Android, iOS) with instant background offline sync.
+- **Internationalization (i18n):** Native UI localization for English, Arabic, and Urdu.
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Alt + 1` | Identity Intel tab |
-| `Alt + 2` | ID Generator tab |
-| `Alt + 3` | Analytics tab |
-| `Escape` | Close calendar or keyboard |
+| Shortcut  | Navigation Target                            |
+| :-------: | -------------------------------------------- |
+| `Alt + 1` | Switch to **Identity Intel**                 |
+| `Alt + 2` | Switch to **Realistic ID**                   |
+| `Alt + 3` | Switch to **Analytics**                      |
+| `Alt + 4` | Switch to **Names**                          |
+| `Escape`  | Dismiss open modals, calendars, or keyboards |
 
 ---
 
-## Installation (Self-Host)
+## Project Structure
 
-No build steps. No `npm install` required.
-
-```bash
-git clone https://github.com/Islamicship/identiq.git
-cd identiq
+```text
+IdentIQ/
+├── _headers               # Production security & cache headers
+├── _redirects             # SPA routing rules
+├── index.html             # Core semantic layout & tab containers
+├── manifest.json          # PWA application metadata
+├── service-worker.js      # Offline cache strategies & network proxy
+│
+├── assets/
+│   └── logo.png           # Platform branding
+│
+├── audio/                 # 110 optimized MP3 pronunciation assets
+│   ├── husna-1.mp3 ... husna-85.mp3
+│   └── nabi-1.mp3 ... nabi-25.mp3
+│
+├── css/
+│   ├── copy-fx.css        # Toast notifications & copy interaction styles
+│   ├── names.css          # Quranic typography & audio cards styling
+│   ├── settings.css       # Preference drawer & modal presentation
+│   └── style.css          # Base responsive layout & color variables
+│
+├── docs/
+│   ├── readme.md          # Technical documentation
+│   └── Report.html        # Build audit report
+│
+├── js/
+│   ├── extractor.js       # OCR normalization & token parsing engine
+│   ├── generator.js       # Country-specific ID algorithms & address DB
+│   ├── main.js            # App coordinator, tabs, shortcuts, auto-wipe
+│   ├── names-data.js      # Immutable dataset: Arabic, transliteration, references
+│   ├── names.js           # Audio playback controller & search filter
+│   ├── settings.js        # User preferences, themes, and locale handlers
+│   └── ui.js              # DOM rendering, copy clipboard, i18n dictionary
+│
+└── lib/                   # Locally bundled runtime libraries
+    ├── confetti.browser.min.js
+    ├── moment.min.js
+    └── moment-hijri.min.js
 ```
 
-Upload all files to any HTTPS host:
+## Privacy & Security Baseline
 
-- [GitHub Pages](https://pages.github.com)
-- [Netlify](https://netlify.com)
-- [Vercel](https://vercel.com)
-
-> **HTTPS is required** for the Service Worker and Voice Input to function (also works on localhost).
+- **Zero Tracking:** No Google Analytics, no third-party trackers, no tracking pixels.
+- **Local Persistence:** Data lives exclusively in browser memory (`sessionStorage` / `localStorage`).
+- **Cryptographic Headers:** Hardened Content Security Policy (CSP), anti-clickjacking (`X-Frame-Options: DENY`), and strict MIME-type sniffing protection.
 
 ---
 
-## File Structure
-
-```
-identiq/
-├── index.html          # Main UI — tabs, layout, HTML structure
-├── style.css           # Main styling — dark/light theme
-├── settings.css        # Settings panel styles
-├── ui.js               # i18n, theme, audio, utilities
-├── extractor.js        # Identity extraction logic
-├── generator.js        # ID generation — 11 countries
-├── main.js             # Tab navigation, analytics, privacy wipe
-├── settings.js         # Settings panel, user preferences
-├── mouse.js            # Custom cursor engine
-├── service-worker.js   # PWA offline caching
-├── manifest.json       # PWA manifest
-├── moment_min.js       # Moment.js (local fallback)
-└── moment-hijri_min.js # Hijri calendar (local fallback)
-```
-
----
-
-## Privacy
-
-- **No server** — all data stays entirely within your browser
-- **Auto-wipe** — all data is automatically cleared after 5 minutes of inactivity
-- **No tracking** — no analytics, no cookies, no third-party requests
-
----
-
-## Dependencies
-
-Loaded via CDN (with local fallbacks available):
-
-| Library | Purpose |
-|---------|---------|
-| [Moment.js](https://momentjs.com) | Gregorian date operations |
-| [Moment-Hijri](https://github.com/xsoh/moment-hijri) | Hijri ↔ Gregorian conversion |
-| [Canvas-Confetti](https://github.com/catdad/canvas-confetti) | Extraction success animation |
-
----
-
-## Developer
+## Maintainer & Copyright
 
 **Creative Men** · Jhang, Punjab, Pakistan
 
-- Email: creativemen70@gmail.com
-- WhatsApp: [0321-8232140](https://wa.me/923218232140)
-- Projects: [nexux-gen.netlify.app](https://nexux-gen.netlify.app) · [personal-ocr-tool.netlify.app](https://personal-ocr-tool.netlify.app)
+- **Email:** creativemen70@gmail.com
+- **Production URL:** [ident-lq.netlify.app](https://ident-lq.netlify.app)
 
----
-
-## License
-
-© 2025 Creative Men. All Rights Reserved.
+© 2024–2026 IdentIQ · Creative Men · Gulf Identity Intelligence Platform. All Rights Reserved.
