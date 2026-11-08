@@ -43,9 +43,9 @@ try {
             nepal: "Nepal",
             afghanistan: "Afghanistan"
         };
-        var APP_META = {
+       var APP_META = {
             name: "IdentIQ",
-            version: "v4.4",
+            version: "v5.9.1",
             released: "2024",
             developer: "Creative Men",
             location: "Jhang, Punjab, Pakistan",
@@ -54,12 +54,12 @@ try {
             whatsapp: "0321-8232140",
             whatsappUrl: "https://wa.me/923218232140",
             github: "https://github.com/Islamicship",
-            nexusApp: "https://nexux-gen.netlify.app",
+            nexusApp: "https://ident-lq.netlify.app",
             ocrApp: "https://personal-ocr-tool.netlify.app",
             deenApp: "https://deen-toolkit.netlify.app",
             tagline: "Crafting Digital Intelligence for the Gulf & South Asia",
-            copyright: "© 2024–2025 Creative Men. All rights reserved.",
-            privacyVer: "v1.0 · 2024"
+            copyright: "© 2024–2026 Creative Men. All rights reserved.",
+            privacyVer: "v2.0 · 2026"
         };
         var STR = {
             en: {
@@ -139,7 +139,7 @@ try {
                 aboutProjectsSection: "Other Projects",
                 aboutLegalSection: "Legal",
                 appName: "IdentIQ",
-                appVersion: "v4.4",
+                appVersion: "v5.9.1",
                 appTagline: "Gulf & South-Asian Identity Intelligence Platform",
                 poweredBy: "Powered by Creative AI Engine",
                 developerLabel: "Developed by",
@@ -165,18 +165,18 @@ try {
                 projectDeen: "Deen Toolkit",
                 privacyPolicyTitle: "Privacy Policy",
                 privacyPolicyBtn: "View Privacy Policy",
-                copyrightNotice: "© 2024–2025 Creative Men. All rights reserved.",
+                copyrightNotice: "© 2024–2026 Creative Men. All rights reserved.",
                 btnReset: "Reset All Settings",
                 resetConfirm: "Reset all settings to defaults and reload?",
                 updateChecking: "Checking for updates…",
                 updateDone: "✓ Already up to date",
                 updateInstalling: "Update installing… reload to apply",
-                changelogTitle: "What's New in v4.4",
-                changelog1: "Professional About & Support section",
-                changelog2: "Privacy Policy added",
-                changelog3: "Developer projects showcase",
-                changelog4: "Full RTL & Urdu improvements",
-                changelog5: "14+ bug fixes across all sections",
+                changelogTitle: "What's New in v5.9.1",
+                changelog1: "Divine & Prophetic Names module (110 Audio Pronunciations)",
+                changelog2: "Quranic first-occurrence arrangement & Ayah citations",
+                changelog3: "Naskh & Nastaliq Arabic typography engine",
+                changelog4: "Enhanced identity generator with realistic regional addresses",
+                changelog5: "Service worker performance and offline PWA optimization",
                 saved: "Saved ✓",
                 on: "On",
                 off: "Off"
@@ -258,7 +258,7 @@ try {
                 aboutProjectsSection: "دیگر پروجیکٹس",
                 aboutLegalSection: "قانونی",
                 appName: "IdentIQ",
-                appVersion: "v4.4",
+                appVersion: "v5.9.1",
                 appTagline: "گلف اور جنوبی ایشیائی شناختی ذہانت پلیٹ فارم",
                 poweredBy: "Creative AI انجن سے تقویت یافتہ",
                 developerLabel: "تیار کردہ",
@@ -284,18 +284,18 @@ try {
                 projectDeen: "دین ٹول کٹ",
                 privacyPolicyTitle: "رازداری پالیسی",
                 privacyPolicyBtn: "رازداری پالیسی دیکھیں",
-                copyrightNotice: "© 2024–2025 Creative Men. تمام حقوق محفوظ ہیں۔",
+                copyrightNotice: "© 2024–2026 Creative Men. تمام حقوق محفوظ ہیں۔",
                 btnReset: "تمام ترتیبات ری سیٹ کریں",
                 resetConfirm: "تمام ترتیبات ڈیفالٹ پر ری سیٹ کریں؟",
                 updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
                 updateDone: "✓ ایپ تازہ ترین ہے",
                 updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-                changelogTitle: "v4.4 میں نیا کیا ہے",
-                changelog1: "پروفیشنل معلومات اور سپورٹ سیکشن",
-                changelog2: "رازداری پالیسی شامل کی گئی",
-                changelog3: "ڈویلپر پروجیکٹس شوکیس",
-                changelog4: "مکمل RTL اور اردو بہتری",
-                changelog5: "14+ بگ فکسز تمام سیکشنز میں",
+                changelogTitle: "v5.9.1 میں نیا کیا ہے",
+                changelog1: "اسمائے الہٰی اور اسمائے نبی ﷺ ماڈیول (110 آڈیو تلفظ)",
+                changelog2: "قرآنی ترتیب اور سورت و آیت کے حوالہ جات",
+                changelog3: "نسخ اور نستعلیق عربی خطاطی سپورٹ",
+                changelog4: "شناختی جنریٹر میں حقیقت پسندانہ ایڈریسز کی بہتری",
+                changelog5: "آف لائن سروس ورکر اور کارکردگی میں بہتری",
                 saved: "محفوظ ✓",
                 on: "آن",
                 off: "آف"
@@ -573,10 +573,10 @@ try {
             });
         }
         function buildPrivacyContentEn() {
-            return "" + "<h4>Privacy Policy — IdentIQ v4.4</h4>" + '<p class="sp-pp-date">Effective Date: January 1, 2024 &nbsp;|&nbsp; Developer: Creative Men, Jhang, Punjab, Pakistan</p>' + "<h5>1. Data We Collect</h5>" + "<p>IdentIQ does <strong>not</strong> collect, transmit, or store any personal data on external servers. All information you enter — including names, emails, extracted identity data, and analytics — is stored exclusively in your browser's <code>localStorage</code> on your own device.</p>" + "<h5>2. Local Storage Only</h5>" + "<p>The following data may be saved locally on your device:</p>" + "<ul><li>Your display name and email (optional, for profile)</li><li>App settings and preferences</li><li>Extraction history and analytics counters</li><li>Theme and language preference</li></ul>" + "<p>None of this data leaves your device. You can delete it at any time via <strong>Privacy → Clear All Data</strong>.</p>" + "<h5>3. Third-Party Services</h5>" + "<p>IdentIQ does not integrate with any third-party analytics, advertising, or tracking services. No cookies are set. No telemetry is sent.</p>" + "<h5>4. Service Worker & Caching</h5>" + "<p>IdentIQ uses a service worker to cache app files locally for offline use. This cache contains only app code and assets — no user data is cached by the service worker.</p>" + "<h5>5. External Links</h5>" + "<p>This app contains links to external sites (GitHub, WhatsApp, Netlify-hosted projects). Creative Men is not responsible for the privacy practices of those external services.</p>" + "<h5>6. Children's Privacy</h5>" + "<p>IdentIQ is not directed at children under 13. We do not knowingly collect any information from minors.</p>" + "<h5>7. Changes to This Policy</h5>" + "<p>We may update this policy occasionally. Updates will be reflected in the app version notes. Continued use of the app constitutes acceptance of any changes.</p>" + "<h5>8. Contact</h5>" + '<p>For privacy questions, contact us at <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a> or WhatsApp <strong>0321-8232140</strong>.</p>';
+              return "" + "<h4>Privacy Policy — IdentIQ v5.9.1</h4>" + '<p class="sp-pp-date">Effective Date: January 1, 2026 &nbsp;|&nbsp; Developer: Creative Men, Jhang, Punjab, Pakistan</p>' + "<h5>1. Data We Collect</h5>" + "<p>IdentIQ does <strong>not</strong> collect, transmit, or store any personal data on external servers. All information you enter — including names, emails, extracted identity data, and analytics — is stored exclusively in your browser's <code>localStorage</code> on your own device.</p>" + "<h5>2. Local Storage Only</h5>" + "<p>The following data may be saved locally on your device:</p>" + "<ul><li>Your display name and email (optional, for profile)</li><li>App settings and preferences</li><li>Extraction history and analytics counters</li><li>Theme and language preference</li></ul>" + "<p>None of this data leaves your device. You can delete it at any time via <strong>Privacy → Clear All Data</strong>.</p>" + "<h5>3. Third-Party Services</h5>" + "<p>IdentIQ does not integrate with any third-party analytics, advertising, or tracking services. No cookies are set. No telemetry is sent.</p>" + "<h5>4. Service Worker & Caching</h5>" + "<p>IdentIQ uses a service worker to cache app files locally for offline use. This cache contains only app code and assets — no user data is cached by the service worker.</p>" + "<h5>5. External Links</h5>" + "<p>This app contains links to external sites (GitHub, WhatsApp, Netlify-hosted projects). Creative Men is not responsible for the privacy practices of those external services.</p>" + "<h5>6. Children's Privacy</h5>" + "<p>IdentIQ is not directed at children under 13. We do not knowingly collect any information from minors.</p>" + "<h5>7. Changes to This Policy</h5>" + "<p>We may update this policy occasionally. Updates will be reflected in the app version notes. Continued use of the app constitutes acceptance of any changes.</p>" + "<h5>8. Contact</h5>" + '<p>For privacy questions, contact us at <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a> or WhatsApp <strong>0321-8232140</strong>.</p>';
         }
         function buildPrivacyContentUr() {
-            return "" + "<h4>رازداری پالیسی — IdentIQ v4.4</h4>" + '<p class="sp-pp-date">تاریخ نفاذ: یکم جنوری 2024 &nbsp;|&nbsp; ڈویلپر: Creative Men، جھنگ، پنجاب، پاکستان</p>' + "<h5>1. ڈیٹا اکٹھا کرنا</h5>" + "<p>IdentIQ کسی بھی بیرونی سرور پر آپ کا ذاتی ڈیٹا <strong>اکٹھا، منتقل یا محفوظ نہیں کرتا</strong>۔ تمام معلومات صرف آپ کے براؤزر کی <code>localStorage</code> میں محفوظ ہوتی ہیں۔</p>" + "<h5>2. مقامی اسٹوریج</h5>" + "<p>درج ذیل ڈیٹا آپ کی ڈیوائس پر مقامی طور پر محفوظ ہو سکتا ہے:</p>" + "<ul><li>آپ کا نمائشی نام اور ای میل (اختیاری)</li><li>ایپ ترتیبات</li><li>نکالنے کی تاریخ اور تجزیات</li><li>تھیم اور زبان کی ترجیح</li></ul>" + "<p>یہ ڈیٹا آپ کی ڈیوائس نہیں چھوڑتا۔ آپ اسے <strong>رازداری → تمام ڈیٹا صاف کریں</strong> سے حذف کر سکتے ہیں۔</p>" + "<h5>3. تھرڈ پارٹی سروسز</h5>" + "<p>IdentIQ کسی بھی اشتہاری یا ٹریکنگ سروس سے منسلک نہیں ہے۔ کوئی کوکی سیٹ نہیں ہوتی۔</p>" + "<h5>4. رابطہ</h5>" + '<p>رازداری سے متعلق سوالات کے لیے: <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a></p>';
+            return "" + "<h4>رازداری پالیسی — IdentIQ v5.9.1</h4>" + '<p class="sp-pp-date">تاریخ نفاذ: یکم جنوری 2026 &nbsp;|&nbsp; ڈویلپر: Creative Men، جھنگ، پنجاب، پاکستان</p>' + "<h5>1. ڈیٹا اکٹھا کرنا</h5>" + "<p>IdentIQ کسی بھی بیرونی سرور پر آپ کا ذاتی ڈیٹا <strong>اکٹھا، منتقل یا محفوظ نہیں کرتا</strong>۔ تمام معلومات صرف آپ کے براؤزر کی <code>localStorage</code> میں محفوظ ہوتی ہیں۔</p>" + "<h5>2. مقامی اسٹوریج</h5>" + "<p>درج ذیل ڈیٹا آپ کی ڈیوائس پر مقامی طور پر محفوظ ہو سکتا ہے:</p>" + "<ul><li>آپ کا نمائشی نام اور ای میل (اختیاری)</li><li>ایپ ترتیبات</li><li>نکالنے کی تاریخ اور تجزیات</li><li>تھیم اور زبان کی ترجیح</li></ul>" + "<p>یہ ڈیٹا آپ کی ڈیوائس نہیں چھوڑتا۔ آپ اسے <strong>رازداری → تمام ڈیٹا صاف کریں</strong> سے حذف کر سکتے ہیں۔</p>" + "<h5>3. تھرڈ پارٹی سروسز</h5>" + "<p>IdentIQ کسی بھی اشتہاری یا ٹریکنگ سروس سے منسلک نہیں ہے۔ کوئی کوکی سیٹ نہیں ہوتی۔</p>" + "<h5>4. رابطہ</h5>" + '<p>رازداری سے متعلق سوالات کے لیے: <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a></p>';
         }
         function buildSidebarNav() {
             return NAV_ITEMS.map(function(item) {
