@@ -483,12 +483,34 @@ try {
             return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("appearanceTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelTheme") + "</label>" + '<div class="sp-theme-cards" id="spThemeCards">' + '<button class="sp-theme-card' + (isDark ? " active" : "") + '" data-theme="dark">' + '<div class="sp-theme-preview sp-theme-preview--dark">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeDark") + "</span>" + '<span class="sp-theme-desc">' + t("themeDarkDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + '<button class="sp-theme-card' + (isLight ? " active" : "") + '" data-theme="light">' + '<div class="sp-theme-preview sp-theme-preview--light">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeLight") + "</span>" + '<span class="sp-theme-desc">' + t("themeLightDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelLanguage") + "</label>" + '<div class="sp-lang-cards" id="spLangCards">' + '<button class="sp-lang-card' + (L === "en" ? " active" : "") + '" data-lang="en">' + '<span class="sp-lang-flag">' + t("langEnFlag") + "</span>" + '<span class="sp-lang-name">' + t("langEn") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + '<button class="sp-lang-card' + (L === "ur" ? " active" : "") + '" data-lang="ur">' + '<span class="sp-lang-flag">' + t("langUrFlag") + "</span>" + '<span class="sp-lang-name">' + t("langUr") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + "</div>" + "</div>" + "</div>";
         }
         function buildProfile(cfg) {
-            var avatarContent = cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName));
+            var avatarContent = cfg.avatarImage ? '<img src="' + cfg.avatarImage + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName)));
             var greeting = cfg.userName ? t("profileGreeting") + " " + cfg.userName.split(" ")[0] + "!" : "";
-            var emojiOptions = [ "💼", "🧑‍💻", "👤", "🤖", "🔍", "⚡" ].map(function(em) {
+            var emojiOptions = [ "🕵️", "👨‍💼", "👩‍💼", "👨‍💻", "👩‍💻", "🛡️" ].map(function(em) {
                 return '<button class="sp-emoji-opt' + (cfg.avatarEmoji === em ? " active" : "") + '" data-emoji="' + esc(em) + '" title="' + esc(em) + '">' + em + "</button>";
             }).join("");
-            return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("profileTitle") + "</h3>" + '<div class="sp-avatar-wrap">' + '<div class="sp-avatar-lg" id="spAvatar">' + avatarContent + "</div>" + (greeting ? '<p class="sp-greeting" id="spGreeting">' + esc(greeting) + "</p>" : '<p class="sp-greeting" id="spGreeting" style="opacity:0"></p>') + '<div class="sp-emoji-row" id="spEmojiRow">' + emojiOptions + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label" for="spUserName">' + t("labelName") + "</label>" + '<input type="text" id="spUserName" class="sp-input" placeholder="' + esc(t("namePlaceholder")) + '" value="' + esc(cfg.userName) + '" maxlength="40" autocomplete="name">' + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label" for="spUserEmail">' + t("labelEmail") + "</label>" + '<input type="email" id="spUserEmail" class="sp-input" placeholder="' + esc(t("emailPlaceholder")) + '" value="' + esc(cfg.userEmail || "") + '" maxlength="80" autocomplete="email">' + "</div>" + '<p class="sp-note">' + t("profileNote") + "</p>" + "</div>";
+            return '<div class="sp-content-inner">' +
+                '<h3 class="sp-content-title">' + t("profileTitle") + "</h3>" +
+                '<div class="sp-avatar-wrap">' +
+                    '<div class="sp-avatar-container">' +
+                        '<div class="sp-avatar-lg" id="spAvatar" title="Click to upload">' + avatarContent + "</div>" +
+                        '<button type="button" class="sp-avatar-badge" id="spAvatarBadge" title="Upload Photo">' +
+                            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' +
+                        '</button>' +
+                    "</div>" +
+                    '<input type="file" id="spAvatarInput" accept="image/*" style="display:none">' +
+                    (greeting ? '<p class="sp-greeting" id="spGreeting">' + esc(greeting) + "</p>" : '<p class="sp-greeting" id="spGreeting" style="opacity:0"></p>') +
+                    '<div class="sp-emoji-row" id="spEmojiRow">' + emojiOptions + "</div>" +
+                "</div>" +
+                '<div class="sp-field">' +
+                    '<label class="sp-field-label" for="spUserName">' + t("labelName") + "</label>" +
+                    '<input type="text" id="spUserName" class="sp-input" placeholder="' + esc(t("namePlaceholder")) + '" value="' + esc(cfg.userName) + '" maxlength="40" autocomplete="name">' +
+                "</div>" +
+                '<div class="sp-field">' +
+                    '<label class="sp-field-label" for="spUserEmail">' + t("labelEmail") + "</label>" +
+                    '<input type="email" id="spUserEmail" class="sp-input" placeholder="' + esc(t("emailPlaceholder")) + '" value="' + esc(cfg.userEmail || "") + '" maxlength="80" autocomplete="email">' +
+                "</div>" +
+                '<p class="sp-note">' + t("profileNote") + "</p>" +
+            "</div>";
         }
         function buildPrivacy(cfg) {
             var wipes = [ 1, 3, 5, 10, 30 ];
@@ -857,6 +879,7 @@ try {
                         var em = btn.getAttribute("data-emoji");
                         var newEmoji = readSettings().avatarEmoji === em ? "" : em;
                         saveProp("avatarEmoji", newEmoji);
+                        if (newEmoji) saveProp("avatarImage", "");
                         emojiRow.querySelectorAll(".sp-emoji-opt").forEach(function(b) {
                             b.classList.remove("active");
                         });
@@ -868,6 +891,50 @@ try {
                     });
                 });
             }
+
+            var avatarInput = document.getElementById("spAvatarInput");
+            var badgeBtn = document.getElementById("spAvatarBadge");
+
+            if (avatarEl && avatarInput) {
+                avatarEl.addEventListener("click", function() {
+                    avatarInput.click();
+                });
+            }
+
+            if (badgeBtn && avatarInput) {
+                badgeBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    avatarInput.click();
+                });
+            }
+
+            if (avatarInput) {
+                avatarInput.addEventListener("change", function(e) {
+                    var file = e.target.files[0];
+                    if (!file) return;
+
+                    var reader = new FileReader();
+                    reader.onload = function(event) {
+                        var img = new Image();
+                        img.onload = function() {
+                            var canvas = document.createElement("canvas");
+                            canvas.width = 128;
+                            canvas.height = 128;
+                            var ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0, 128, 128);
+                            var dataUrl = canvas.toDataURL("image/png");
+                            saveProp("avatarImage", dataUrl);
+                            if (avatarEl) avatarEl.innerHTML = '<img src="' + dataUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+                            document.querySelectorAll(".sp-emoji-opt").forEach(function(b) { b.classList.remove("active"); });
+                            microToast(avatarEl);
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
             if (nameInput && avatarEl) {
                 nameInput.addEventListener("input", function() {
                     var curEmoji = readSettings().avatarEmoji;
