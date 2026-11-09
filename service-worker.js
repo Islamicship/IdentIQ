@@ -23,6 +23,7 @@ const PRECACHE = [
   './css/settings.css',
   './css/names.css',
   './css/copy-fx.css',
+  './js/config.js',
   './js/ui.js',
   './js/extractor.js',
   './js/generator.js',
