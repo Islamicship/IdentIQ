@@ -59,7 +59,7 @@ try {
             deenApp: "https://deen-toolkit.netlify.app",
             tagline: "Crafting Digital Intelligence for the Gulf & South Asia",
             copyright: "© " + ((window.APP_CONFIG && APP_CONFIG.COPYRIGHT_RANGE) || "2024–2026") + " " + ((window.APP_CONFIG && APP_CONFIG.DEVELOPER) || "Creative Men") + ". All rights reserved.",
-            privacyVer: "v2.0 · " + ((window.APP_CONFIG && APP_CONFIG.YEAR) || 2026)
+            privacyVer: "Privacy Policy v2.0 (" + ((window.APP_CONFIG && APP_CONFIG.YEAR) || 2026) + ")"
         };
         var STR = {
             en: {
