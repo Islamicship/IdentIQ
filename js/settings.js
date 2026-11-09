@@ -482,12 +482,23 @@ try {
             var L = lang();
             return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("appearanceTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelTheme") + "</label>" + '<div class="sp-theme-cards" id="spThemeCards">' + '<button class="sp-theme-card' + (isDark ? " active" : "") + '" data-theme="dark">' + '<div class="sp-theme-preview sp-theme-preview--dark">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeDark") + "</span>" + '<span class="sp-theme-desc">' + t("themeDarkDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + '<button class="sp-theme-card' + (isLight ? " active" : "") + '" data-theme="light">' + '<div class="sp-theme-preview sp-theme-preview--light">' + '<div class="sp-preview-bar"></div>' + '<div class="sp-preview-line sp-preview-line--1"></div>' + '<div class="sp-preview-line sp-preview-line--2"></div>' + "</div>" + '<span class="sp-theme-label">' + t("themeLight") + "</span>" + '<span class="sp-theme-desc">' + t("themeLightDesc") + "</span>" + '<span class="sp-theme-check">✓</span>' + "</button>" + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelLanguage") + "</label>" + '<div class="sp-lang-cards" id="spLangCards">' + '<button class="sp-lang-card' + (L === "en" ? " active" : "") + '" data-lang="en">' + '<span class="sp-lang-flag">' + t("langEnFlag") + "</span>" + '<span class="sp-lang-name">' + t("langEn") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + '<button class="sp-lang-card' + (L === "ur" ? " active" : "") + '" data-lang="ur">' + '<span class="sp-lang-flag">' + t("langUrFlag") + "</span>" + '<span class="sp-lang-name">' + t("langUr") + "</span>" + '<span class="sp-lang-check">✓</span>' + "</button>" + "</div>" + "</div>" + "</div>";
         }
+
+        var CYBER_AVATARS = {
+            cipher: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#0d1b2a"/><circle cx="18" cy="14" r="7" fill="#00e5ff"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#1b263b"/><circle cx="15" cy="13" r="1.5" fill="#0d1b2a"/><circle cx="21" cy="13" r="1.5" fill="#0d1b2a"/><path d="M12 9l3-2h6l3 2" stroke="#00e5ff" stroke-width="1.5" fill="none"/></svg>',
+            spectre: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#1a1423"/><circle cx="18" cy="14" r="7" fill="#e0aaff"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#3d315b"/><rect x="13" y="12" width="10" height="3" rx="1.5" fill="#ff007f"/><circle cx="18" cy="14" r="1" fill="#fff"/></svg>',
+            sentinel: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#0b2520"/><circle cx="18" cy="14" r="7" fill="#52b788"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#1b4332"/><path d="M14 14h8" stroke="#00ffb7" stroke-width="2" stroke-linecap="round"/><path d="M18 10v3" stroke="#00ffb7" stroke-width="1.5"/></svg>',
+            oracle: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#241400"/><circle cx="18" cy="14" r="7" fill="#ffb703"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#4d2c00"/><circle cx="14" cy="13" r="1.5" fill="#000"/><circle cx="22" cy="13" r="1.5" fill="#000"/><path d="M15 17q3 2 6 0" stroke="#000" stroke-width="1.2" fill="none"/></svg>',
+            phantom: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#161b22"/><circle cx="18" cy="14" r="6.5" fill="#8b949e"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#30363d"/><path d="M13 14h10" stroke="#58a6ff" stroke-width="2.5" stroke-linecap="round"/></svg>',
+            nexus: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#2d0c1e"/><circle cx="18" cy="14" r="7" fill="#ff4d6d"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#590d22"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><circle cx="21" cy="13" r="1.5" fill="#fff"/><path d="M14 8l4-3 4 3" stroke="#ff758f" stroke-width="1.5" fill="none"/></svg>'
+        };
+
         function buildProfile(cfg) {
-            var avatarContent = cfg.avatarImage ? '<img src="' + cfg.avatarImage + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName)));
+            var avatarContent = cfg.avatarImage ? '<img src="' + cfg.avatarImage + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (cfg.avatarEmoji && CYBER_AVATARS[cfg.avatarEmoji] ? CYBER_AVATARS[cfg.avatarEmoji] : (cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName))));
             var greeting = cfg.userName ? t("profileGreeting") + " " + cfg.userName.split(" ")[0] + "!" : "";
-            var emojiOptions = [ "🕵️", "👨‍💼", "👩‍💼", "👨‍💻", "👩‍💻", "🛡️" ].map(function(em) {
-                return '<button class="sp-emoji-opt' + (cfg.avatarEmoji === em ? " active" : "") + '" data-emoji="' + esc(em) + '" title="' + esc(em) + '">' + em + "</button>";
+            var emojiOptions = Object.keys(CYBER_AVATARS).map(function(key) {
+                return '<button type="button" class="sp-emoji-opt' + (cfg.avatarEmoji === key ? " active" : "") + '" data-emoji="' + key + '" title="' + key.toUpperCase() + '">' + CYBER_AVATARS[key] + "</button>";
             }).join("");
+
             return '<div class="sp-content-inner">' +
                 '<h3 class="sp-content-title">' + t("profileTitle") + "</h3>" +
                 '<div class="sp-avatar-wrap">' +
@@ -885,7 +896,11 @@ try {
                         });
                         if (newEmoji) btn.classList.add("active");
                         if (avatarEl) {
-                            avatarEl.textContent = newEmoji || getInitials(nameInput ? nameInput.value : cfg.userName);
+                            if (newEmoji && CYBER_AVATARS[newEmoji]) {
+                                avatarEl.innerHTML = CYBER_AVATARS[newEmoji];
+                            } else {
+                                avatarEl.textContent = getInitials(nameInput ? nameInput.value : cfg.userName);
+                            }
                         }
                         microToast(btn);
                     });

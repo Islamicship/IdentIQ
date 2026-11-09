@@ -1461,3 +1461,30 @@ body.lang-ur .sp-toggle-thumb { left: auto; right: 2px; }
     background: var(--c-accent, #00b4ff);
     color: #fff;
 }
+.sp-avatar-lg svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+}
+
+.sp-emoji-opt {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 2px !important;
+    border-radius: 50% !important;
+    overflow: hidden;
+}
+
+.sp-emoji-opt svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    pointer-events: none;
+    display: block;
+}
+
+.sp-emoji-opt.active {
+    box-shadow: 0 0 0 2px var(--c-accent, #00b4ff), 0 0 8px rgba(0, 180, 255, 0.4);
+    border-color: var(--c-accent, #00b4ff) !important;
+}
