@@ -3,6 +3,11 @@
 document.addEventListener("DOMContentLoaded", function() {
     IS.i18n.init();
     IS.theme.init();
+    if (window.APP_CONFIG) {
+        document.querySelectorAll(".gen-version-tag").forEach(function(el) {
+            el.textContent = "v" + APP_CONFIG.VERSION;
+        });
+    }
     (function cleanLegacyAuth() {
         try {
             if (localStorage.getItem("IS_legacy_auth_cleaned")) return;
