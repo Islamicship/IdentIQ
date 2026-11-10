@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (country === "Pakistan") {
             var pref = DS.pakistan.prefixes[city] || "33100";
-            idNum = pref + "-" + rand(1e6, 9999999) + "-" + rand(1, 9);
+            idNum = pref + "-" + rand(1e6, 9999999) + "-" + pick([ 1, 3, 5, 7, 9 ]);
             
             if (city === "Islamabad") {
                 var isb = DS.pakistan.regions.Islamabad;
@@ -477,6 +477,7 @@ document.addEventListener("DOMContentLoaded", function() {
             expiryDate: IS.fmtDate(expiryDate),
             fullAddress: addr,
             _country: country,
+            _gender: "Male",
             _raw: {
                 issueDate: issueDate,
                 expiryDate: expiryDate
