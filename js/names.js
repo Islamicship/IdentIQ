@@ -18,8 +18,11 @@
     var ORDER = [ "husna", "nabi" ];
     var ICON_COPY = '<svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     var ICON_SPEAK = '<svg class="icon-speak" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+    var ICON_PLAY_ALL = '<svg class="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
+    var ICON_STOP_ALL = '<svg class="icon-stop" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
     var USE_AUDIO_FILES = true;
     var arVoice = null;
+
     function pickArabicVoice() {
         if (!("speechSynthesis" in window)) return;
         var voices = speechSynthesis.getVoices() || [];
@@ -33,15 +36,19 @@
         pickArabicVoice();
         if (speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", pickArabicVoice);
     }
+
     var player = null;
     var liveUtterance = null;
     var audioFailed = {};
+    var onStopPlaylistHook = null;
+
     function clearSpeaking() {
         document.querySelectorAll(".name-speak.speaking").forEach(function(b) {
             b.classList.remove("speaking");
         });
     }
-    function stopAll() {
+
+    function stopAudioOnly() {
         if (player) {
             player.onplaying = player.onended = player.onpause = player.onerror = null;
             try {
@@ -56,9 +63,18 @@
         if ("speechSynthesis" in window) speechSynthesis.cancel();
         clearSpeaking();
     }
-    function speakTTS(text, btn) {
+
+    function stopAll() {
+        stopAudioOnly();
+        if (typeof onStopPlaylistHook === "function") {
+            onStopPlaylistHook();
+        }
+    }
+
+    function speakTTS(text, btn, onComplete) {
         if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
             if (window.IS && IS.showToast) IS.showToast(tr("namesSpeakUnsupported"), "error");
+            if (onComplete) onComplete();
             return;
         }
         if (!arVoice) pickArabicVoice();
@@ -67,49 +83,76 @@
         if (arVoice) u.voice = arVoice;
         u.rate = 0.8;
         u.onstart = function() {
-            btn.classList.add("speaking");
+            if (btn) btn.classList.add("speaking");
         };
         liveUtterance = u;
-        u.onend = u.onerror = function() {
-            btn.classList.remove("speaking");
+        var finished = false;
+        var handleFinish = function() {
+            if (btn) btn.classList.remove("speaking");
             if (liveUtterance === u) liveUtterance = null;
+            if (!finished) {
+                finished = true;
+                if (onComplete) onComplete();
+            }
         };
+        u.onend = handleFinish;
+        u.onerror = handleFinish;
         speechSynthesis.speak(u);
         if (!arVoice && window.IS && IS.showToast) IS.showToast(tr("namesSpeakNoVoice"), "info");
     }
-    function speakName(info, btn) {
-        var wasSpeaking = btn.classList.contains("speaking");
-        stopAll();
-        if (wasSpeaking) return;
-        if (USE_AUDIO_FILES && info.src && !audioFailed[info.src]) {
+
+    function playAudioTrack(info, btn, onComplete) {
+        stopAudioOnly();
+
+        var finished = false;
+        var notifyDone = function() {
+            if (finished) return;
+            finished = true;
+            if (btn) btn.classList.remove("speaking");
+            if (onComplete) onComplete();
+        };
+
+        if (USE_AUDIO_FILES && info && info.src && !audioFailed[info.src]) {
             var a = new Audio(info.src);
             player = a;
             a.onplaying = function() {
-                btn.classList.add("speaking");
+                if (btn) btn.classList.add("speaking");
             };
-            a.onended = a.onpause = function() {
-                btn.classList.remove("speaking");
+            a.onended = function() {
+                if (player === a) player = null;
+                notifyDone();
+            };
+            a.onpause = function() {
                 if (player === a) player = null;
             };
             var fallback = function() {
                 if (player !== a) return;
                 audioFailed[info.src] = true;
                 player = null;
-                btn.classList.remove("speaking");
-                speakTTS(info.ar, btn);
+                if (btn) btn.classList.remove("speaking");
+                speakTTS(info.ar, btn, notifyDone);
             };
             a.onerror = fallback;
             var pr = a.play();
-            if (pr && pr.catch) pr.catch(function(err) {
-                if (err && (err.name === "NotAllowedError" || err.name === "AbortError")) {
-                    if (player === a) player = null;
-                    return;
-                }
-                fallback();
-            });
+            if (pr && pr.catch) {
+                pr.catch(function(err) {
+                    if (err && (err.name === "NotAllowedError" || err.name === "AbortError")) {
+                        if (player === a) player = null;
+                        return;
+                    }
+                    fallback();
+                });
+            }
             return;
         }
-        speakTTS(info.ar, btn);
+        speakTTS(info ? info.ar : "", btn, notifyDone);
+    }
+
+    function speakName(info, btn) {
+        var wasSpeaking = btn.classList.contains("speaking");
+        stopAll();
+        if (wasSpeaking) return;
+        playAudioTrack(info, btn, null);
     }
     function tr(key, vars) {
         var s = window.IS && IS.i18n ? IS.i18n.get(key) : key;
@@ -361,6 +404,7 @@
             });
         });
         function setQuery(q) {
+            stopAll();
             state.query = q;
             if (search.value !== q) search.value = q;
             applyFilter();
@@ -433,6 +477,105 @@
                 }));
             });
         });
+
+        var playAllBtn = document.getElementById("namesPlayAll");
+        var isPlayingAll = false;
+        var playlistQueue = [];
+        var playlistIndex = 0;
+
+        function clearPlaylistHighlight() {
+            root.querySelectorAll(".name-card.is-playing").forEach(function(el) {
+                el.classList.remove("is-playing");
+            });
+        }
+
+        function updatePlayAllBtn(active) {
+            if (!playAllBtn) return;
+            if (active) {
+                playAllBtn.classList.add("is-active");
+                playAllBtn.innerHTML = ICON_STOP_ALL + ' <span class="names-play-all-label">Stop</span>';
+                playAllBtn.setAttribute("aria-label", "Stop audio playlist");
+            } else {
+                playAllBtn.classList.remove("is-active");
+                playAllBtn.innerHTML = ICON_PLAY_ALL + ' <span class="names-play-all-label">Play All</span>';
+                playAllBtn.setAttribute("aria-label", "Play all names");
+            }
+        }
+
+        // Global hook: stopAll() call hone par yeh playlist ko reset karega
+        onStopPlaylistHook = function() {
+            isPlayingAll = false;
+            playlistQueue = [];
+            playlistIndex = -1;
+            clearPlaylistHighlight();
+            updatePlayAllBtn(false);
+        };
+
+        function playNextInQueue() {
+            if (!isPlayingAll) return;
+            if (playlistIndex >= playlistQueue.length) {
+                stopAll();
+                return;
+            }
+
+            var item = playlistQueue[playlistIndex];
+            if (!item || !item.el) {
+                stopAll();
+                return;
+            }
+
+            // 1. Current card ko highlight karo
+            clearPlaylistHighlight();
+            item.el.classList.add("is-playing");
+
+            // 2. Smooth auto-scroll to center
+            item.el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            var speakBtn = item.el.querySelector(".name-speak");
+            var info = speakData.get(item.el);
+
+            // 3. Audio bajao aur khatam hone par agle par jao
+            playAudioTrack(info, speakBtn, function() {
+                if (!isPlayingAll) return;
+                playlistIndex++;
+                setTimeout(function() {
+                    if (isPlayingAll) playNextInQueue();
+                }, 200); // Har card ke darmiyan 200ms ka natural pause
+            });
+        }
+
+        function startPlayAll() {
+            var items = cards[state.collection] || [];
+            // Sirf wahi cards uthao jo filter ke mutabiq visible hain
+            var visibleItems = items.filter(function(it) {
+                return !it.el.hidden;
+            });
+
+            if (visibleItems.length === 0) return;
+
+            stopAll();
+            isPlayingAll = true;
+            playlistQueue = visibleItems;
+            playlistIndex = 0;
+            updatePlayAllBtn(true);
+            playNextInQueue();
+        }
+
+        if (playAllBtn) {
+            playAllBtn.addEventListener("click", function() {
+                if (isPlayingAll) {
+                    stopAll();
+                } else {
+                    startPlayAll();
+                }
+            });
+        }
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape" && isPlayingAll) {
+                stopAll();
+            }
+        });
+
         setScript(prefs.script);
         setCollection(prefs.collection);
         var progress = initScrollProgress(root);

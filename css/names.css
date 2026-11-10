@@ -462,18 +462,10 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
 }
 
 
-/* empty-state button had no hover / focus feedback */
 .names-empty button { transition: background var(--t-fast), box-shadow var(--t-fast); }
 .names-empty button:hover { box-shadow: 0 0 0 3px var(--names-glow); }
 .names-empty button:focus-visible { outline: 2px solid var(--names-accent); outline-offset: 3px; }
 
-/* =====================================================================
-   SCROLL PROGRESS  (Names tab)
-   One element, GPU-only: width never changes, only transform: scaleX().
-   JS sets --np (0..1) on #namesProgress; see names-progress.js
-   The element lives on <body> (not inside the section) so a transformed
-   ancestor can never break position: fixed.
-   ===================================================================== */
 .names-progress {
     --np: 0;
     position: fixed;
@@ -508,7 +500,6 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
         var(--names-gold, #f2c14e) 100%);
     will-change: transform;
 }
-/* soft glow: same transform, blurred copy underneath */
 .names-progress::after {
     z-index: -1;
     filter: blur(6px);
@@ -517,4 +508,64 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
 
 @media print {
     .names-progress { display: none !important; }
+}
+
+.names-play-all {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.names-play-all svg {
+    color: #d4af37; /* Warm Islamic Gold */
+    flex-shrink: 0;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.names-play-all:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.names-play-all:hover svg {
+    transform: scale(1.1);
+}
+
+.names-play-all.is-active {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+.names-play-all.is-active svg {
+    color: #ef4444;
+}
+
+.names-play-all.is-active:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+}
+
+.name-card.is-playing {
+    border-color: #d4af37 !important; /* Gold border */
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3), 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-2px);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
