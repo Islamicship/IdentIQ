@@ -1,22 +1,20 @@
 /* =====================================================================
  * IdentIQ — Service Worker (production)
- * LOCATION : site ROOT  ->  /service-worker.js   (js/ folder mein NAHI)
- * RELEASE  : har release par sirf VERSION bump karo; cache name khud
- *            change ho jata hai aur purani caches activate par delete.
+ * LOCATION : site ROOT  ->  /service-worker.js
+ * VERSION  : 6.0.0 (Audio On-Demand Cache Architecture)
  * ===================================================================== */
 'use strict';
 
-const VERSION      = '5.9.1';
+const VERSION      = '6.0.0';
 const CACHE_PREFIX = 'identiq-';
 const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
+const CACHE_AUDIO  = `${CACHE_PREFIX}audio-v1`; // Audio cache app updates par delete nahi hoga
 
-/* Paths SW ke scope se resolve hote hain, SW file ki location se nahi */
 const SCOPE     = self.registration.scope;
 const toURL     = path => new URL(path, SCOPE).href;
 const INDEX_URL = toURL('./index.html');
 
-/* Atomic precache: agar koi bhi file fail hui to install fail hoga aur
- * purana SW chalta rahega. Console mein exact failing URL dikhega. */
+/* Core App Shell Precache */
 const PRECACHE = [
   './index.html',
   './css/style.css',
@@ -39,10 +37,10 @@ const PRECACHE = [
 ].map(toURL);
 
 const TIMEOUT_NAVIGATION = 4000;   // ms
-const TIMEOUT_CORE       = 3000;   // ms (JS / CSS)
+const TIMEOUT_CORE       = 3000;   // ms
 const CORE_DESTINATIONS  = new Set(['script', 'style', 'worker']);
 
-/* ----------------------------- helpers ------------------------------ */
+/* ----------------------------- Helpers ------------------------------ */
 
 const isOwnCache = key => key.startsWith(CACHE_PREFIX);
 
@@ -60,12 +58,9 @@ const offlineResponse = () => new Response(
   { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
 );
 
-/* Sirf proper same-origin 200 responses cache honge */
 const isCacheable = res =>
   !!res && res.status === 200 && (res.type === 'basic' || res.type === 'default');
 
-/* Redirected response ko navigation ke liye serve karna Chrome mein fail
- * hota hai (e.g. /index.html -> / redirect). Body re-wrap karke clean karo. */
 async function cleanResponse(response) {
   if (!response.redirected) return response;
   const body = await response.blob();
@@ -76,7 +71,6 @@ async function cleanResponse(response) {
   });
 }
 
-/* Kabhi reject nahi karta: quota / Vary errors log hote hain, crash nahi */
 function safePut(key, response) {
   return cleanResponse(response)
     .then(res => caches.open(CACHE_NAME).then(cache => cache.put(key, res)))
@@ -94,34 +88,27 @@ function withTimeout(promise, ms) {
 async function precache() {
   const cache = await caches.open(CACHE_NAME);
   await Promise.all(PRECACHE.map(async url => {
-    // cache:'reload' => browser HTTP cache bypass, hamesha fresh copy
     const res = await fetch(new Request(url, { cache: 'reload' }));
     if (!res.ok) throw new Error(`Precache failed (${res.status}): ${url}`);
 
-    // Galat path par agar _redirects ka "/* /index.html 200" fallback ho to
-    // 404 ke bajaye HTML wapas aata hai — usay asset samajh kar cache na karo.
     const type = res.headers.get('Content-Type') || '';
     if (!url.endsWith('.html') && type.includes('text/html')) {
-      throw new Error(`Precache got HTML instead of an asset (wrong path?): ${url}`);
+      throw new Error(`Precache got HTML instead of an asset: ${url}`);
     }
 
     await cache.put(url, await cleanResponse(res));
   }));
 }
 
-/* ------------------------- fetch strategies ------------------------- */
+/* ------------------------- Strategies ------------------------- */
 
-/* NETWORK-FIRST (timeout ke saath): HTML + JS + CSS.
- * Online = hamesha consistent fresh version. Offline/slow = cache. */
 async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
-  // navigationPreload response (agar enabled) warna normal fetch
   const network = (async () => (await event.preloadResponse) || fetch(event.request))();
 
-  // Background cache refresh: timeout ke baad bhi complete hota hai
   event.waitUntil(
     network
       .then(res => (isCacheable(res) ? safePut(cacheKey, res.clone()) : undefined))
-      .catch(() => { /* offline: fallback neeche handle hoga */ })
+      .catch(() => {})
   );
 
   try {
@@ -136,8 +123,6 @@ async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
   }
 }
 
-/* STALE-WHILE-REVALIDATE: images, fonts, manifest, baaki static files.
- * Cache se turant, update background mein (waitUntil ke saath). */
 async function staleWhileRevalidate(event) {
   const { request } = event;
   const cache  = await caches.open(CACHE_NAME);
@@ -151,15 +136,59 @@ async function staleWhileRevalidate(event) {
     .catch(() => undefined);
 
   event.waitUntil(update);
-
   return cached || (await update) || Response.error();
 }
 
-/* ------------------------------ install ----------------------------- */
+/* AUDIO CACHE-FIRST STRATEGY (With HTTP 206 Partial Content for Safari/Chrome) */
+async function audioCacheFirst(event) {
+  const { request } = event;
+  const cleanUrl = request.url.split('?')[0];
+  const cache = await caches.open(CACHE_AUDIO);
+  
+  let response = await cache.match(cleanUrl);
+
+  // Agar cache mein nahi hai toh download karo aur store karo (On-Demand)
+  if (!response) {
+    try {
+      const netRes = await fetch(cleanUrl);
+      if (isCacheable(netRes)) {
+        await cache.put(cleanUrl, netRes.clone());
+        response = netRes;
+      } else {
+        return netRes;
+      }
+    } catch (err) {
+      return Response.error();
+    }
+  }
+
+  // Range Header handling (Seeking & Safari compatibility)
+  const rangeHeader = request.headers.get('range');
+  if (!rangeHeader) return response;
+
+  const arrayBuffer = await response.arrayBuffer();
+  const bytes = /^bytes=(\d+)-(\d+)?$/g.exec(rangeHeader);
+  if (!bytes) return response;
+
+  const start = Number(bytes[1]);
+  const end = bytes[2] ? Number(bytes[2]) : arrayBuffer.byteLength - 1;
+  const chunk = arrayBuffer.slice(start, end + 1);
+
+  return new Response(chunk, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Accept-Ranges': 'bytes',
+      'Content-Range': `bytes ${start}-${end}/${arrayBuffer.byteLength}`,
+      'Content-Length': String(chunk.byteLength)
+    }
+  });
+}
+
+/* ------------------------------ Install ----------------------------- */
 
 self.addEventListener('install', event => {
-  // NOTE: skipWaiting() yahan jaan-boojh kar nahi hai. Naya SW tab active
-  // hoga jab user update accept kare (SKIP_WAITING message).
   event.waitUntil(
     precache()
       .then(() => console.log(`[SW v${VERSION}] Precache complete`))
@@ -167,20 +196,20 @@ self.addEventListener('install', event => {
   );
 });
 
-/* ------------------------------ activate ---------------------------- */
+/* ------------------------------ Activate ---------------------------- */
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     if (self.registration.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); }
-      catch (err) { console.warn('[SW] navigationPreload enable failed:', err); }
+      catch (err) {}
     }
 
-    // Sirf apni (identiq-*) purani caches delete — doosri apps ko na chhedo
+    // Sirf purani shell caches delete honi chahiye, CACHE_AUDIO ko safe rakho
     const keys = await caches.keys();
     await Promise.all(
       keys
-        .filter(key => isOwnCache(key) && key !== CACHE_NAME)
+        .filter(key => isOwnCache(key) && key !== CACHE_NAME && key !== CACHE_AUDIO)
         .map(key => { console.log(`[SW] Deleting old cache: ${key}`); return caches.delete(key); })
     );
 
@@ -193,37 +222,43 @@ self.addEventListener('activate', event => {
   })().catch(err => console.error(`[SW v${VERSION}] Activate failed:`, err)));
 });
 
-/* ------------------------------- fetch ------------------------------ */
+/* ------------------------------- Fetch ------------------------------ */
 
 self.addEventListener('fetch', event => {
   const { request } = event;
 
   if (request.method !== 'GET') return;
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
-  if (request.headers.has('range')) return;                      // 206 / media seeking
 
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  if (url.origin !== self.location.origin) return;               // cross-origin: browser khud handle kare
-  if (request.destination === 'audio' || request.destination === 'video' ||
-      url.pathname.includes('/audio/')) return;
+  // 1. Audio Handler (Range requests aur bypass se pehle pakro)
+  if (request.destination === 'audio' || url.pathname.includes('/audio/')) {
+    event.respondWith(audioCacheFirst(event));
+    return;
+  }
 
-  // Single-page app: har navigation = index.html.
-  // (Agar kabhi doosre .html pages add karo to yahan restrict karna.)
+  // 2. Non-audio range requests
+  if (request.headers.has('range')) return;
+
+  // 3. Single Page Navigation
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(event, INDEX_URL, TIMEOUT_NAVIGATION, true));
     return;
   }
 
+  // 4. Core Scripts & Styles
   if (CORE_DESTINATIONS.has(request.destination)) {
     event.respondWith(networkFirst(event, request, TIMEOUT_CORE, false));
     return;
   }
 
+  // 5. Static Assets
   event.respondWith(staleWhileRevalidate(event).catch(() => fetch(request)));
 });
 
-/* ------------------------------ messages ---------------------------- */
+/* ------------------------------ Messages ---------------------------- */
 
 self.addEventListener('message', event => {
   const data = event.data;
@@ -231,7 +266,6 @@ self.addEventListener('message', event => {
 
   switch (type) {
     case 'SKIP_WAITING':
-      console.log(`[SW v${VERSION}] SKIP_WAITING received`);
       self.skipWaiting();
       break;
 
@@ -243,7 +277,7 @@ self.addEventListener('message', event => {
       event.waitUntil(
         caches.keys()
           .then(keys => Promise.all(keys.filter(isOwnCache).map(key => caches.delete(key))))
-          .then(precache)                                        // offline ho to catch chalega
+          .then(precache)
           .then(() => reply(event, { type: 'CACHE_CLEARED' }))
           .catch(err => {
             console.error('[SW] CLEAR_CACHE failed:', err);
