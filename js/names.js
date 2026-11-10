@@ -163,17 +163,38 @@
         }
         return s;
     }
-    function normAr(s) {
-        return s.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "").replace(/[\u0622\u0623\u0625\u0671]/g, "\u0627").replace(/\u0649/g, "\u064A");
+    function toLatinDigits(s) {
+        if (!s) return "";
+        var str = window.IS && IS.toLatin ? IS.toLatin(s) : s;
+        return str.replace(/[\u0660-\u0669]/g, function(d) {
+            return String(d.charCodeAt(0) - 1632);
+        }).replace(/[\u06F0-\u06F9]/g, function(d) {
+            return String(d.charCodeAt(0) - 1776);
+        });
     }
+
+    function normAr(s) {
+        if (!s) return "";
+        return s
+            .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "")
+            .replace(/[\u0622\u0623\u0625\u0671]/g, "\u0627")
+            .replace(/\u0649/g, "\u064A")
+            .replace(/\u0629/g, "\u0647")
+            .replace(/[\u0624\u0626]/g, "\u0621");
+    }
+
+    function cleanQuery(q) {
+        if (!q) return "";
+        var s = toLatinDigits(q).trim();
+        return s.replace(/\s*:\s*/g, ":");
+    }
+
     function normLatin(s) {
         return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036F]/g, "").replace(/['\u2019`\-\s]+/g, "").replace(/ee/g, "i").replace(/oo/g, "u").replace(/(.)\1+/g, "$1");
     }
+
     function hasArabic(s) {
         return /[\u0600-\u06FF]/.test(s);
-    }
-    function toLatinDigits(s) {
-        return window.IS && IS.toLatin ? IS.toLatin(s) : s;
     }
     function mk(tag, cls, text) {
         var node = document.createElement(tag);
@@ -188,7 +209,7 @@
     }
     function refMatches(ref, q) {
         if (q.charAt(q.length - 1) === ":") return ref.indexOf(q) === 0;
-        return ref === q;
+        return ref === q || ref.indexOf(q) === 0;
     }
     function loadPrefs() {
         try {
@@ -320,8 +341,11 @@
                     el: li,
                     id: n.id,
                     ref: n.ref,
+                    surah: (n.ref || "").split(":")[0],
                     refEl: refEl,
-                    hay: normLatin(n.transliteration + " " + n.translation) + " " + normAr(n.arabic)
+                    ar: normAr(n.arabic),
+                    translit: normLatin(n.transliteration),
+                    meaning: (n.translation || "").toLowerCase()
                 });
                 frag.appendChild(li);
             });
@@ -330,20 +354,60 @@
         }
         function applyFilter() {
             var items = cards[state.collection] || [];
-            var q = toLatinDigits(state.query).trim();
-            var isNum = /^\d+$/.test(q);
-            var isRef = /^\d{1,3}:\d{0,3}$/.test(q);
-            var needle = !q || isNum || isRef ? "" : hasArabic(q) ? normAr(q) : normLatin(q);
+            var q = cleanQuery(state.query);
             var shown = 0;
+
+            if (!q) {
+                items.forEach(function(it) {
+                    it.el.hidden = false;
+                });
+                updateCount(items.length, items.length, false);
+                emptyEl.hidden = true;
+                return;
+            }
+
+            // Parameter 1: Explicit card search (#5 ya # 5)
+            var cardHashMatch = q.match(/^#\s*(\d+)$/);
+            var isCardHash = !!cardHashMatch;
+            var targetCardId = isCardHash ? parseInt(cardHashMatch[1], 10) : null;
+
+            // Parameter 2: Surah:Ayah reference (e.g. "2:255", "2:", "59:23")
+            var isRef = /^\d{1,3}:\d{0,3}$/.test(q);
+
+            // Parameter 3: Plain digit (e.g. "2" ya "25") -> Card ID OR Surah Number
+            var isPlainNum = /^\d+$/.test(q);
+
+            // Text needles
+            var isAr = hasArabic(q);
+            var needleAr = isAr ? normAr(q) : "";
+            var needleTranslit = !isAr && !isRef && !isCardHash && !isPlainNum ? normLatin(q) : "";
+            var needleMeaning = !isAr && !isRef && !isCardHash && !isPlainNum ? q.toLowerCase() : "";
+
             items.forEach(function(it) {
-                var ok;
-                if (!q) ok = true; else if (isRef) ok = refMatches(it.ref, q); else if (isNum) ok = String(it.id) === q; else ok = needle !== "" && it.hay.indexOf(needle) !== -1;
+                var ok = false;
+
+                if (isCardHash) {
+                    ok = it.id === targetCardId;
+                } else if (isRef) {
+                    ok = refMatches(it.ref, q);
+                } else if (isPlainNum) {
+                    ok = String(it.id) === q || it.surah === q;
+                } else if (isAr) {
+                    ok = needleAr !== "" && it.ar.indexOf(needleAr) !== -1;
+                } else {
+                    ok = (needleTranslit !== "" && it.translit.indexOf(needleTranslit) !== -1) ||
+                         (needleMeaning !== "" && it.meaning.indexOf(needleMeaning) !== -1);
+                }
+
                 it.el.hidden = !ok;
                 if (ok) shown++;
             });
-            updateCount(shown, items.length, !!q);
+
+            updateCount(shown, items.length, true);
             emptyEl.hidden = shown !== 0;
         }
+
+        
         function updateCount(shown, total, filtered) {
             countEl.textContent = filtered ? tr("namesCountSome", {
                 n: shown,
