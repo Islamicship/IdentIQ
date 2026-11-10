@@ -595,4 +595,113 @@ window.IS = window.IS || {};
             } catch (e) {}
         }
     };
+
+    /* ===== Draggable calendar popup (desktop only) ===== */
+    (function() {
+        var DESKTOP_MIN = 768;
+        var popup = null;
+        var tx = 0, ty = 0;
+        var startX = 0, startY = 0, baseX = 0, baseY = 0;
+        var minX = 0, maxX = 0, minY = 0, maxY = 0;
+        var moved = false;
+
+        function isDesktop() {
+            return window.innerWidth >= DESKTOP_MIN;
+        }
+
+        function clamp(v, lo, hi) {
+            return Math.min(Math.max(v, lo), Math.max(lo, hi));
+        }
+
+        function paint() {
+            popup.style.transform = "translate3d(" + tx + "px, " + ty + "px, 0)";
+        }
+
+        /* drag ke baad aane wala click rok deta hai, taake outsideClick calendar band na kare */
+        function swallowClick(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            document.removeEventListener("click", swallowClick, true);
+        }
+
+        function onMove(e) {
+            tx = clamp(baseX + e.clientX - startX, minX, maxX);
+            ty = clamp(baseY + e.clientY - startY, minY, maxY);
+            if (!moved) {
+                moved = true;
+                popup.classList.add("is-dragging");
+            }
+            paint();
+        }
+
+        function stopDrag() {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", stopDrag);
+            if (popup && popup.classList.contains("is-dragging")) {
+                popup.classList.remove("is-dragging");
+            }
+            if (moved) {
+                moved = false;
+                document.addEventListener("click", swallowClick, true);
+                setTimeout(function() {
+                    document.removeEventListener("click", swallowClick, true);
+                }, 50);
+            }
+        }
+
+        function resetPosition() {
+            stopDrag();
+            tx = 0;
+            ty = 0;
+            if (popup) popup.style.transform = "";
+        }
+
+        function onDown(e) {
+            if (e.button !== 0 || !isDesktop()) return;
+            if (e.target.closest("button, .cal-day:not(.cal-blank)")) return;
+
+            var r = popup.getBoundingClientRect();
+            var homeLeft = r.left - tx;   /* translate hata kar asli position */
+            var homeTop = r.top - ty;
+            var vw = document.documentElement.clientWidth;
+            var vh = document.documentElement.clientHeight;
+
+            minX = -homeLeft;
+            maxX = vw - homeLeft - r.width;
+            var nav = document.querySelector(".main-nav");
+            var topLimit = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+            minY = Math.min(topLimit - homeTop, ty);
+            maxY = vh - homeTop - r.height;
+
+            startX = e.clientX;
+            startY = e.clientY;
+            baseX = tx;
+            baseY = ty;
+            moved = false;
+
+
+            document.addEventListener("mousemove", onMove);
+            document.addEventListener("mouseup", stopDrag);
+            e.preventDefault();
+        }
+
+        function init() {
+            popup = document.getElementById("calPopup");
+            if (!popup) return;
+            
+            popup.addEventListener("mousedown", onDown);
+            
+            new MutationObserver(function() {
+                if (!popup.classList.contains("open")) resetPosition();
+            }).observe(popup, { attributes: true, attributeFilter: ["class"] });
+        }
+
+        window.addEventListener("resize", resetPosition);
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
 })(window.IS);
