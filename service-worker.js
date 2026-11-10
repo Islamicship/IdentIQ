@@ -167,7 +167,7 @@ async function audioCacheFirst(event) {
   if (!rangeHeader) return response;
 
   const arrayBuffer = await response.arrayBuffer();
-  const bytes = /^bytes=(\d+)-(\d+)?$/g.exec(rangeHeader);
+  const bytes = /^bytes=(\d+)-(\d+)?$/.exec(rangeHeader);
   if (!bytes) return response;
 
   const start = Number(bytes[1]);

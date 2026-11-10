@@ -24,6 +24,7 @@
 
     // Singleton Audio Controller
     var audioPlayer = new Audio();
+    audioPlayer.crossOrigin = "anonymous";
     audioPlayer.preload = "none";
 
     var activeCardEl = null;
