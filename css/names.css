@@ -327,14 +327,57 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     align-items: center;
     gap: 2px;
 }
-.name-speak.speaking {
+/* --- 3-Bar Equalizer Animation inside Speaker Button --- */
+.name-equalizer {
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2.5px;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+}
+
+.name-equalizer span {
+    display: block;
+    width: 2.5px;
+    height: 100%;
+    background: currentColor; /* Theme color auto inherit karega */
+    border-radius: 1px;
+    transform-origin: bottom;
+    will-change: transform;
+}
+
+.name-speak.is-playing {
     color: var(--names-accent);
     background: var(--names-tint);
-    animation: namesSpeakPulse 1s ease-in-out infinite;
+    border-color: var(--names-accent);
 }
-@keyframes namesSpeakPulse {
-    0%, 100% { box-shadow: 0 0 0 0 var(--names-glow); }
-    50%      { box-shadow: 0 0 0 6px transparent; }
+
+/* Audio play hone par SVG chupa kar 3-bar equalizer dikhao */
+.name-speak.is-playing .icon-speak {
+    display: none;
+}
+
+.name-speak.is-playing .name-equalizer {
+    display: inline-flex;
+}
+
+.name-speak.is-playing .name-equalizer span:nth-child(1) {
+    animation: eqBar 0.65s ease-in-out infinite alternate;
+}
+
+.name-speak.is-playing .name-equalizer span:nth-child(2) {
+    animation: eqBar 0.45s ease-in-out infinite alternate 0.15s;
+}
+
+.name-speak.is-playing .name-equalizer span:nth-child(3) {
+    animation: eqBar 0.58s ease-in-out infinite alternate 0.28s;
+}
+
+@keyframes eqBar {
+    0%   { transform: scaleY(0.25); }
+    100% { transform: scaleY(1); }
 }
 
 .name-arabic {
@@ -456,7 +499,14 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
         transition: none !important;
         animation: none !important;
     }
-    .name-speak.speaking { animation: none !important; }
+    .name-card.is-playing {
+        animation: none !important;
+        box-shadow: 0 0 0 1px var(--names-accent) !important;
+    }
+    .name-speak.is-playing .name-equalizer span {
+        animation: none !important;
+        transform: scaleY(0.7) !important;
+    }
     .name-card:hover,
     .name-card:active { transform: none; }
 }
@@ -563,9 +613,22 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
     border-color: #ef4444;
 }
 
+/* --- Dignified Islamic Gentle Pulse (Theme & Collection Aware) --- */
 .name-card.is-playing {
-    border-color: #d4af37 !important; /* Gold border */
-    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3), 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--names-accent) !important;
     transform: translateY(-2px);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    animation: cardGentlePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes cardGentlePulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 0 1px var(--names-accent),
+            0 6px 18px var(--names-glow);
+    }
+    50% {
+        box-shadow: 
+            0 0 0 2px var(--names-accent),
+            0 10px 28px var(--names-glow);
+    }
 }
