@@ -5,216 +5,299 @@ document.addEventListener("DOMContentLoaded", function() {
     var DS = {
         pakistan: {
             prefixes: {
-                Punjab: "33100",
-                Islamabad: "61101",
-                Lahore: "35202",
-                Karachi: "42101",
-                Peshawar: "17101",
-                Quetta: "54401",
-                "Azad Kashmir": "90202"
+                Punjab: "33100", Islamabad: "61101", Lahore: "35202", Karachi: "42101",
+                Peshawar: "17101", Quetta: "54401", "Azad Kashmir": "90202"
             },
-            streets: [ "Street 4", "Street 11", "Main Boulevard", "Street 7 Block B", "Lane 5", "Sector F-7", "Block C", "Main Bazar Road", "College Road", "Railway Road", "GT Road", "Allama Iqbal Road", "Garden Avenue", "Canal Road" ],
-            areas: {
-                Punjab: {
-                    prov: "Punjab",
-                    places: [ "Satellite Town, Gujranwala", "Peoples Colony, Faisalabad", "Cantt, Sialkot", "Civil Lines, Multan", "Model Town, Gujrat" ]
+            regions: {
+                Islamabad: {
+                    sectors: ["F-6/2", "F-7/2", "F-8/3", "F-10/2", "F-11/1", "G-9/2", "G-10/3", "G-11/2", "I-8/2", "I-8/4"],
+                    postal: "44000"
                 },
                 Lahore: {
-                    prov: "Punjab",
-                    places: [ "Model Town", "DHA Phase 6", "Johar Town", "Gulberg III", "Bahria Town", "Wapda Town", "Allama Iqbal Town", "Garden Town" ]
+                    areas: [
+                        { name: "DHA Phase 5", blocks: ["Sector A", "Sector B", "Sector C"], postal: "54792" },
+                        { name: "DHA Phase 6", blocks: ["Sector J", "Sector K", "Sector L"], postal: "54792" },
+                        { name: "Johar Town", blocks: ["Block G", "Block H", "Block R"], postal: "54782" },
+                        { name: "Model Town", blocks: ["Block A", "Block C", "Block M"], postal: "54700" },
+                        { name: "Gulberg III", blocks: ["Block B2", "Block L", "Block P"], postal: "54660" }
+                    ]
                 },
                 Karachi: {
-                    prov: "Sindh",
-                    places: [ "Clifton Block 4", "Gulshan-e-Iqbal Block 3", "DHA Phase 5", "North Nazimabad Block H", "PECHS Block 6", "Bahadurabad" ]
+                    areas: [
+                        { name: "DHA", streets: ["Khayaban-e-Shamsheer", "Khayaban-e-Badban", "Khayaban-e-Hafiz"], blocks: ["Phase 5", "Phase 6"], postal: "75500" },
+                        { name: "Clifton", streets: ["Khayaban-e-Iqbal", "Shahrah-e-Iran", "Clifton Road"], blocks: ["Block 2", "Block 4", "Block 5"], postal: "75600" },
+                        { name: "Gulshan-e-Iqbal", streets: ["University Road", "Sir Shah Suleman Road", "Rashid Minhas Road"], blocks: ["Block 3", "Block 6", "Block 13-D"], postal: "75300" },
+                        { name: "PECHS", streets: ["Shahrah-e-Faisal", "Tariq Road", "Khalid Bin Waleed Road"], blocks: ["Block 2", "Block 6"], postal: "75400" }
+                    ]
                 },
-                Islamabad: {
-                    prov: "ICT",
-                    places: [ "F-7/2", "G-11 Markaz", "E-11/3", "Bahria Enclave Sector B", "DHA Phase 2", "Blue Area", "I-8/4", "G-9 Markaz" ]
+                Punjab: {
+                    cities: [
+                        { city: "Gujranwala", area: "Satellite Town", streets: ["Civil Lines Road", "Sialkot Road", "Main Market Street"], postal: "52250" },
+                        { city: "Faisalabad", area: "Peoples Colony No. 1", streets: ["Jaranwala Road", "Chenab Club Road", "Main Boulevard"], postal: "38000" },
+                        { city: "Sialkot", area: "Cantt", streets: ["Kashmir Road", "Mall Road", "Paris Road"], postal: "51310" },
+                        { city: "Multan", area: "Civil Lines", streets: ["Abdali Road", "Bosan Road", "Nusrat Road"], postal: "60000" },
+                        { city: "Gujrat", area: "Model Town", streets: ["Bhimber Road", "GT Road", "Court Road"], postal: "50700" }
+                    ]
                 },
                 Peshawar: {
-                    prov: "KPK",
-                    places: [ "Hayatabad Phase 3", "University Town", "Gulbahar No. 2", "DHA Peshawar", "Saddar Road" ]
+                    areas: [
+                        { name: "Hayatabad", sectors: ["Phase 2, Sector F-1", "Phase 3, Sector D-2", "Phase 5, Sector K-3"], postal: "25100" },
+                        { name: "University Town", sectors: ["Park Avenue", "Circular Road", "Sufaid Dheri Road"], postal: "25000" },
+                        { name: "Gulbahar", sectors: ["Gulbahar No. 2", "Gulbahar No. 4"], postal: "25000" }
+                    ]
                 },
                 Quetta: {
-                    prov: "Balochistan",
-                    places: [ "Jinnah Town", "Zarghoon Road", "Cantt Area", "Satellite Town", "Samungli Road" ]
+                    areas: [
+                        { name: "Jinnah Town", streets: ["Samungli Road", "Airport Road", "Main Boulevard"], postal: "87300" },
+                        { name: "Cantt Area", streets: ["Staff College Road", "Zarghoon Road", "Halifax Road"], postal: "87300" }
+                    ]
                 },
                 "Azad Kashmir": {
-                    prov: "AJK",
-                    places: [ "Sector B-3, Mirpur", "Upper Plate, Muzaffarabad", "Rawalakot City", "New Mirpur City" ]
+                    areas: [
+                        { city: "Mirpur", area: "New Mirpur City", streets: ["Sector B-3", "Sector F-1", "Kotli Road"], postal: "10250" },
+                        { city: "Muzaffarabad", area: "Upper Plate", streets: ["Neelum Road", "CMH Road", "Secretariat Road"], postal: "13100" }
+                    ]
                 }
             }
         },
         india: {
             cities: {
                 Mumbai: {
-                    areas: [ "Andheri West", "Bandra East", "Kurla West", "Malad East", "Borivali West", "Dadar TT" ],
-                    pin: [ 400001, 400099 ]
+                    areas: ["Andheri West", "Bandra West", "Juhu", "Powai", "Worli"],
+                    streets: ["Linking Road", "S.V. Road", "Juhu Tara Road", "LBS Marg", "Dr E Moses Road"],
+                    pins: ["400053", "400050", "400049", "400076", "400018"]
                 },
                 Delhi: {
-                    areas: [ "Connaught Place", "Lajpat Nagar II", "Karol Bagh", "Rohini Sector 3", "Dwarka Sector 6", "Saket" ],
-                    pin: [ 110001, 110097 ]
+                    areas: ["Connaught Place", "Lajpat Nagar IV", "Vasant Kunj", "Hauz Khas", "Rohini Sector 9"],
+                    streets: ["Barakhamba Road", "Ring Road", "Nelson Mandela Marg", "Aurobindo Marg", "Outer Ring Road"],
+                    pins: ["110001", "110024", "110070", "110016", "110085"]
                 },
                 Bangalore: {
-                    areas: [ "Indiranagar", "Koramangala 4th Block", "Whitefield", "JP Nagar 2nd Phase", "Jayanagar", "HSR Layout" ],
-                    pin: [ 560001, 560099 ]
+                    areas: ["Indiranagar", "Koramangala 4th Block", "Whitefield", "HSR Layout Sector 1"],
+                    streets: ["100 Feet Road", "80 Feet Road", "Outer Ring Road", "ITPL Main Road"],
+                    pins: ["560038", "560034", "560066", "560102"]
                 },
                 Hyderabad: {
-                    areas: [ "Banjara Hills Road 12", "Jubilee Hills", "Hitech City", "Ameerpet", "Secunderabad" ],
-                    pin: [ 500001, 500090 ]
+                    areas: ["Banjara Hills", "Jubilee Hills", "HITEC City", "Gachibowli"],
+                    streets: ["Road No. 12", "Road No. 36", "Madhapur Main Road", "ISB Road"],
+                    pins: ["500034", "500033", "500081", "500032"]
                 },
                 Chennai: {
-                    areas: [ "Anna Nagar East", "T. Nagar", "Velachery", "Adyar", "Tambaram West" ],
-                    pin: [ 600001, 600099 ]
+                    areas: ["Anna Nagar East", "T. Nagar", "Adyar", "Velachery"],
+                    streets: ["2nd Avenue", "G.N. Chetty Road", "Sardar Patel Road", "Bypass Road"],
+                    pins: ["600102", "600017", "600020", "600042"]
                 }
             },
-            bNames: [ "Shanti", "Gokul", "Anand", "Krishna", "Laxmi", "Sai", "Raj", "Om" ],
-            bTypes: [ "Niwas", "Apartments", "Residency", "Enclave", "Heights", "Complex", "Towers" ]
+            bNames: ["Shanti", "Gokul", "Anand", "Krishna", "Laxmi", "Sai", "Raj", "Om"],
+            bTypes: ["Apartments", "Residency", "Enclave", "Heights", "Complex", "Towers"]
         },
         uae: {
             cities: {
                 Dubai: {
-                    areas: [ "Dubai Marina", "Downtown Dubai", "Al Barsha 1", "Jumeirah Village Circle", "Business Bay", "Deira", "Bur Dubai" ],
-                    buildings: [ "Marina Heights", "Al Attar Tower", "Gold Crest", "Sulafa Tower", "Prime Tower", "Mazaya Tower", "Damac Heights" ]
+                    areas: ["Dubai Marina", "Downtown Dubai", "Business Bay", "Jumeirah Village Circle", "Al Barsha 1"],
+                    streets: ["Al Marsa Street", "Sheikh Mohammed bin Rashid Blvd", "Marasi Drive", "Al Khail Road", "Al Barsha Road"],
+                    buildings: ["Princess Tower", "Silverene Tower", "Burj Crown", "The Executive Towers", "Seasons Community"]
                 },
                 "Abu Dhabi": {
-                    areas: [ "Corniche Road", "Khalidiyah", "Al Reem Island", "Yas Island", "Mussafah", "Al Nahyan Camp", "Khalifa City A" ],
-                    buildings: [ "Corniche Tower", "Al Bateen Towers", "Capital Plaza", "Al Maqam Tower", "Etihad Towers" ]
+                    areas: ["Al Reem Island", "Corniche Road", "Al Khalidiyah", "Yas Island"],
+                    streets: ["Al Reem Street", "Corniche Street", "Zayed the First Street", "Yas Marina Circuit Rd"],
+                    buildings: ["Sun Tower", "Capital Plaza", "Etihad Towers", "Ansam Residence"]
                 },
                 Sharjah: {
-                    areas: [ "Al Nahda", "Al Majaz", "Al Qasimia", "Muwaileh Commercial", "Al Taawun" ],
-                    buildings: [ "Al Nahda Tower", "Majaz Tower", "Blue Tower", "City Tower", "Rolla Residence" ]
+                    areas: ["Al Majaz 2", "Al Nahda", "Al Taawun", "Muwaileh Commercial"],
+                    streets: ["Corniche Street", "Al Ittihad Street", "Al Taawun Street", "University City Road"],
+                    buildings: ["Al Majaz Tower", "Blue Tower", "Al Sondos Tower", "Sharjah Gate Tower"]
                 }
             }
         },
         qatar: {
             cities: {
-                Doha: {
-                    zones: [ [ 1, 10 ], [ 20, 30 ], [ 40, 55 ], [ 60, 72 ] ],
-                    areas: [ "West Bay", "The Pearl", "Lusail City", "Al Sadd", "Al Waab", "Msheireb Downtown", "Old Airport Road" ]
-                },
-                "Al Rayyan": {
-                    zones: [ [ 80, 90 ], [ 91, 99 ] ],
-                    areas: [ "Al Gharrafa", "Aspire Zone", "Education City", "Al Waab City" ]
-                },
-                "Al Wakrah": {
-                    zones: [ [ 100, 115 ] ],
-                    areas: [ "Al Wukair", "Barwa City", "New Al Wakrah", "Ezdan Village" ]
-                }
-            }
-        },
-        bangladesh: {
-            cities: {
-                Dhaka: {
-                    areas: [ "Gulshan 2", "Banani Block E", "Dhanmondi 27", "Mirpur 10", "Uttara Sector 7", "Mohammadpur", "Bashundhara R/A Block D" ],
-                    roads: [ 1, 50 ]
-                },
-                Chittagong: {
-                    areas: [ "Agrabad C/A", "GEC Circle", "Nasirabad H/S", "Halishahar", "Panchlaish R/A" ],
-                    roads: [ 1, 30 ]
-                },
-                Sylhet: {
-                    areas: [ "Zindabazar", "Ambarkhana", "Tilagor", "Shahjalal Upashahar" ],
-                    roads: [ 1, 20 ]
-                },
-                Rajshahi: {
-                    areas: [ "Rajpara", "Motihar", "Boalia", "Shaheb Bazar" ],
-                    roads: [ 1, 15 ]
-                }
-            }
-        },
-        nepal: {
-            cities: {
-                Kathmandu: {
-                    areas: [ "Thamel", "Baluwatar", "Lazimpat", "Baneshwor", "Koteshwor", "Kalanki", "Maharajgunj" ],
-                    ward: [ 1, 32 ]
-                },
-                Pokhara: {
-                    areas: [ "Lakeside Ward 6", "Prithvi Chowk", "Bagar", "New Road", "Chipledhunga" ],
-                    ward: [ 1, 33 ]
-                },
-                Lalitpur: {
-                    areas: [ "Patan Durbar Marg", "Imadol", "Satdobato", "Lagankhel" ],
-                    ward: [ 1, 29 ]
-                },
-                Biratnagar: {
-                    areas: [ "Traffic Chowk", "Golpark", "Rangeli Road", "Itahari Chowk" ],
-                    ward: [ 1, 19 ]
-                }
-            }
-        },
-        afghanistan: {
-            cities: {
-                Kabul: {
-                    areas: [ "Shahr-e-Naw", "Wazir Akbar Khan", "Macroyan Block 1", "Karte Char", "Karte-e-Se" ],
-                    districts: [ "1st", "2nd", "3rd", "4th", "5th", "6th" ]
-                },
-                Herat: {
-                    areas: [ "Guzara District", "Injil", "Shindand", "Pashtun Zarghun" ],
-                    districts: [ "1st", "2nd", "3rd" ]
-                },
-                "Mazar-i-Sharif": {
-                    areas: [ "Blue Mosque Area", "Industrial Zone", "Khairkhana" ],
-                    districts: [ "1st", "2nd", "3rd", "4th" ]
-                },
-                Kandahar: {
-                    areas: [ "Aino Mena", "Camp Shaheen", "Bazar Area", "Daman District" ],
-                    districts: [ "1st", "2nd", "3rd" ]
-                }
+                Doha: [
+                    { area: "West Bay", zone: 60, streets: [840, 850, 860] },
+                    { area: "The Pearl-Qatar", zone: 66, streets: [101, 105, 120] },
+                    { area: "Al Sadd", zone: 39, streets: [340, 350, 360] },
+                    { area: "Old Airport", zone: 45, streets: [710, 720, 730] }
+                ],
+                "Al Rayyan": [
+                    { area: "Al Gharrafa", zone: 51, streets: [780, 790, 800] },
+                    { area: "Education City", zone: 52, streets: [210, 220, 230] },
+                    { area: "Al Waab", zone: 55, streets: [410, 420, 430] }
+                ],
+                "Al Wakrah": [
+                    { area: "Al Wukair", zone: 90, streets: [610, 620, 630] },
+                    { area: "Ezdan Village", zone: 91, streets: [310, 320, 330] }
+                ]
             }
         },
         saudiarabia: {
-            provinces: {
-                Riyadh: {
-                    areas: [ "Al Malaz", "Al Olaya", "Al Murabba", "Ad Dira", "Sulaymaniyah", "Al Hamra", "Uthmaniyyah", "King Fahd District", "Al Waha", "Al Nakheel" ]
-                },
-                Jeddah: {
-                    areas: [ "Al Balad", "Al Hamra", "Al Rawdah", "Al Salamah", "Al Andalus", "Bawadi Mall Area", "Al Rehab", "Al Khalidiyyah" ]
-                },
-                Dammam: {
-                    areas: [ "Al Faisaliyah", "Al Khobar Road", "Al Anud", "Al Fursan", "Al Jawhara", "Al Shulah", "Al Rawabi" ]
-                },
-                Makkah: {
-                    areas: [ "Aziziyah", "Al Mansur", "Al Masfalah", "Batha Quraish", "Al Sharqiyyah", "Al Adl" ]
-                },
-                Madinah: {
-                    areas: [ "Al Haram", "Al Aziziyah", "Quba", "Al Anbariyah", "Al Munawarrah", "Shuran" ]
-                },
-                Abha: {
-                    areas: [ "Al Manhal", "Al Wurud", "Al Khamis", "Al Odah", "Al Nuzha", "Al Murooj" ]
-                },
-                "Al Khobar": {
-                    areas: [ "Al Aqrabiyah", "Al Thuqbah", "Al Rakah", "Ash Shati", "Al Ulaya", "Al Bandariyah" ]
-                }
+            cities: {
+                Riyadh: [
+                    { dist: "Al Olaya", street: "King Fahd Branch Rd", postal: "12211" },
+                    { dist: "Al Malaz", street: "Salah Ad Din Al Ayyubi Rd", postal: "12831" },
+                    { dist: "Al Nakheel", street: "Imam Saud Bin Abdulaziz Rd", postal: "12381" },
+                    { dist: "Sulaymaniyah", street: "King Abdulaziz Rd", postal: "12242" }
+                ],
+                Jeddah: [
+                    { dist: "Al Rawdah", street: "Prince Mohammed Bin Abdulaziz St", postal: "23432" },
+                    { dist: "Al Hamra", street: "Al Andalus Rd", postal: "23212" },
+                    { dist: "Al Salamah", street: "Al Madinah Al Munawwarah Rd", postal: "23436" }
+                ],
+                Dammam: [
+                    { dist: "Al Faisaliyah", street: "King Fahd Rd", postal: "32272" },
+                    { dist: "Al Rawabi", street: "Prince Nayef Bin Abdulaziz Rd", postal: "32242" }
+                ],
+                Makkah: [
+                    { dist: "Aziziyah", street: "Masjid Al Haram Rd", postal: "24243" },
+                    { dist: "Batha Quraish", street: "Al Hijrah Rd", postal: "24352" }
+                ],
+                Madinah: [
+                    { dist: "Al Haram", street: "King Faisal Rd", postal: "42311" },
+                    { dist: "Quba", street: "Hijrah Rd", postal: "42315" }
+                ],
+                Abha: [
+                    { dist: "Al Manhal", street: "King Abdulaziz Rd", postal: "62521" },
+                    { dist: "Al Murooj", street: "King Khalid Rd", postal: "62527" }
+                ],
+                "Al Khobar": [
+                    { dist: "Al Ulaya", street: "Prince Faisal Bin Fahd Rd", postal: "34448" },
+                    { dist: "Al Aqrabiyah", street: "Al Yarmouk St", postal: "34446" }
+                ]
             }
         },
         kuwait: {
             areas: {
-                "Kuwait City": [ "Sharq", "Mirqab", "Dasman", "Qibla", "Bneid Al Qar", "Dasma", "Abdullah Al Salem", "Al Salhiya" ],
-                Salmiya: [ "Block 1", "Block 2", "Block 3", "Block 4", "Al Bidaa", "Al Jabriyah", "Al Surra" ],
-                Farwaniya: [ "Khaitan", "Ardiya", "Sabahiya", "Rehab", "Al Rai", "Al Omariya", "Fahaheel" ],
-                Ahmadi: [ "Rumaithiya", "Shuaiba", "Fintas", "Mahboula", "Abu Halifa", "Mangaf", "Hadiya" ],
-                Hawalli: [ "Salmiya 2", "Rumaithiya", "Bayan", "Mishref", "Salwa", "Andalus", "Rawdah" ]
+                "Kuwait City": ["Sharq", "Mirqab", "Dasman", "Qibla"],
+                Salmiya: ["Block 4", "Block 7", "Baghdad Street Area", "Arabian Gulf St Area"],
+                Farwaniya: ["Khaitan", "Ardiya", "Al Rai", "Ishbiliya"],
+                Ahmadi: ["Fintas", "Mahboula", "Mangaf", "Abu Halifa"],
+                Hawalli: ["Bayan", "Mishref", "Salwa", "Jabriya"]
             }
         },
         bahrain: {
             areas: {
-                Manama: [ "Seef District", "Juffair", "Diplomatic Area", "Adliya", "Hoora", "Um Al Hassam", "Sanabis" ],
-                Muharraq: [ "Muharraq Centre", "Arad", "Galali", "Al Dair", "Hidd", "Bu Maher" ],
-                Riffa: [ "East Riffa", "West Riffa", "Al Hunainiyah", "Al Akar", "Hajjiyat" ],
-                "Northern Area": [ "Al Hamala", "Budaiya", "Jasra", "Bani Jamra", "Barbar", "Diraz", "Jannusan" ],
-                "Southern Area": [ "Isa Town", "Zallaq", "Askar", "Jaw", "Sitra", "Tubli" ]
+                Manama: [
+                    { area: "Seef District", block: "428" },
+                    { area: "Juffair", block: "324" },
+                    { area: "Adliya", block: "338" }
+                ],
+                Muharraq: [
+                    { area: "Busaiteen", block: "228" },
+                    { area: "Arad", block: "243" },
+                    { area: "Hidd", block: "111" }
+                ],
+                Riffa: [
+                    { area: "East Riffa", block: "901" },
+                    { area: "West Riffa", block: "912" }
+                ],
+                "Northern Area": [
+                    { area: "Budaiya", block: "550" },
+                    { area: "Janabiyah", block: "575" },
+                    { area: "Saar", block: "525" }
+                ],
+                "Southern Area": [
+                    { area: "Isa Town", block: "809" },
+                    { area: "Zallaq", block: "1056" }
+                ]
             }
         },
         oman: {
             areas: {
-                Muscat: [ "Al Khuwair", "Al Qurum", "Ruwi", "Al Mawaleh", "Al Wattayah", "Azaibah", "Al Ghubra", "Muttrah", "Al Amerat" ],
-                Salalah: [ "Al Haffa", "Al Nahdha", "Dahariz", "Al Wusta", "Awtad", "Taqah" ],
-                Sohar: [ "Falaj Al Qabail", "Al Multaqa", "Industrial Area", "Al Harf", "Al Khaboura" ],
-                Nizwa: [ "Old Nizwa", "Al Qalaa", "Birkat Al Mouz", "Tanuf", "Al Izz" ],
-                Sur: [ "Al Ayjah", "Ras Al Hadd", "Al Khaboura", "Bilad Sur", "Al Sinisla" ]
+                Muscat: [
+                    { area: "Al Khuwair", pc: "133" },
+                    { area: "Al Qurum", pc: "112" },
+                    { area: "Ruwi", pc: "112" },
+                    { area: "Azaiba", pc: "130" }
+                ],
+                Salalah: [
+                    { area: "Al Haffa", pc: "211" },
+                    { area: "Dahariz", pc: "214" }
+                ],
+                Sohar: [
+                    { area: "Falaj Al Qabail", pc: "322" },
+                    { area: "Al Multaqa", pc: "311" }
+                ],
+                Nizwa: [
+                    { area: "Birkat Al Mouz", pc: "612" },
+                    { area: "Firq", pc: "611" }
+                ],
+                Sur: [
+                    { area: "Al Ayjah", pc: "411" },
+                    { area: "Bilad Sur", pc: "411" }
+                ]
+            }
+        },
+        bangladesh: {
+            cities: {
+                Dhaka: [
+                    { area: "Gulshan 2", thana: "Gulshan", sec: "Block NW", pc: "1212" },
+                    { area: "Banani", thana: "Banani", sec: "Block E", pc: "1213" },
+                    { area: "Dhanmondi", thana: "Dhanmondi", sec: "Road 27", pc: "1205" },
+                    { area: "Uttara", thana: "Uttara", sec: "Sector 7", pc: "1230" }
+                ],
+                Chittagong: [
+                    { area: "Agrabad C/A", thana: "Double Mooring", sec: "Commercial Area", pc: "4100" },
+                    { area: "Nasirabad", thana: "Panchlaish", sec: "Housing Society", pc: "4203" }
+                ],
+                Sylhet: [
+                    { area: "Zindabazar", thana: "Kotwali", sec: "Main Market", pc: "3100" },
+                    { area: "Shahjalal Upashahar", thana: "Shah Paran", sec: "Block B", pc: "3104" }
+                ],
+                Rajshahi: [
+                    { area: "Shaheb Bazar", thana: "Boalia", sec: "Central Road", pc: "6100" },
+                    { area: "Motihar", thana: "Motihar", sec: "University Area", pc: "6204" }
+                ]
+            }
+        },
+        nepal: {
+            cities: {
+                Kathmandu: [
+                    { tole: "Thamel Marg", ward: 26, pc: "44600" },
+                    { tole: "Baluwatar Chowk", ward: 4, pc: "44606" },
+                    { tole: "Lazimpat", ward: 2, pc: "44600" },
+                    { tole: "New Baneshwor", ward: 10, pc: "44600" }
+                ],
+                Pokhara: [
+                    { tole: "Lakeside Marg", ward: 6, pc: "33700" },
+                    { tole: "Prithvi Chowk", ward: 9, pc: "33700" },
+                    { tole: "Chipledhunga", ward: 4, pc: "33700" }
+                ],
+                Lalitpur: [
+                    { tole: "Patan Durbar Marg", ward: 16, pc: "44700" },
+                    { tole: "Pulchowk Road", ward: 3, pc: "44700" },
+                    { tole: "Kupondole", ward: 1, pc: "44700" }
+                ],
+                Biratnagar: [
+                    { tole: "Traffic Chowk", ward: 7, pc: "56613" },
+                    { tole: "Main Road", ward: 9, pc: "56613" }
+                ]
+            }
+        },
+        afghanistan: {
+            cities: {
+                Kabul: [
+                    { area: "Shahr-e-Naw", nahia: 4 },
+                    { area: "Wazir Akbar Khan", nahia: 10 },
+                    { area: "Karte Char", nahia: 3 },
+                    { area: "Macroyan 3", nahia: 9 }
+                ],
+                Herat: [
+                    { area: "Guzara District Area", nahia: 2 },
+                    { area: "Injil Road Area", nahia: 3 },
+                    { area: "Sarak-e-Welayat", nahia: 1 }
+                ],
+                "Mazar-i-Sharif": [
+                    { area: "Rawza Area", nahia: 1 },
+                    { area: "Khairkhana", nahia: 3 },
+                    { area: "Karti Ariana", nahia: 4 }
+                ],
+                Kandahar: [
+                    { area: "Aino Mena", nahia: 11 },
+                    { area: "Shahre Naw", nahia: 2 },
+                    { area: "Dand Road", nahia: 5 }
+                ]
             }
         }
+    
     };
     var CITY_MAP = {
         Pakistan: [ "Punjab", "Lahore", "Karachi", "Islamabad", "Peshawar", "Quetta", "Azad Kashmir" ],
@@ -309,51 +392,84 @@ document.addEventListener("DOMContentLoaded", function() {
         var issueDate = pickIssueDate(WEEKEND[country] || [ 0 ]);
         var expiryDate = IS.computeExpiryDate(issueDate);
         var idNum = "", addr = "";
+
         if (country === "Pakistan") {
-            var pref = DS.pakistan.prefixes[city] || "33100", cData = DS.pakistan.areas[city] || DS.pakistan.areas.Punjab;
+            var pref = DS.pakistan.prefixes[city] || "33100";
             idNum = pref + "-" + rand(1e6, 9999999) + "-" + rand(1, 9);
-            addr = "House " + rand(1, 500) + ", " + pick(DS.pakistan.streets) + ", " + pick(cData.places) + ", " + (city !== "Punjab" ? city + ", " : "") + cData.prov + ", Pakistan";
+            
+            if (city === "Islamabad") {
+                var isb = DS.pakistan.regions.Islamabad;
+                addr = "House " + rand(1, 150) + ", Street " + rand(1, 80) + ", Sector " + pick(isb.sectors) + ", Islamabad " + isb.postal + ", Pakistan";
+            } else if (city === "Lahore") {
+                var lhArea = pick(DS.pakistan.regions.Lahore.areas);
+                addr = "House " + rand(1, 400) + ", Street " + rand(1, 30) + ", " + pick(lhArea.blocks) + ", " + lhArea.name + ", Lahore " + lhArea.postal + ", Pakistan";
+            } else if (city === "Karachi") {
+                var khiArea = pick(DS.pakistan.regions.Karachi.areas);
+                addr = "House " + rand(1, 250) + ", " + pick(khiArea.streets) + ", " + pick(khiArea.blocks) + ", " + khiArea.name + ", Karachi " + khiArea.postal + ", Pakistan";
+            } else if (city === "Punjab") {
+                var pjCity = pick(DS.pakistan.regions.Punjab.cities);
+                addr = "House " + rand(1, 300) + ", " + pick(pjCity.streets) + ", " + pjCity.area + ", " + pjCity.city + ", Punjab " + pjCity.postal + ", Pakistan";
+            } else if (city === "Peshawar") {
+                var pshArea = pick(DS.pakistan.regions.Peshawar.areas);
+                addr = "House " + rand(1, 250) + ", Street " + rand(1, 20) + ", " + pick(pshArea.sectors) + ", " + pshArea.name + ", Peshawar " + pshArea.postal + ", Pakistan";
+            } else if (city === "Quetta") {
+                var qtaArea = pick(DS.pakistan.regions.Quetta.areas);
+                addr = "House " + rand(1, 180) + ", " + pick(qtaArea.streets) + ", " + qtaArea.name + ", Quetta " + qtaArea.postal + ", Pakistan";
+            } else if (city === "Azad Kashmir") {
+                var ajkArea = pick(DS.pakistan.regions["Azad Kashmir"].areas);
+                addr = "House " + rand(1, 150) + ", " + pick(ajkArea.streets) + ", " + ajkArea.area + ", " + ajkArea.city + ", Azad Kashmir " + ajkArea.postal + ", Pakistan";
+            }
         } else if (country === "India") {
-            var ci = DS.india.cities[city] || DS.india.cities.Mumbai;
+            var indCity = DS.india.cities[city] || DS.india.cities.Mumbai;
+            var indIdx = rand(0, indCity.areas.length - 1);
             idNum = rand(2e3, 9999) + " " + rand(1e3, 9999) + " " + rand(1e3, 9999);
-            addr = "Flat " + rand(1, 12) + "0" + rand(1, 9) + ", " + pick(DS.india.bNames) + " " + pick(DS.india.bTypes) + ", " + pick(ci.areas) + ", " + city + " - " + rand(ci.pin[0], ci.pin[1]) + ", India";
+            addr = "Flat " + rand(101, 1404) + ", " + pick(DS.india.bNames) + " " + pick(DS.india.bTypes) + ", " + indCity.streets[indIdx] + ", " + indCity.areas[indIdx] + ", " + city + " - " + indCity.pins[indIdx] + ", India";
         } else if (country === "UAE") {
-            var cu = DS.uae.cities[city] || DS.uae.cities.Dubai;
+            var uaeCity = DS.uae.cities[city] || DS.uae.cities.Dubai;
+            var uaeIdx = rand(0, uaeCity.areas.length - 1);
             idNum = "784-" + rand(1970, 2005) + "-" + rand(1e6, 9999999) + "-" + rand(1, 9);
-            addr = "Flat " + rand(101, 3005) + ", " + pick(cu.buildings) + ", " + pick(cu.areas) + ", " + city + ", UAE";
+            addr = "Apt " + rand(101, 2505) + ", " + pick(uaeCity.buildings) + ", " + uaeCity.streets[uaeIdx % uaeCity.streets.length] + ", " + uaeCity.areas[uaeIdx] + ", " + city + ", PO Box " + rand(11111, 99999) + ", UAE";
         } else if (country === "Qatar") {
-            var cq = DS.qatar.cities[city] || DS.qatar.cities.Doha, zr = pick(cq.zones);
+            var qatList = DS.qatar.cities[city] || DS.qatar.cities.Doha;
+            var qatItem = pick(qatList);
             idNum = qatarQid();
-            addr = "Zone " + rand(zr[0], zr[1]) + ", Street " + rand(200, 999) + ", Building " + rand(1, 150) + ", " + pick(cq.areas) + ", " + city + ", Qatar";
-        } else if (country === "Bangladesh") {
-            var cb = DS.bangladesh.cities[city] || DS.bangladesh.cities.Dhaka;
-            idNum = safeId(10);
-            addr = "House " + rand(1, 120) + ", Road " + IS.pad(rand(cb.roads[0], cb.roads[1])) + ", " + pick(cb.areas) + ", " + city + ", Bangladesh";
-        } else if (country === "Nepal") {
-            var cn = DS.nepal.cities[city] || DS.nepal.cities.Kathmandu;
-            idNum = safeId(8);
-            addr = "House No. " + rand(1, 500) + ", Ward " + IS.pad(rand(cn.ward[0], cn.ward[1])) + ", " + pick(cn.areas) + ", " + city + ", Nepal";
-        } else if (country === "Afghanistan") {
-            var ca = DS.afghanistan.cities[city] || DS.afghanistan.cities.Kabul;
-            idNum = "19" + rand(85, 99) + "-" + rand(1e3, 9999) + "-" + rand(1e4, 99999);
-            addr = "House " + rand(1, 300) + ", " + pick(ca.districts) + " District, " + pick(ca.areas) + ", " + city + ", Afghanistan";
+            addr = "Building " + rand(1, 180) + ", Street " + pick(qatItem.streets) + ", Zone " + qatItem.zone + ", " + qatItem.area + ", " + city + ", Qatar";
         } else if (country === "SaudiArabia") {
-            var sp = DS.saudiarabia.provinces[city] || DS.saudiarabia.provinces.Riyadh;
+            var ksaList = DS.saudiarabia.cities[city] || DS.saudiarabia.cities.Riyadh;
+            var ksaItem = pick(ksaList);
             idNum = pick([ "1", "2" ]) + safeId(9);
-            addr = "Villa " + rand(1, 500) + ", " + pick(sp.areas) + ", " + city + ", Kingdom of Saudi Arabia";
+            addr = rand(2000, 8999) + " " + ksaItem.street + ", " + ksaItem.dist + ", " + city + " " + ksaItem.postal + ", Kingdom of Saudi Arabia";
         } else if (country === "Kuwait") {
-            var kw = DS.kuwait.areas[city] || DS.kuwait.areas["Kuwait City"];
+            var kwList = DS.kuwait.areas[city] || DS.kuwait.areas["Kuwait City"];
             idNum = kuwaitCivilId();
-            addr = "Block " + rand(1, 12) + ", Street " + rand(1, 50) + ", Building " + rand(1, 120) + ", " + pick(kw) + ", " + city + ", Kuwait";
+            addr = "Building " + rand(1, 120) + ", Street " + rand(1, 50) + ", Block " + rand(1, 12) + ", " + pick(kwList) + ", " + city + ", Kuwait";
         } else if (country === "Bahrain") {
-            var bh = DS.bahrain.areas[city] || DS.bahrain.areas.Manama;
+            var bhList = DS.bahrain.areas[city] || DS.bahrain.areas.Manama;
+            var bhItem = pick(bhList);
             idNum = rand(70, 99).toString() + IS.pad(rand(1, 12)) + IS.pad(rand(1, 28)) + rand(100, 999);
-            addr = "Flat " + rand(1, 80) + ", Building " + rand(100, 9999) + ", Road " + rand(100, 9999) + ", Block " + rand(100, 999) + ", " + pick(bh) + ", " + city + ", Bahrain";
+            addr = "Flat " + rand(1, 40) + ", Building " + rand(10, 999) + ", Road " + rand(1000, 4999) + ", Block " + bhItem.block + ", " + bhItem.area + ", Kingdom of Bahrain";
         } else if (country === "Oman") {
-            var om = DS.oman.areas[city] || DS.oman.areas.Muscat;
+            var omList = DS.oman.areas[city] || DS.oman.areas.Muscat;
+            var omItem = pick(omList);
             idNum = "2" + rand(1e7, 99999999);
-            addr = "Flat " + rand(1, 200) + ", Building " + rand(1, 500) + ", Way " + rand(1e3, 9999) + ", " + pick(om) + ", " + city + ", Sultanate of Oman";
+            addr = "Building " + rand(10, 450) + ", Way " + rand(1000, 5999) + ", " + omItem.area + ", " + city + ", PC " + omItem.pc + ", Sultanate of Oman";
+        } else if (country === "Bangladesh") {
+            var bdList = DS.bangladesh.cities[city] || DS.bangladesh.cities.Dhaka;
+            var bdItem = pick(bdList);
+            idNum = safeId(10);
+            addr = "House " + rand(1, 120) + ", Road " + rand(1, 35) + ", " + bdItem.sec + ", " + bdItem.area + ", " + bdItem.thana + ", " + city + " - " + bdItem.pc + ", Bangladesh";
+        } else if (country === "Nepal") {
+            var npList = DS.nepal.cities[city] || DS.nepal.cities.Kathmandu;
+            var npItem = pick(npList);
+            idNum = safeId(8);
+            addr = "House No. " + rand(1, 450) + ", " + npItem.tole + ", Ward No. " + npItem.ward + ", " + city + " " + npItem.pc + ", Nepal";
+        } else if (country === "Afghanistan") {
+            var afgList = DS.afghanistan.cities[city] || DS.afghanistan.cities.Kabul;
+            var afgItem = pick(afgList);
+            idNum = "19" + rand(85, 99) + "-" + rand(1e3, 9999) + "-" + rand(1e4, 99999);
+            addr = "House " + rand(1, 200) + ", Street " + rand(1, 15) + ", Gozar " + rand(1, 8) + ", " + afgItem.area + ", Nahia " + afgItem.nahia + ", " + city + ", Afghanistan";
         }
+
         return {
             idNumber: idNum,
             licenseNumber: IS.pad(rand(10, 99)) + "-" + rand(1e3, 9999),
