@@ -1,3 +1,8 @@
+/**
+ * Registers a frozen dataset of Quranic names of Allah (husna) and of the Prophet (nabi) on the shared IS namespace of the given root object.
+ * @param {Window} root - The global object on which the IS namespace and its namesData property are defined.
+ * @returns {void} This function returns nothing.
+ */
 (function (root) {
     'use strict';
 
