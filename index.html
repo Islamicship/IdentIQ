@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- === META & PWA CONFIGURATION === -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#00a2ff">
@@ -9,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="IdentIQ">
 
+    <!-- === TOUCH BEHAVIOR OVERRIDE === -->
     <style>input,textarea,select{touch-action:manipulation;}</style>
     <meta name="description" content="IdentIQ v4.4 — Gulf &amp; South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Jhang, Pakistan. Powered by Creative AI. Supports Iqama, CNIC, Emirates ID, and more.">
     <meta name="author" content="Creative Men, Pakistan">
@@ -17,11 +19,15 @@
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="apple-touch-icon" href="assets/logo.png">
     <link rel="manifest" href="manifest.json">
+
+    <!-- === FONTS === -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- === STYLESHEETS === -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/names.css">
@@ -30,6 +36,7 @@
 </head>
 <body>
 
+<!-- === NO-JAVASCRIPT FALLBACK === -->
 <noscript>
   <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#080a0d;color:#00d4ff;font-family:monospace;text-align:center;padding:20px;">
     <div>
@@ -39,6 +46,7 @@
   </div>
 </noscript>
 
+    <!-- === NAVIGATION BAR === -->
     <nav class="main-nav" role="navigation" aria-label="Main navigation">
         <div class="nav-container" role="tablist" aria-label="Main navigation tabs">
             <button class="nav-tab active" role="tab" data-target="tab-extractor" aria-selected="true">
@@ -75,6 +83,7 @@
         </div>
     </nav>
 
+    <!-- === KEYBOARD SHORTCUT LEGEND === -->
     <div class="shortcut-legend" aria-label="Keyboard shortcuts">
         <span class="shortcut-label" data-i18n="shortcutsLabel">Shortcuts:</span>
         <kbd class="shortcut-key" data-i18n="shortcut1">[Alt+1] Intel</kbd>
@@ -83,9 +92,11 @@
         <kbd class="shortcut-key" data-i18n="shortcut4">[Alt+4] Names</kbd>
     </div>
 
+    <!-- === EXTRACTOR SECTION === -->
     <div id="tab-extractor" class="app-section active-section" role="main">
         <div class="main-container">
 
+            <!-- === EXTRACTOR HEADER === -->
             <header class="app-header">
                 <div class="logo-area">
                     <img src="assets/logo.png" alt="IdentIQ Logo" class="app-logo" width="46" height="46" loading="eager" decoding="async">
@@ -100,6 +111,7 @@
                 </div>
             </header>
 
+            <!-- === EXTRACTED DATA CARD === -->
             <fieldset class="data-card" id="dataCard" style="display:none;">
                 <legend class="badge" data-i18n="extractedInfo">EXTRACTED INFORMATION</legend>
 
@@ -172,11 +184,13 @@
                 </div>
             </fieldset>
 
+            <!-- === NO-DATA MESSAGE === -->
             <div class="no-data-msg" id="noDataMsg" role="alert" aria-live="assertive">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span data-i18n="noData">No recognisable data found — check input and try again.</span>
             </div>
 
+            <!-- === INPUT TERMINAL === -->
             <div class="terminal-box">
                 <div class="terminal-header">
                     <label for="inputText" data-i18n="inputLabel">INPUT TERMINAL</label>
@@ -222,6 +236,7 @@
                 </div>
             </div>
 
+            <!-- === VIRTUAL KEYBOARD === -->
             <div id="virtualKbd" class="vkbd-panel" style="display:none;" role="dialog" aria-label="Virtual keyboard" aria-modal="false">
                 <div class="vkbd-header">
                     <div class="vkbd-tabs">
@@ -236,10 +251,12 @@
         </div>
     </div>
 
+    <!-- === GENERATOR SECTION === -->
     <div id="tab-generator" class="app-section" style="display:none;" role="region" aria-label="Realistic ID Generator">
         <div class="gen-wrapper">
             <div class="gen-container">
 
+                <!-- === GENERATOR: HEADER === -->
                 <header class="gen-header">
                     <h1 data-i18n="genTitle">Realistic Digital Identity</h1>
                     <span class="gen-version-tag">v5.9.1</span>
@@ -247,6 +264,7 @@
 
                 <main>
 
+                    <!-- === GENERATOR: COUNTRY & CITY SELECTION === -->
                     <div class="gen-selection-grid">
                         <div class="gen-control-group">
                             <label for="country-select" data-i18n="countryLabel">Select Country</label>
@@ -272,6 +290,7 @@
                         </div>
                     </div>
 
+                    <!-- === GENERATOR: OUTPUT FIELDS === -->
                     <div class="gen-grid">
                         <div class="gen-data-box">
                             <label data-i18n="labelCNIC">CNIC / National ID</label>
@@ -312,6 +331,7 @@
                             </div>
                         </div>
 
+                        <!-- === GENERATOR: DATE CARD & CALENDAR POPUP === -->
                         <div class="gen-data-box gen-date-box gen-full-width" id="date-card" style="position:relative;">
                             <div class="date-box-header">
                                 <label data-i18n="labelDate">Current Date</label>
@@ -357,6 +377,7 @@
                         </div>
                     </div>
 
+                    <!-- === GENERATOR: ACTION BUTTONS === -->
                     <div class="gen-button-group">
                         <button id="generate-btn" class="gen-generate-button gen-generate-3d" aria-label="Generate new identity">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.71"/></svg>
@@ -366,6 +387,7 @@
 
                 </main>
 
+                <!-- === GENERATOR: FOOTER === -->
                 <footer class="gen-footer">
                     <p data-i18n="footerText">© 2024–2026 IdentIQ · Creative Men · Gulf Identity Intelligence Platform v5.9.1</p>
                 </footer>
@@ -375,6 +397,7 @@
         </div>
     </div>
 
+    <!-- === MODALS & OVERLAYS === -->
     <div id="gen-toast" class="gen-toast" role="status" aria-live="polite"></div>
 
     <div class="gen-fab" id="genFab" aria-hidden="true">
@@ -384,9 +407,11 @@
         </button>
     </div>
 
+    <!-- === ANALYTICS SECTION === -->
     <div id="tab-analytics" class="app-section" style="display:none;" role="region" aria-label="Analytics Dashboard">
         <div class="main-container analytics-container">
 
+            <!-- === ANALYTICS: HEADER === -->
             <header class="analytics-header">
                 <h2 data-i18n="analyticsTitle">Analytics Dashboard</h2>
                 <button id="clearAnalyticsBtn" class="danger-btn" aria-label="Clear analytics data">
@@ -394,6 +419,7 @@
                 </button>
             </header>
 
+            <!-- === ANALYTICS: STAT CARDS === -->
             <div class="analytics-grid">
                 <div class="stat-card">
                     <div class="stat-icon stat-icon-blue">
@@ -433,6 +459,7 @@
                 </div>
             </div>
 
+            <!-- === ANALYTICS: RECENT EXPORTS === -->
             <div class="recent-exports-card">
                 <h3 class="recent-label" data-i18n="recentExports">Recent Exports</h3>
                 <ul class="recent-list" id="recentExportsList">
@@ -440,6 +467,7 @@
                 </ul>
             </div>
 
+            <!-- === ANALYTICS: EXTRACTION HISTORY === -->
             <div class="recent-exports-card" style="margin-top:14px;">
                 <h3 class="recent-label" data-i18n="extractHistory">Extraction History</h3>
                 <ul class="recent-list history-list" id="extractionHistoryList">
@@ -447,6 +475,7 @@
                 </ul>
             </div>
 
+            <!-- === ANALYTICS: PRIVACY NOTICE === -->
             <div class="privacy-info">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 <span data-i18n="privacyText">Auto-wipe after <strong>5 minutes</strong> of inactivity.</span>
@@ -457,16 +486,19 @@
         </div>
     </div>
 
+    <!-- === NAMES SECTION === -->
     <div id="tab-names" class="app-section names-section" style="display:none;"
          data-collection="husna" data-script="naskh"
          role="region" aria-labelledby="namesTitle">
         <div class="names-container">
 
+            <!-- === NAMES: HEADER === -->
             <header class="names-hero">
                 <p class="names-hero-arabic" id="namesHeroArabic" lang="ar" dir="rtl">أَسْمَاءُ اللَّهِ الْحُسْنَىٰ</p>
                 <h2 class="names-title" id="namesTitle" data-i18n="namesTitle">Divine &amp; Prophetic Names</h2>
             </header>
 
+            <!-- === NAMES: TOOLBAR === -->
             <div class="names-toolbar">
                 <div class="names-tabs" role="tablist" aria-label="Names collection">
                     <button type="button" class="names-tab" role="tab" id="namesTabHusna"
@@ -502,6 +534,7 @@
             <p class="names-note" id="namesNote"></p>
             <p class="names-count" id="namesCount" role="status" aria-live="polite"></p>
 
+            <!-- === NAMES: COLLECTION PANELS === -->
             <div class="names-panel" id="namesPanelHusna" role="tabpanel" aria-labelledby="namesTabHusna" data-collection="husna">
                 <ul class="names-grid-container" id="husnaGrid"></ul>
             </div>
@@ -509,6 +542,7 @@
                 <ul class="names-grid-container" id="nabiGrid"></ul>
             </div>
 
+            <!-- === NAMES: EMPTY STATE === -->
             <div class="names-empty" id="namesEmpty" hidden>
                 <strong data-i18n="namesEmptyTitle">No name matches your search.</strong>
                 <p data-i18n="namesEmptyHint">Try the transliteration, a word from the meaning, or the number.</p>
@@ -518,9 +552,11 @@
         </div>
     </div>
 
+    <!-- === SCRIPTS: LIBRARIES === -->
     <script src="lib/moment.min.js" defer></script>
     <script src="lib/moment-hijri.min.js" defer></script>
     <script src="lib/confetti.browser.min.js" defer></script>
+    <!-- === SCRIPTS: APPLICATION === -->
     <script src="js/config.js" defer></script>
     <script src="js/ui.js" defer></script>
     <script src="js/extractor.js" defer></script>
