@@ -33,7 +33,7 @@
   };
 
   var CONFIG = {
-    VERSION: "5.9.1",
+    VERSION: "6.1.1",
     YEAR: 2026,
     COPYRIGHT_RANGE: "2024–2026",
     APP_NAME: "IdentIQ",
