@@ -16,7 +16,6 @@
         }
     };
     var ORDER = [ "husna", "nabi" ];
-    var ICON_COPY = '<svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     var ICON_SPEAK = '<svg class="icon-speak" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
     var ICON_PLAY_ALL = '<svg class="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
     var ICON_STOP_ALL = '<svg class="icon-stop" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
@@ -279,7 +278,7 @@
                 actions.appendChild(speakBtn);
                 var btn = mk("button", "name-copy");
                 btn.type = "button";
-                btn.innerHTML = ICON_COPY;
+                btn.innerHTML = (window.IS && IS.COPY_SVG) ? IS.COPY_SVG : "";
                 btn.setAttribute("aria-label", tr("namesCopyLabel", {
                     n: n.transliteration
                 }));

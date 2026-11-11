@@ -154,7 +154,7 @@ window.IS = window.IS || {};
         expiry.setDate(expiry.getDate() - 1);
         return expiry;
     };
-    IS.COPY_SVG = '<svg viewBox="0 0 20 20" fill="none"><rect x="7" y="7" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 13H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    IS.COPY_SVG = '<svg class="icon-copy" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="12" rx="2"/><path d="M5 13H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"/></svg>';
     IS.TICK_SVG = '<svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path class="tick-path" d="M6.5 11l3.5 3.5 5.5-6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"/></svg>';
     var FX_SPARKS = 8;
     var FX_ICON_MS = 1150;

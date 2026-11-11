@@ -632,3 +632,9 @@ body.theme-light .names-tab[data-collection="nabi"]  { --tab-tint: rgba(154, 111
             0 10px 28px var(--names-glow);
     }
 }
+/* Fix copy icon size to match speaker icon */
+.name-actions button svg,
+.name-copy svg {
+    width: 16px;
+    height: 16px;
+}
