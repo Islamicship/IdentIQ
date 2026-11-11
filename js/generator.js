@@ -1,6 +1,9 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", function() {
+/**
+ * Initialises the generator once the DOM is ready by wiring the country and city selectors, data generation, live date display and calendar popup.
+ */
+document.addEventListener("DOMContentLoaded", function () {
     if (!document.getElementById("generate-btn")) return;
     var DS = {
         pakistan: {
@@ -297,38 +300,59 @@ document.addEventListener("DOMContentLoaded", function() {
                 ]
             }
         }
-    
+
     };
     var CITY_MAP = {
-        Pakistan: [ "Punjab", "Lahore", "Karachi", "Islamabad", "Peshawar", "Quetta", "Azad Kashmir" ],
-        India: [ "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai" ],
-        UAE: [ "Dubai", "Abu Dhabi", "Sharjah" ],
-        Qatar: [ "Doha", "Al Rayyan", "Al Wakrah" ],
-        Bangladesh: [ "Dhaka", "Chittagong", "Sylhet", "Rajshahi" ],
-        Nepal: [ "Kathmandu", "Pokhara", "Lalitpur", "Biratnagar" ],
-        Afghanistan: [ "Kabul", "Herat", "Mazar-i-Sharif", "Kandahar" ],
-        SaudiArabia: [ "Riyadh", "Jeddah", "Dammam", "Makkah", "Madinah", "Abha", "Al Khobar" ],
-        Kuwait: [ "Kuwait City", "Salmiya", "Farwaniya", "Ahmadi", "Hawalli" ],
-        Bahrain: [ "Manama", "Muharraq", "Riffa", "Northern Area", "Southern Area" ],
-        Oman: [ "Muscat", "Salalah", "Sohar", "Nizwa", "Sur" ]
+        Pakistan: ["Punjab", "Lahore", "Karachi", "Islamabad", "Peshawar", "Quetta", "Azad Kashmir"],
+        India: ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai"],
+        UAE: ["Dubai", "Abu Dhabi", "Sharjah"],
+        Qatar: ["Doha", "Al Rayyan", "Al Wakrah"],
+        Bangladesh: ["Dhaka", "Chittagong", "Sylhet", "Rajshahi"],
+        Nepal: ["Kathmandu", "Pokhara", "Lalitpur", "Biratnagar"],
+        Afghanistan: ["Kabul", "Herat", "Mazar-i-Sharif", "Kandahar"],
+        SaudiArabia: ["Riyadh", "Jeddah", "Dammam", "Makkah", "Madinah", "Abha", "Al Khobar"],
+        Kuwait: ["Kuwait City", "Salmiya", "Farwaniya", "Ahmadi", "Hawalli"],
+        Bahrain: ["Manama", "Muharraq", "Riffa", "Northern Area", "Southern Area"],
+        Oman: ["Muscat", "Salalah", "Sohar", "Nizwa", "Sur"]
     };
     window.IS = window.IS || {};
     window.IS.CITY_MAP = CITY_MAP;
+    /**
+     * Returns a random integer between the two bounds, inclusive.
+     * @param {number} a - Lower bound.
+     * @param {number} b - Upper bound.
+     * @returns {number} The random integer.
+     */
     function rand(a, b) {
         return Math.floor(Math.random() * (b - a + 1)) + a;
     }
+    /**
+     * Returns a randomly chosen element of an array.
+     * @param {Array<*>} arr - Array to choose from.
+     * @returns {*} The chosen element.
+     */
     function pick(arr) {
         return arr[Math.floor(Math.random() * arr.length)];
     }
+    /**
+     * Builds a random digit string of the given length whose first digit is never zero.
+     * @param {number} n - Number of digits.
+     * @returns {string} The digit string.
+     */
     function safeId(n) {
         var s = "";
         for (var i = 0; i < n; i++) s += rand(i === 0 ? 1 : 0, 9);
         return s;
     }
     var WEEKEND = {
-        Pakistan: [ 0 ], India: [ 0 ], Bangladesh: [ 5, 6 ], Nepal: [ 6 ], Afghanistan: [ 5 ],
-        UAE: [ 0, 6 ], Qatar: [ 5, 6 ], SaudiArabia: [ 5, 6 ], Kuwait: [ 5, 6 ], Bahrain: [ 5, 6 ], Oman: [ 5, 6 ]
+        Pakistan: [0], India: [0], Bangladesh: [5, 6], Nepal: [6], Afghanistan: [5],
+        UAE: [0, 6], Qatar: [5, 6], SaudiArabia: [5, 6], Kuwait: [5, 6], Bahrain: [5, 6], Oman: [5, 6]
     };
+    /**
+     * Picks a random 2023 issue date that does not fall on the country's weekend days.
+     * @param {number[]} weekend - Weekday indexes (0 = Sunday) treated as weekend days.
+     * @returns {Date} The chosen issue date.
+     */
     function pickIssueDate(weekend) {
         var start = new Date(2023, 0, 2);
         var end = new Date(2023, 11, 31);
@@ -341,17 +365,31 @@ document.addEventListener("DOMContentLoaded", function() {
         while (weekend.indexOf(d.getDay()) !== -1) d.setDate(d.getDate() - 1);
         return d;
     }
+    /**
+     * Left-pads a value with zeros to the given length.
+     * @param {number|string} n - Value to pad.
+     * @param {number} len - Target length.
+     * @returns {string} The zero-padded string.
+     */
     function padN(n, len) {
         var t = String(n);
         while (t.length < len) t = "0" + t;
         return t;
     }
-    var QID_NAT = [ "586", "356", "050", "524", "004", "634", "818", "608" ];
+    var QID_NAT = ["586", "356", "050", "524", "004", "634", "818", "608"];
+    /**
+     * Generates a random 11-digit Qatari ID-format number from a random birth year and nationality code.
+     * @returns {string} The generated number.
+     */
     function qatarQid() {
         var y = rand(1970, 2003);
         return (y >= 2000 ? "3" : "2") + padN(y % 100, 2) + pick(QID_NAT) + padN(rand(0, 99999), 5);
     }
-    var KW_W = [ 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 ];
+    var KW_W = [2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+    /**
+     * Generates a random 12-digit Kuwaiti civil ID-format number with a weighted check digit, retrying until the check digit is valid and falling back to a fixed value.
+     * @returns {string} The generated number.
+     */
     function kuwaitCivilId() {
         for (var n = 0; n < 200; n++) {
             var y = rand(1970, 2003);
@@ -379,26 +417,33 @@ document.addEventListener("DOMContentLoaded", function() {
             weekday: document.getElementById("weekday")
         }
     };
+    /**
+     * Repopulates the city dropdown with the cities of the currently selected country.
+     */
     function updateCityDropdown() {
         var cities = CITY_MAP[el.country.value] || [];
         el.city.innerHTML = "";
-        cities.forEach(function(c) {
+        cities.forEach(function (c) {
             var o = document.createElement("option");
             o.value = c;
             o.textContent = c;
             el.city.appendChild(o);
         });
     }
+    /**
+     * Builds a randomized sample record with ID number, license number, issue and expiry dates and address in the selected country's format.
+     * @returns {Object} The generated record including formatted values and raw dates.
+     */
     function generateData() {
         var country = el.country.value, city = el.city.value;
-        var issueDate = pickIssueDate(WEEKEND[country] || [ 0 ]);
+        var issueDate = pickIssueDate(WEEKEND[country] || [0]);
         var expiryDate = IS.computeExpiryDate(issueDate);
         var idNum = "", addr = "";
 
         if (country === "Pakistan") {
             var pref = DS.pakistan.prefixes[city] || "33100";
-            idNum = pref + "-" + rand(1e6, 9999999) + "-" + pick([ 1, 3, 5, 7, 9 ]);
-            
+            idNum = pref + "-" + rand(1e6, 9999999) + "-" + pick([1, 3, 5, 7, 9]);
+
             if (city === "Islamabad") {
                 var isb = DS.pakistan.regions.Islamabad;
                 addr = "House " + rand(1, 150) + ", Street " + rand(1, 80) + ", Sector " + pick(isb.sectors) + ", Islamabad " + isb.postal + ", Pakistan";
@@ -439,7 +484,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else if (country === "SaudiArabia") {
             var ksaList = DS.saudiarabia.cities[city] || DS.saudiarabia.cities.Riyadh;
             var ksaItem = pick(ksaList);
-            idNum = pick([ "1", "2" ]) + safeId(9);
+            idNum = pick(["1", "2"]) + safeId(9);
             addr = rand(2000, 8999) + " " + ksaItem.street + ", " + ksaItem.dist + ", " + city + " " + ksaItem.postal + ", Kingdom of Saudi Arabia";
         } else if (country === "Kuwait") {
             var kwList = DS.kuwait.areas[city] || DS.kuwait.areas["Kuwait City"];
@@ -488,19 +533,22 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     var lastData = null;
     var _genTimer = null;
-    var GEN_KEYS = [ "idNumber", "licenseNumber", "issueDate", "expiryDate", "fullAddress" ];
+    var GEN_KEYS = ["idNumber", "licenseNumber", "issueDate", "expiryDate", "fullAddress"];
+    /**
+     * Fades out the data boxes, generates a new record after a short delay, fills the output fields and fades them back in.
+     */
     function handleGeneration() {
         clearTimeout(_genTimer);
-        el.boxes.forEach(function(b) {
+        el.boxes.forEach(function (b) {
             b.classList.remove("fade-in");
             b.classList.add("fade-out");
         });
-        _genTimer = setTimeout(function() {
+        _genTimer = setTimeout(function () {
             lastData = generateData();
-            GEN_KEYS.forEach(function(k) {
+            GEN_KEYS.forEach(function (k) {
                 if (lastData[k] !== undefined && el.out[k]) el.out[k].textContent = lastData[k];
             });
-            el.boxes.forEach(function(b) {
+            el.boxes.forEach(function (b) {
                 b.classList.remove("fade-out");
                 void b.offsetWidth;
                 b.classList.add("fade-in");
@@ -508,9 +556,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 280);
     }
     var _hijriTimer = null, _hijriStart = 0, _hijriPending = null, _liveReq = 0;
+    /**
+     * Checks whether the moment-hijri plugin is loaded.
+     * @returns {boolean} True when Hijri conversion is available.
+     */
     function hijriReady() {
         return !!(window.moment && window.moment.fn && typeof window.moment.fn.iYear !== "undefined");
     }
+    /**
+     * Runs the callback as soon as the Hijri plugin is available, polling for up to a minute before giving up.
+     * @param {Function} cb - Callback to run once the plugin is ready.
+     */
     function whenHijriReady(cb) {
         if (hijriReady()) {
             cb();
@@ -519,7 +575,7 @@ document.addEventListener("DOMContentLoaded", function() {
         _hijriPending = cb;
         if (_hijriTimer) return;
         _hijriStart = Date.now();
-        _hijriTimer = setInterval(function() {
+        _hijriTimer = setInterval(function () {
             var ready = hijriReady();
             if (!ready && Date.now() - _hijriStart < 6e4) return;
             clearInterval(_hijriTimer);
@@ -529,6 +585,10 @@ document.addEventListener("DOMContentLoaded", function() {
             if (ready && run) run();
         }, 400);
     }
+    /**
+     * Shows the weekday and the Hijri and Gregorian dates for the given date, defaulting to today.
+     * @param {Date} [dateObj] - Date to display; defaults to the current date.
+     */
     function setLiveDate(dateObj) {
         var d = dateObj || new Date;
         var eng = IS.pad(d.getDate()) + "-" + IS.pad(d.getMonth() + 1) + "-" + d.getFullYear();
@@ -536,6 +596,10 @@ document.addEventListener("DOMContentLoaded", function() {
         if (el.out.weekday) el.out.weekday.textContent = d.toLocaleString("en-US", {
             weekday: "long"
         });
+        /**
+         * Renders the Hijri and Gregorian date text unless a newer request has superseded this one.
+         * @param {string} hijri - Formatted Hijri date.
+         */
         function paint(hijri) {
             if (req !== _liveReq || !el.out.currentDate) return;
             el.out.currentDate.innerHTML = hijri + "&nbsp;&nbsp;&#8212;<br>" + eng;
@@ -544,15 +608,18 @@ document.addEventListener("DOMContentLoaded", function() {
             paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));
         } else {
             paint("--/--/----");
-            whenHijriReady(function() {
+            whenHijriReady(function () {
                 paint(window.moment(d).locale("en").format("iDD-iMM-iYYYY"));
             });
         }
     }
+    /**
+     * Connects each generator copy button to copy the text of its target element.
+     */
     function setupGenCopyBtns() {
-        document.querySelectorAll(".gen-copy-btn").forEach(function(btn) {
+        document.querySelectorAll(".gen-copy-btn").forEach(function (btn) {
             var tid = btn.getAttribute("data-target");
-            IS.setupCopyBtn(btn, function() {
+            IS.setupCopyBtn(btn, function () {
                 var s = document.getElementById(tid);
                 var val = s ? s.innerText.trim() : "";
                 if (val) IS.showToast("Copied!");
@@ -561,13 +628,18 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     var calPopup = document.getElementById("calPopup"), calOpenBtn = document.getElementById("calOpenBtn"), calPrev = document.getElementById("calPrev"), calNext = document.getElementById("calNext"), calGrid = document.getElementById("calGrid"), calGregMonth = document.getElementById("calGregMonth"), calHijriMonth = document.getElementById("calHijriMonth"), calTodayBtn = document.getElementById("calTodayBtn"), calCloseBtn = document.getElementById("calCloseBtn");
-    var MONTHS = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-    var HIJRI_M = [ "Muharram", "Safar", "Rabiʼ al-Awwal", "Rabiʼ al-Thani", "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Shaʼban", "Ramadan", "Shawwal", "Dhul Qiʼdah", "Dhul Hijjah" ];
+    var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var HIJRI_M = ["Muharram", "Safar", "Rabiʼ al-Awwal", "Rabiʼ al-Thani", "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Shaʼban", "Ramadan", "Shawwal", "Dhul Qiʼdah", "Dhul Hijjah"];
     var calYear = (new Date).getFullYear(), calMonth = (new Date).getMonth();
     var today = new Date;
     today.setHours(0, 0, 0, 0);
     var selectedDate = new Date;
     selectedDate.setHours(0, 0, 0, 0);
+    /**
+     * Converts a Gregorian date to its Hijri day, month, year and month name.
+     * @param {Date} date - Gregorian date to convert.
+     * @returns {{day: number, month: number, year: number, monthName: string}|null} The Hijri date parts, or null when the plugin is unavailable.
+     */
     function hijriFor(date) {
         if (!window.moment || !window.moment.fn.iYear) return null;
         var m = window.moment(date);
@@ -578,6 +650,9 @@ document.addEventListener("DOMContentLoaded", function() {
             monthName: HIJRI_M[m.iMonth()]
         };
     }
+    /**
+     * Renders the calendar grid and month headings for the current month with Hijri days and today, selected and Friday markers.
+     */
     function renderCalendar() {
         var fd = new Date(calYear, calMonth, 1).getDay(), dc = new Date(calYear, calMonth + 1, 0).getDate();
         if (calGregMonth) calGregMonth.textContent = MONTHS[calMonth] + " " + calYear;
@@ -594,7 +669,11 @@ document.addEventListener("DOMContentLoaded", function() {
             calGrid.appendChild(bl);
         }
         for (var day = 1; day <= dc; day++) {
-            (function(d) {
+            /**
+             * Builds the calendar cell for one day of the month and attaches its selection handlers.
+             * @param {number} d - Day of the month.
+             */
+            (function (d) {
                 var dateObj = new Date(calYear, calMonth, d);
                 dateObj.setHours(0, 0, 0, 0);
                 var cell = document.createElement("div");
@@ -616,13 +695,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (dateObj.getTime() === today.getTime()) cell.classList.add("cal-today");
                 if (selectedDate && dateObj.getTime() === selectedDate.getTime()) cell.classList.add("cal-selected");
                 if (dateObj.getDay() === 5) cell.classList.add("cal-friday");
+                /**
+                 * Selects the cell's date, updates the live date display and closes the calendar.
+                 */
                 function selectDay() {
                     selectedDate = new Date(calYear, calMonth, d);
                     setLiveDate(selectedDate);
                     closeCalendar();
                 }
                 cell.addEventListener("click", selectDay);
-                cell.addEventListener("keydown", function(e) {
+                cell.addEventListener("keydown", function (e) {
                     if (e.key === "Enter" || e.key === " ") selectDay();
                 });
                 calGrid.appendChild(cell);
@@ -630,6 +712,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     var _calOutsideTimer = null;
+    /**
+     * Handles keyboard navigation inside the open calendar grid, including month rollover and Escape to close.
+     * @param {KeyboardEvent} e - Keydown event.
+     */
     function onCalKeydown(e) {
         if (!calPopup || !calPopup.classList.contains("open")) return;
         var focused = document.activeElement;
@@ -681,6 +767,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         if (newIdx !== idx) days[newIdx].focus();
     }
+    /**
+     * Opens the calendar popup on the selected month and registers its outside-click and keyboard handlers.
+     */
     function openCalendar() {
         calYear = (selectedDate || today).getFullYear();
         calMonth = (selectedDate || today).getMonth();
@@ -689,11 +778,14 @@ document.addEventListener("DOMContentLoaded", function() {
         clearTimeout(_calOutsideTimer);
         document.removeEventListener("click", outsideClick);
         document.removeEventListener("keydown", onCalKeydown);
-        _calOutsideTimer = setTimeout(function() {
+        _calOutsideTimer = setTimeout(function () {
             document.addEventListener("click", outsideClick);
         }, 10);
         document.addEventListener("keydown", onCalKeydown);
     }
+    /**
+     * Closes the calendar popup and removes its outside-click and keyboard handlers.
+     */
     function closeCalendar() {
         if (calPopup) calPopup.classList.remove("open");
         clearTimeout(_calOutsideTimer);
@@ -703,19 +795,27 @@ document.addEventListener("DOMContentLoaded", function() {
     IS.calendar = {
         open: openCalendar,
         close: closeCalendar,
-        isOpen: function() {
+        /**
+         * Reports whether the calendar popup is currently open.
+         * @returns {boolean} True when the popup is open.
+         */
+        isOpen: function () {
             return !!(calPopup && calPopup.classList.contains("open"));
         }
     };
+    /**
+     * Closes the calendar when a click lands outside the date card.
+     * @param {MouseEvent} e - Click event.
+     */
     function outsideClick(e) {
         var card = document.getElementById("date-card");
         if (card && !card.contains(e.target)) closeCalendar();
     }
-    if (calOpenBtn) calOpenBtn.addEventListener("click", function(e) {
+    if (calOpenBtn) calOpenBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         calPopup && calPopup.classList.contains("open") ? closeCalendar() : openCalendar();
     });
-    if (calPrev) calPrev.addEventListener("click", function(e) {
+    if (calPrev) calPrev.addEventListener("click", function (e) {
         e.stopPropagation();
         calMonth--;
         if (calMonth < 0) {
@@ -724,7 +824,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         renderCalendar();
     });
-    if (calNext) calNext.addEventListener("click", function(e) {
+    if (calNext) calNext.addEventListener("click", function (e) {
         e.stopPropagation();
         calMonth++;
         if (calMonth > 11) {
@@ -733,7 +833,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         renderCalendar();
     });
-    if (calTodayBtn) calTodayBtn.addEventListener("click", function(e) {
+    if (calTodayBtn) calTodayBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         selectedDate = new Date;
         selectedDate.setHours(0, 0, 0, 0);
@@ -743,12 +843,12 @@ document.addEventListener("DOMContentLoaded", function() {
         renderCalendar();
         setTimeout(closeCalendar, 300);
     });
-    if (calCloseBtn) calCloseBtn.addEventListener("click", function(e) {
+    if (calCloseBtn) calCloseBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         closeCalendar();
     });
     el.genBtn.addEventListener("click", handleGeneration);
-    el.country.addEventListener("change", function() {
+    el.country.addEventListener("change", function () {
         updateCityDropdown();
         handleGeneration();
     });
