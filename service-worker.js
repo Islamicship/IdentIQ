@@ -3,54 +3,54 @@
  * LOCATION : site ROOT  ->  /service-worker.js
  * VERSION  : 6.1.0 (Architecture Refactor & Centralized Contracts)
  * ===================================================================== */
-'use strict';
+"use strict";
 
-const VERSION      = '6.1.0';
-const CACHE_PREFIX = 'identiq-';
-const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
-const CACHE_AUDIO  = `${CACHE_PREFIX}audio-v1`;
+const VERSION = "6.1.0";
+const CACHE_PREFIX = "identiq-";
+const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
+const CACHE_AUDIO = `${CACHE_PREFIX}audio-v1`;
 
-const SCOPE     = self.registration.scope;
+const SCOPE = self.registration.scope;
 
 /**
  * Resolves a relative path to an absolute URL against the service worker scope.
  * @param {string} path - Relative path to resolve.
  * @returns {string} Absolute URL string.
  */
-const toURL     = path => new URL(path, SCOPE).href;
-const INDEX_URL = toURL('./index.html');
+const toURL = (path) => new URL(path, SCOPE).href;
+const INDEX_URL = toURL("./index.html");
 
 const PRECACHE = [
-  './index.html',
-  './css/style.css',
-  './css/settings.css',
-  './css/names.css',
-  './css/copy-fx.css',
-  './js/config.js',
-  './js/ui.js',
-  './js/extractor.js',
-  './js/generator.js',
-  './js/settings.js',
-  './js/main.js',
-  './js/names-data.js',
-  './js/names.js',
-  './lib/moment.min.js',
-  './lib/moment-hijri.min.js',
-  './lib/confetti.browser.min.js',
-  './manifest.json',
-  './assets/logo.png'
+  "./index.html",
+  "./css/style.css",
+  "./css/settings.css",
+  "./css/names.css",
+  "./css/copy-fx.css",
+  "./js/config.js",
+  "./js/ui.js",
+  "./js/extractor.js",
+  "./js/generator.js",
+  "./js/settings.js",
+  "./js/main.js",
+  "./js/names-data.js",
+  "./js/names.js",
+  "./lib/moment.min.js",
+  "./lib/moment-hijri.min.js",
+  "./lib/confetti.browser.min.js",
+  "./manifest.json",
+  "./assets/logo.png",
 ].map(toURL);
 
 const TIMEOUT_NAVIGATION = 4000;
-const TIMEOUT_CORE       = 3000;
-const CORE_DESTINATIONS  = new Set(['script', 'style', 'worker']);
+const TIMEOUT_CORE = 3000;
+const CORE_DESTINATIONS = new Set(["script", "style", "worker"]);
 
 /**
  * Determines whether a cache key belongs to this application's cache namespace.
  * @param {string} key - Cache storage key name.
  * @returns {boolean} True if the key starts with the app cache prefix.
  */
-const isOwnCache = key => key.startsWith(CACHE_PREFIX);
+const isOwnCache = (key) => key.startsWith(CACHE_PREFIX);
 
 /**
  * Sends a message back to the client that originated the given event.
@@ -59,30 +59,34 @@ const isOwnCache = key => key.startsWith(CACHE_PREFIX);
  * @returns {void}
  */
 const reply = (event, message) => {
-  if (event.source && event.source.postMessage) event.source.postMessage(message);
+  if (event.source && event.source.postMessage)
+    event.source.postMessage(message);
 };
 
 /**
  * Builds the fallback HTML page shown when a navigation fails while offline.
  * @returns {Response} A 503 HTML response with an offline notice.
  */
-const offlineResponse = () => new Response(
-  '<!doctype html><meta charset="utf-8">' +
-  '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-  '<title>Offline</title>' +
-  '<body style="margin:0;height:100vh;display:grid;place-items:center;' +
-  'font-family:system-ui,sans-serif;background:#080a0d;color:#fff">' +
-  '<p>Aap offline hain. Connection check karke dobara try karein.</p></body>',
-  { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-);
+const offlineResponse = () =>
+  new Response(
+    '<!doctype html><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      "<title>Offline</title>" +
+      '<body style="margin:0;height:100vh;display:grid;place-items:center;' +
+      'font-family:system-ui,sans-serif;background:#080a0d;color:#fff">' +
+      "<p>Aap offline hain. Connection check karke dobara try karein.</p></body>",
+    { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } },
+  );
 
 /**
  * Checks whether a response is a successful same-origin response that may be stored in cache.
  * @param {Response} res - Response to evaluate.
  * @returns {boolean} True if the response has status 200 and a basic or default type.
  */
-const isCacheable = res =>
-  !!res && res.status === 200 && (res.type === 'basic' || res.type === 'default');
+const isCacheable = (res) =>
+  !!res &&
+  res.status === 200 &&
+  (res.type === "basic" || res.type === "default");
 
 /**
  * Rebuilds a redirected response into a clean response so it can be safely cached and served.
@@ -95,7 +99,7 @@ async function cleanResponse(response) {
   return new Response(body, {
     status: response.status,
     statusText: response.statusText,
-    headers: response.headers
+    headers: response.headers,
   });
 }
 
@@ -107,8 +111,8 @@ async function cleanResponse(response) {
  */
 function safePut(key, response) {
   return cleanResponse(response)
-    .then(res => caches.open(CACHE_NAME).then(cache => cache.put(key, res)))
-    .catch(err => console.warn('[SW] cache.put failed:', err));
+    .then((res) => caches.open(CACHE_NAME).then((cache) => cache.put(key, res)))
+    .catch((err) => console.warn("[SW] cache.put failed:", err));
 }
 
 /**
@@ -120,7 +124,7 @@ function safePut(key, response) {
 function withTimeout(promise, ms) {
   let timer;
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('Network timeout')), ms);
+    timer = setTimeout(() => reject(new Error("Network timeout")), ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
@@ -131,17 +135,19 @@ function withTimeout(promise, ms) {
  */
 async function precache() {
   const cache = await caches.open(CACHE_NAME);
-  await Promise.all(PRECACHE.map(async url => {
-    const res = await fetch(new Request(url, { cache: 'reload' }));
-    if (!res.ok) throw new Error(`Precache failed (${res.status}): ${url}`);
+  await Promise.all(
+    PRECACHE.map(async (url) => {
+      const res = await fetch(new Request(url, { cache: "reload" }));
+      if (!res.ok) throw new Error(`Precache failed (${res.status}): ${url}`);
 
-    const type = res.headers.get('Content-Type') || '';
-    if (!url.endsWith('.html') && type.includes('text/html')) {
-      throw new Error(`Precache got HTML instead of an asset: ${url}`);
-    }
+      const type = res.headers.get("Content-Type") || "";
+      if (!url.endsWith(".html") && type.includes("text/html")) {
+        throw new Error(`Precache got HTML instead of an asset: ${url}`);
+      }
 
-    await cache.put(url, await cleanResponse(res));
-  }));
+      await cache.put(url, await cleanResponse(res));
+    }),
+  );
 }
 
 /**
@@ -153,12 +159,15 @@ async function precache() {
  * @returns {Promise<Response>} Network response, cached response, offline page, or an error response.
  */
 async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
-  const network = (async () => (await event.preloadResponse) || fetch(event.request))();
+  const network = (async () =>
+    (await event.preloadResponse) || fetch(event.request))();
 
   event.waitUntil(
     network
-      .then(res => (isCacheable(res) ? safePut(cacheKey, res.clone()) : undefined))
-      .catch(() => {})
+      .then((res) =>
+        isCacheable(res) ? safePut(cacheKey, res.clone()) : undefined,
+      )
+      .catch(() => {}),
   );
 
   try {
@@ -166,7 +175,7 @@ async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
     if (res.status >= 500) throw new Error(`Server error ${res.status}`);
     return res;
   } catch (err) {
-    const cache  = await caches.open(CACHE_NAME);
+    const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(cacheKey, { ignoreSearch: true });
     if (cached) return cached;
     return isNavigation ? offlineResponse() : Response.error();
@@ -180,11 +189,11 @@ async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
  */
 async function staleWhileRevalidate(event) {
   const { request } = event;
-  const cache  = await caches.open(CACHE_NAME);
+  const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
 
   const update = fetch(request)
-    .then(async res => {
+    .then(async (res) => {
       if (isCacheable(res)) await safePut(request, res.clone());
       return res;
     })
@@ -201,9 +210,9 @@ async function staleWhileRevalidate(event) {
  */
 async function audioCacheFirst(event) {
   const { request } = event;
-  const cleanUrl = request.url.split('?')[0];
+  const cleanUrl = request.url.split("?")[0];
   const cache = await caches.open(CACHE_AUDIO);
-  
+
   let response = await cache.match(cleanUrl);
 
   if (!response) {
@@ -220,7 +229,7 @@ async function audioCacheFirst(event) {
     }
   }
 
-  const rangeHeader = request.headers.get('range');
+  const rangeHeader = request.headers.get("range");
   if (!rangeHeader) return response;
 
   const arrayBuffer = await response.arrayBuffer();
@@ -233,13 +242,13 @@ async function audioCacheFirst(event) {
 
   return new Response(chunk, {
     status: 206,
-    statusText: 'Partial Content',
+    statusText: "Partial Content",
     headers: {
-      'Content-Type': 'audio/mpeg',
-      'Accept-Ranges': 'bytes',
-      'Content-Range': `bytes ${start}-${end}/${arrayBuffer.byteLength}`,
-      'Content-Length': String(chunk.byteLength)
-    }
+      "Content-Type": "audio/mpeg",
+      "Accept-Ranges": "bytes",
+      "Content-Range": `bytes ${start}-${end}/${arrayBuffer.byteLength}`,
+      "Content-Length": String(chunk.byteLength),
+    },
   });
 }
 
@@ -248,11 +257,14 @@ async function audioCacheFirst(event) {
  * @param {ExtendableEvent} event - The service worker install event.
  * @returns {void}
  */
-self.addEventListener('install', event => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     precache()
       .then(() => console.log(`[SW v${VERSION}] Precache complete`))
-      .catch(err => { console.error(`[SW v${VERSION}] Install failed:`, err); throw err; })
+      .catch((err) => {
+        console.error(`[SW v${VERSION}] Install failed:`, err);
+        throw err;
+      }),
   );
 });
 
@@ -261,27 +273,45 @@ self.addEventListener('install', event => {
  * @param {ExtendableEvent} event - The service worker activate event.
  * @returns {void}
  */
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    if (self.registration.navigationPreload) {
-      try { await self.registration.navigationPreload.enable(); }
-      catch (err) {}
-    }
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      if (self.registration.navigationPreload) {
+        try {
+          await self.registration.navigationPreload.enable();
+        } catch (err) {}
+      }
 
-    const keys = await caches.keys();
-    await Promise.all(
-      keys
-        .filter(key => isOwnCache(key) && key !== CACHE_NAME && key !== CACHE_AUDIO)
-        .map(key => { console.log(`[SW] Deleting old cache: ${key}`); return caches.delete(key); })
-    );
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter(
+            (key) =>
+              isOwnCache(key) && key !== CACHE_NAME && key !== CACHE_AUDIO,
+          )
+          .map((key) => {
+            console.log(`[SW] Deleting old cache: ${key}`);
+            return caches.delete(key);
+          }),
+      );
 
-    await self.clients.claim();
+      await self.clients.claim();
 
-    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    clients.forEach(client => client.postMessage({
-      type: 'SW_UPDATED', version: VERSION, cache: CACHE_NAME
-    }));
-  })().catch(err => console.error(`[SW v${VERSION}] Activate failed:`, err)));
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      clients.forEach((client) =>
+        client.postMessage({
+          type: "SW_UPDATED",
+          version: VERSION,
+          cache: CACHE_NAME,
+        }),
+      );
+    })().catch((err) =>
+      console.error(`[SW v${VERSION}] Activate failed:`, err),
+    ),
+  );
 });
 
 /**
@@ -289,23 +319,24 @@ self.addEventListener('activate', event => {
  * @param {FetchEvent} event - The service worker fetch event.
  * @returns {void}
  */
-self.addEventListener('fetch', event => {
+self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  if (request.method !== 'GET') return;
-  if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
+  if (request.method !== "GET") return;
+  if (request.cache === "only-if-cached" && request.mode !== "same-origin")
+    return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.destination === 'audio' || url.pathname.includes('/audio/')) {
+  if (request.destination === "audio" || url.pathname.includes("/audio/")) {
     event.respondWith(audioCacheFirst(event));
     return;
   }
 
-  if (request.headers.has('range')) return;
+  if (request.headers.has("range")) return;
 
-  if (request.mode === 'navigate') {
+  if (request.mode === "navigate") {
     event.respondWith(networkFirst(event, INDEX_URL, TIMEOUT_NAVIGATION, true));
     return;
   }
@@ -323,29 +354,34 @@ self.addEventListener('fetch', event => {
  * @param {ExtendableMessageEvent} event - The service worker message event carrying a string or object with a type.
  * @returns {void}
  */
-self.addEventListener('message', event => {
+self.addEventListener("message", (event) => {
   const data = event.data;
-  const type = typeof data === 'string' ? data : data && data.type;
+  const type = typeof data === "string" ? data : data && data.type;
 
   switch (type) {
-    case 'SKIP_WAITING':
+    case "SKIP_WAITING":
       self.skipWaiting();
       break;
 
-    case 'GET_VERSION':
-      reply(event, { type: 'SW_VERSION', version: VERSION, cache: CACHE_NAME });
+    case "GET_VERSION":
+      reply(event, { type: "SW_VERSION", version: VERSION, cache: CACHE_NAME });
       break;
 
-    case 'CLEAR_CACHE':
+    case "CLEAR_CACHE":
       event.waitUntil(
-        caches.keys()
-          .then(keys => Promise.all(keys.filter(isOwnCache).map(key => caches.delete(key))))
+        caches
+          .keys()
+          .then((keys) =>
+            Promise.all(
+              keys.filter(isOwnCache).map((key) => caches.delete(key)),
+            ),
+          )
           .then(precache)
-          .then(() => reply(event, { type: 'CACHE_CLEARED' }))
-          .catch(err => {
-            console.error('[SW] CLEAR_CACHE failed:', err);
-            reply(event, { type: 'CACHE_CLEAR_FAILED' });
-          })
+          .then(() => reply(event, { type: "CACHE_CLEARED" }))
+          .catch((err) => {
+            console.error("[SW] CLEAR_CACHE failed:", err);
+            reply(event, { type: "CACHE_CLEAR_FAILED" });
+          }),
       );
       break;
   }

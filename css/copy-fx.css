@@ -1,166 +1,221 @@
 /* === THEME VARIABLES === */
 :root {
-    --copy-tick: #04140b;
+  --copy-tick: #04140b;
 }
 
 body.theme-light {
-    --copy-tick: #ffffff;
+  --copy-tick: #ffffff;
 }
-
 
 /* === COPY FEEDBACK: OVERLAY CONTAINER === */
 .copy-fx {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    z-index: 2;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 2;
 }
-
 
 /* === COPY FEEDBACK: BUTTON "COPIED" STATE === */
 .fx-copied {
-    color: var(--c-accent2) !important;
-    border-color: rgba(0, 232, 122, .45) !important;
-    background: rgba(0, 232, 122, .10) !important;
-    animation: copyPress .45s cubic-bezier(.34, 1.56, .64, 1);
+  color: var(--c-accent2) !important;
+  border-color: rgba(0, 232, 122, 0.45) !important;
+  background: rgba(0, 232, 122, 0.1) !important;
+  animation: copyPress 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .fx-copied[data-tip]::before {
-    color: var(--c-accent2);
-    border-color: rgba(0, 232, 122, .35);
+  color: var(--c-accent2);
+  border-color: rgba(0, 232, 122, 0.35);
 }
-
 
 /* === COPY FEEDBACK: BUTTON ICON TRANSITION === */
 .copy-btn > svg,
 .gen-copy-btn > svg,
 .name-copy > svg {
-    transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.2s ease;
 }
 
 .fx-copied > svg {
-    transform: scale(.35) rotate(-35deg);
-    opacity: 0;
-    transition-duration: .12s;
+  transform: scale(0.35) rotate(-35deg);
+  opacity: 0;
+  transition-duration: 0.12s;
 }
-
 
 /* === COPY FEEDBACK: EXPANDING RING === */
 .copy-fx__ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid var(--c-accent2);
-    opacity: 0;
-    animation: copyRing .6s cubic-bezier(.2, .7, .2, 1) .06s both;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--c-accent2);
+  opacity: 0;
+  animation: copyRing 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.06s both;
 }
-
 
 /* === COPY FEEDBACK: CHECK BADGE === */
 .copy-fx__badge {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 76%;
-    height: 76%;
-    border-radius: 50%;
-    color: var(--copy-tick);
-    background: linear-gradient(135deg, var(--c-accent2), var(--c-accent3));
-    box-shadow: 0 2px 10px rgba(0, 232, 122, .45);
-    animation: copyBadge 1.3s both;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  color: var(--copy-tick);
+  background: linear-gradient(135deg, var(--c-accent2), var(--c-accent3));
+  box-shadow: 0 2px 10px rgba(0, 232, 122, 0.45);
+  animation: copyBadge 1.3s both;
 }
 
 .copy-fx .copy-fx__badge > svg {
-    width: 70%;
-    height: 70%;
-    display: block;
+  width: 70%;
+  height: 70%;
+  display: block;
 }
-
 
 /* === COPY FEEDBACK: CHECK TICK STROKE === */
 .copy-fx__tick {
-    stroke-dasharray: 20;
-    stroke-dashoffset: 20;
-    animation: copyTick .32s ease-out .14s forwards;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: copyTick 0.32s ease-out 0.14s forwards;
 }
-
 
 /* === COPY FEEDBACK: SPARK PARTICLES === */
 .copy-fx__spark {
-    --r: 20px;
-    position: absolute;
-    left: calc(50% - 1.5px);
-    top:  calc(50% - 1.5px);
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    opacity: 0;
-    animation: copySpark .62s cubic-bezier(.15, .7, .25, 1) calc(70ms + var(--i) * 10ms) both;
+  --r: 20px;
+  position: absolute;
+  left: calc(50% - 1.5px);
+  top: calc(50% - 1.5px);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: copySpark 0.62s cubic-bezier(0.15, 0.7, 0.25, 1)
+    calc(70ms + var(--i) * 10ms) both;
 }
 
-.copy-fx__spark:nth-child(even)   { --r: 16px; }
-.copy-fx__spark:nth-child(3n + 1) { background: var(--c-accent2); }
-.copy-fx__spark:nth-child(3n + 2) { background: var(--c-accent3); }
-.copy-fx__spark:nth-child(3n)     { background: var(--c-yellow); }
-
+.copy-fx__spark:nth-child(even) {
+  --r: 16px;
+}
+.copy-fx__spark:nth-child(3n + 1) {
+  background: var(--c-accent2);
+}
+.copy-fx__spark:nth-child(3n + 2) {
+  background: var(--c-accent3);
+}
+.copy-fx__spark:nth-child(3n) {
+  background: var(--c-yellow);
+}
 
 /* === KEYFRAMES: BUTTON PRESS === */
 @keyframes copyPress {
-    0%   { transform: scale(1); }
-    18%  { transform: scale(.86); }
-    55%  { transform: scale(1.1); }
-    100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  18% {
+    transform: scale(0.86);
+  }
+  55% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-
 
 /* === KEYFRAMES: RING EXPAND === */
 @keyframes copyRing {
-    0%   { opacity: .85; transform: scale(.45); }
-    100% { opacity: 0;   transform: scale(1.8); }
+  0% {
+    opacity: 0.85;
+    transform: scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
 }
-
 
 /* === KEYFRAMES: BADGE POP === */
 @keyframes copyBadge {
-    0%   { opacity: 0; transform: scale(0) rotate(-35deg); }
-    18%  { opacity: 1; transform: scale(1.22) rotate(6deg); }
-    30%  { transform: scale(.94) rotate(0); }
-    40%  { transform: scale(1); }
-    82%  { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(.55); }
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-35deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.22) rotate(6deg);
+  }
+  30% {
+    transform: scale(0.94) rotate(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+  82% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
 }
-
 
 /* === KEYFRAMES: TICK DRAW === */
 @keyframes copyTick {
-    to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
-
 
 /* === KEYFRAMES: SPARK BURST === */
 @keyframes copySpark {
-    0%   { opacity: 1; transform: rotate(var(--a)) translateY(-6px) scale(1); }
-    70%  { opacity: 1; }
-    100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--r) * -1)) scale(.3); }
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(-6px) scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(var(--r) * -1)) scale(0.3);
+  }
 }
-
 
 /* === KEYFRAMES: BADGE FADE (REDUCED MOTION) === */
 @keyframes copyBadgeLite {
-    0%        { opacity: 0; }
-    10%, 85%  { opacity: 1; }
-    100%      { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
-
 
 /* === MEDIA QUERY: REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
-    .fx-copied                  { animation: none; }
-    .fx-copied > svg            { transform: none; }
-    .copy-fx__ring,
-    .copy-fx__spark             { display: none; }
-    .copy-fx__badge             { animation: copyBadgeLite 1.3s linear both; }
-    .copy-fx__tick              { animation: none; stroke-dashoffset: 0; }
+  .fx-copied {
+    animation: none;
+  }
+  .fx-copied > svg {
+    transform: none;
+  }
+  .copy-fx__ring,
+  .copy-fx__spark {
+    display: none;
+  }
+  .copy-fx__badge {
+    animation: copyBadgeLite 1.3s linear both;
+  }
+  .copy-fx__tick {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
 }
