@@ -2,6 +2,10 @@
 
 window.IS = window.IS || {};
 
+/**
+ * Defines the shared IdentIQ utilities (audio, clipboard, text cleaning, toasts, language, theme, history, analytics and the draggable calendar) on the IS namespace.
+ * @param {Object} IS - Shared application namespace.
+ */
 (function(IS) {
     var CFG = IS.CONFIG || window.APP_CONFIG || {
         VERSION: "5.9.1",
@@ -22,6 +26,10 @@ window.IS = window.IS || {};
     };
     var KEYS = CFG.STORAGE_KEYS;
     var _sharedAC = null;
+    /**
+     * Returns a shared Web Audio context, creating or resuming it when needed.
+     * @returns {AudioContext|null} The context, or null if audio is unsupported or creation fails.
+     */
     function getAudioContext() {
         var AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return null;
@@ -40,6 +48,9 @@ window.IS = window.IS || {};
         }
         return _sharedAC;
     }
+    /**
+     * Plays a short rising beep to confirm a copy action and silently ignores audio failures.
+     */
     IS.playCopySound = function() {
         try {
             var ctx = getAudioContext();
@@ -57,10 +68,20 @@ window.IS = window.IS || {};
             osc.stop(ctx.currentTime + .2);
         } catch (e) {}
     };
+    /**
+     * Removes invisible and directional control characters and normalizes unusual spaces and line breaks in the text.
+     * @param {string} text - Text to clean.
+     * @returns {string} The cleaned text, or an empty string for empty input.
+     */
     IS.stripHiddenChars = function(text) {
         if (!text) return "";
         return text.replace(/[\u200B-\u200F]/g, "").replace(/[\u202A-\u202E]/g, "").replace(/[\u2066-\u2069]/g, "").replace(/[\u206A-\u206F]/g, "").replace(/\uFEFF/g, "").replace(/\u00AD/g, "").replace(/[\uFFF9-\uFFFB]/g, "").replace(/[\uE000-\uF8FF]/g, "").replace(/\u00A0/g, " ").replace(/\u202F/g, " ").replace(/\u205F/g, " ").replace(/\u2028/g, "\n").replace(/\u2029/g, "\n").replace(/\u000C/g, "\n").replace(/\u0085/g, "\n").replace(/[\u2060-\u2064]/g, "").replace(/[\u0007\u001F]/g, " ").replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/[^\S\n]+/g, " ");
     };
+    /**
+     * Cleans OCR-scanned text by fixing common digit and Arabic glyph misreads, joining broken lines and removing noise and duplicate lines.
+     * @param {string} text - Raw OCR text.
+     * @returns {string} The cleaned text, or an empty string for empty input.
+     */
     IS.ocrClean = function(text) {
         if (!text) return "";
         var t = IS.stripHiddenChars(text);
@@ -90,12 +111,23 @@ window.IS = window.IS || {};
         t = out.join("\n").replace(/\n{3,}/g, "\n\n");
         return t.trim();
     };
+    /**
+     * Estimates how many OCR corrections were applied by comparing the removed lines and shrunk characters between two texts.
+     * @param {string} before - Text before cleaning.
+     * @param {string} after - Text after cleaning.
+     * @returns {number} The estimated number of fixes.
+     */
     IS.ocrDiffCount = function(before, after) {
         if (!before || !after) return 0;
         var removed = Math.max(0, before.split("\n").length - after.split("\n").length);
         var shrink = Math.max(0, before.replace(/\s/g, "").length - after.replace(/\s/g, "").length);
         return removed + Math.floor(shrink / 4);
     };
+    /**
+     * Copies text to the clipboard through a hidden textarea and execCommand as a fallback for browsers without the Clipboard API.
+     * @param {string} text - Text to copy.
+     * @returns {boolean} True if the copy succeeded.
+     */
     function legacyCopy(text) {
         var prev = document.activeElement;
         var ta = document.createElement("textarea");
@@ -124,6 +156,11 @@ window.IS = window.IS || {};
         }
         return ok;
     }
+    /**
+     * Plays the copy sound and copies text with the Clipboard API when available, otherwise with the legacy method.
+     * @param {string} text - Text to copy.
+     * @returns {Promise<boolean>} Resolves to true if the text was copied.
+     */
     IS.copyText = function(text) {
         if (!text) return Promise.resolve(false);
         IS.playCopySound();
@@ -142,12 +179,22 @@ window.IS = window.IS || {};
         }
         return Promise.resolve(legacyCopy(text));
     };
+    /**
+     * Starts a copy of the text without waiting for the result and reports whether a copy was attempted.
+     * @param {string} text - Text to copy.
+     * @returns {boolean} False when the text is empty, otherwise true.
+     */
     IS.fastCopy = function(text) {
         if (!text) return false;
         IS.copyText(text);
         return true;
     };
     IS.fastCopy._legacyCopy = legacyCopy;
+    /**
+     * Converts Arabic-Indic and Persian digits in the text to Latin digits.
+     * @param {string} s - Text that may contain non-Latin digits.
+     * @returns {string} The text with Latin digits, or an empty string for empty input.
+     */
     IS.toLatin = function(s) {
         if (!s) return "";
         s = s.replace(/[\u0660-\u0669]/g, function(d) {
@@ -158,15 +205,35 @@ window.IS = window.IS || {};
         });
         return s;
     };
+    /**
+     * Left-pads a number to two digits with a zero.
+     * @param {number|string} n - Value to pad.
+     * @returns {string} The padded string.
+     */
     IS.pad = function(n) {
         return String(n).padStart(2, "0");
     };
+    /**
+     * Escapes HTML special characters in a value for safe insertion into markup.
+     * @param {*} s - Value to escape.
+     * @returns {string} The escaped string.
+     */
     IS.escHtml = function(s) {
         return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     };
+    /**
+     * Formats a date as DD-MM-YYYY.
+     * @param {Date} d - Date to format.
+     * @returns {string} The formatted date.
+     */
     IS.fmtDate = function(d) {
         return IS.pad(d.getDate()) + "-" + IS.pad(d.getMonth() + 1) + "-" + d.getFullYear();
     };
+    /**
+     * Computes a document expiry date as five years after the issue date minus one day.
+     * @param {Date} issueDate - Issue date.
+     * @returns {Date} The expiry date.
+     */
     IS.computeExpiryDate = function(issueDate) {
         var expiry = new Date(issueDate.getFullYear() + 5, issueDate.getMonth(), issueDate.getDate());
         expiry.setDate(expiry.getDate() - 1);
@@ -182,11 +249,20 @@ window.IS = window.IS || {};
     var FX_SPARKS = 8;
     var FX_ICON_MS = 1150;
     var FX_END_MS = 1300;
+    /**
+     * Creates a span element with the given class name.
+     * @param {string} cls - CSS class name.
+     * @returns {HTMLSpanElement} The created span.
+     */
     function fxSpan(cls) {
         var s = document.createElement("span");
         s.className = cls;
         return s;
     }
+    /**
+     * Builds the animated ring, sparks and tick badge element shown after a successful copy.
+     * @returns {HTMLSpanElement} The effect element.
+     */
     function buildCopyFx() {
         var fx = fxSpan("copy-fx");
         fx.setAttribute("aria-hidden", "true");
@@ -203,6 +279,10 @@ window.IS = window.IS || {};
         return fx;
     }
     IS.copyFxVersion = 1;
+    /**
+     * Plays the copy success animation on a button, updating its tooltip and vibrating briefly unless reduced motion is preferred, then cleans up.
+     * @param {HTMLElement} btn - Copy button to animate.
+     */
     IS.copyFx = function(btn) {
         if (!btn) return;
         clearTimeout(btn._fxIconTimer);
@@ -232,6 +312,11 @@ window.IS = window.IS || {};
             btn._copying = false;
         }, FX_END_MS);
     };
+    /**
+     * Turns a button into a copy button that copies the value returned by the getter and shows success or failure feedback.
+     * @param {HTMLElement} btn - Button to set up.
+     * @param {Function} getValue - Returns the text to copy.
+     */
     IS.setupCopyBtn = function(btn, getValue) {
         btn._getCopyValue = getValue;
         if (btn._copyBound) return;
@@ -247,6 +332,10 @@ window.IS = window.IS || {};
             });
         });
     };
+    /**
+     * Fires a confetti burst with default settings that can be overridden, if the confetti library is loaded.
+     * @param {Object} [opts] - Confetti options that override the defaults.
+     */
     IS.triggerConfetti = function(opts) {
         if (typeof window.confetti !== "function") return;
         window.confetti(Object.assign({
@@ -260,10 +349,16 @@ window.IS = window.IS || {};
         }, opts || {}));
     };
     var _exportConfettiRunning = false;
+    /**
+     * Runs a short two-sided confetti animation after an export and prevents overlapping runs.
+     */
     IS.triggerExportConfetti = function() {
         if (typeof window.confetti !== "function" || _exportConfettiRunning) return;
         _exportConfettiRunning = true;
         var end = Date.now() + 900;
+        /**
+         * Fires confetti from both sides and schedules itself until the animation time has elapsed.
+         */
         (function frame() {
             window.confetti({
                 particleCount: 4,
@@ -288,9 +383,21 @@ window.IS = window.IS || {};
             if (Date.now() < end) requestAnimationFrame(frame); else _exportConfettiRunning = false;
         })();
     };
+    /**
+     * Escapes ampersands and angle brackets in toast text.
+     * @param {*} s - Text to escape.
+     * @returns {string} The escaped string.
+     */
     function _escToast(s) {
         return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
+    /**
+     * Shows a toast message with an optional type and duration, treating the message as HTML only when it is marked as trusted.
+     * @param {string} [msg] - Message text; defaults to "Done!".
+     * @param {string} [type] - Optional toast type used for styling.
+     * @param {number} [duration] - Display time in milliseconds; 0 keeps the toast visible.
+     * @param {boolean} [trustedHtml] - True to insert the message as HTML.
+     */
     IS.showToast = function(msg, type, duration, trustedHtml) {
         var toast = document.getElementById("gen-toast");
         if (!toast) return;
@@ -462,9 +569,18 @@ window.IS = window.IS || {};
     };
     IS.i18n = {
         _lang: "en",
+        /**
+         * Returns the translated string for a key in the active language, falling back to English and then to the key itself.
+         * @param {string} key - Translation key.
+         * @returns {string} The translated text.
+         */
         get: function(key) {
             return (STRINGS[this._lang] || STRINGS.en)[key] || key;
         },
+        /**
+         * Sets the active language to Urdu or English, stores the choice, reapplies translations and announces the change.
+         * @param {string} lang - Language code, "ur" or "en".
+         */
         setLang: function(lang) {
             this._lang = lang === "ur" ? "ur" : "en";
             try {
@@ -473,6 +589,9 @@ window.IS = window.IS || {};
             this._apply();
             window.dispatchEvent(new CustomEvent("IS_lang_changed"));
         },
+        /**
+         * Restores the saved language, applies translations and announces a change if the language differs.
+         */
         init: function() {
             var prev = this._lang;
             try {
@@ -484,6 +603,9 @@ window.IS = window.IS || {};
                 window.dispatchEvent(new CustomEvent("IS_lang_changed"));
             }
         },
+        /**
+         * Applies the active language to translated elements, placeholders, the body language class and the document language, then refreshes the theme labels.
+         */
         _apply: function() {
             var lang = this._lang;
             document.querySelectorAll("[data-i18n]").forEach(function(el) {
@@ -504,6 +626,9 @@ window.IS = window.IS || {};
     };
     IS.theme = {
         _mode: "dark",
+        /**
+         * Restores the saved theme mode and applies it.
+         */
         init: function() {
             try {
                 var s = localStorage.getItem(KEYS.THEME);
@@ -511,6 +636,9 @@ window.IS = window.IS || {};
             } catch (e) {}
             this._apply();
         },
+        /**
+         * Switches between dark and light mode, stores the choice and applies it.
+         */
         toggle: function() {
             this._mode = this._mode === "dark" ? "light" : "dark";
             try {
@@ -518,6 +646,9 @@ window.IS = window.IS || {};
             } catch (e) {}
             this._apply();
         },
+        /**
+         * Applies the current theme class to the page and updates the theme toggle button state and label for the active language.
+         */
         _apply: function() {
             document.body.classList.toggle("theme-light", this._mode === "light");
             var btn = document.getElementById("themeToggleBtn");
@@ -541,6 +672,10 @@ window.IS = window.IS || {};
     var HKEY = KEYS.HISTORY;
     IS.history = {
         _max: IS.HISTORY_MAX,
+        /**
+         * Reads the saved extraction history from local storage and returns only valid entries.
+         * @returns {Object[]} The history entries, or an empty array on error.
+         */
         get: function() {
             try {
                 var a = JSON.parse(localStorage.getItem(HKEY) || "[]");
@@ -552,6 +687,10 @@ window.IS = window.IS || {};
                 return [];
             }
         },
+        /**
+         * Adds an entry to the front of the history and trims it to the maximum size.
+         * @param {Object} entry - History entry to save.
+         */
         save: function(entry) {
             if (!entry || typeof entry !== "object") return;
             var list = this.get();
@@ -561,6 +700,9 @@ window.IS = window.IS || {};
                 localStorage.setItem(HKEY, JSON.stringify(list));
             } catch (e) {}
         },
+        /**
+         * Removes the saved extraction history from local storage.
+         */
         clear: function() {
             try {
                 localStorage.removeItem(HKEY);
@@ -569,6 +711,10 @@ window.IS = window.IS || {};
     };
     var AKEY = KEYS.ANALYTICS;
     IS.analytics = {
+        /**
+         * Returns a fresh analytics object with zeroed counters and no recent exports.
+         * @returns {Object} The default analytics object.
+         */
         _defaults: function() {
             return {
                 totalProcessed: 0,
@@ -577,6 +723,10 @@ window.IS = window.IS || {};
                 recentExports: []
             };
         },
+        /**
+         * Reads analytics from local storage over the defaults and sanitizes the counters and recent exports.
+         * @returns {Object} The sanitized analytics object.
+         */
         get: function() {
             var d = this._defaults();
             try {
@@ -594,16 +744,28 @@ window.IS = window.IS || {};
             }) : [];
             return d;
         },
+        /**
+         * Persists the analytics object to local storage.
+         * @param {Object} d - Analytics object to save.
+         */
         save: function(d) {
             try {
                 localStorage.setItem(AKEY, JSON.stringify(d));
             } catch (e) {}
         },
+        /**
+         * Increases the named analytics counter by one and saves it.
+         * @param {string} key - Name of the counter.
+         */
         increment: function(key) {
             var d = this.get();
             d[key] = (d[key] || 0) + 1;
             this.save(d);
         },
+        /**
+         * Records an export by increasing the export counter and adding it to the capped list of recent exports.
+         * @param {string} label - Label describing the export.
+         */
         addExport: function(label) {
             var d = this.get();
             d.totalExports = (d.totalExports || 0) + 1;
@@ -613,6 +775,9 @@ window.IS = window.IS || {};
             } ].concat((d.recentExports || []).slice(0, IS.EXPORTS_MAX - 1));
             this.save(d);
         },
+        /**
+         * Removes the saved analytics data from local storage.
+         */
         clear: function() {
             try {
                 localStorage.removeItem(AKEY);
@@ -620,7 +785,9 @@ window.IS = window.IS || {};
         }
     };
 
-    /* ===== Draggable calendar popup (desktop only) ===== */
+    /**
+     * Makes the calendar popup draggable on desktop screens and resets its position when it closes or the window is resized.
+     */
     (function() {
         var DESKTOP_MIN = 768;
         var popup = null;
@@ -629,25 +796,46 @@ window.IS = window.IS || {};
         var minX = 0, maxX = 0, minY = 0, maxY = 0;
         var moved = false;
 
+        /**
+         * Checks whether the viewport is wide enough for desktop dragging.
+         * @returns {boolean} True on desktop-width screens.
+         */
         function isDesktop() {
             return window.innerWidth >= DESKTOP_MIN;
         }
 
+        /**
+         * Restricts a value to the given range, favoring the lower bound if the range is inverted.
+         * @param {number} v - Value to restrict.
+         * @param {number} lo - Lower bound.
+         * @param {number} hi - Upper bound.
+         * @returns {number} The restricted value.
+         */
         function clamp(v, lo, hi) {
             return Math.min(Math.max(v, lo), Math.max(lo, hi));
         }
 
+        /**
+         * Applies the current drag offset to the popup position.
+         */
         function paint() {
             popup.style.transform = "translate3d(" + tx + "px, " + ty + "px, 0)";
         }
 
-        /* drag ke baad aane wala click rok deta hai, taake outsideClick calendar band na kare */
+        /**
+         * Cancels the click that follows a drag so the calendar is not closed by the outside-click handler.
+         * @param {MouseEvent} e - Click event to cancel.
+         */
         function swallowClick(e) {
             e.stopPropagation();
             e.preventDefault();
             document.removeEventListener("click", swallowClick, true);
         }
 
+        /**
+         * Updates the popup offset within the allowed bounds while dragging and marks the popup as dragging.
+         * @param {MouseEvent} e - Mouse move event.
+         */
         function onMove(e) {
             tx = clamp(baseX + e.clientX - startX, minX, maxX);
             ty = clamp(baseY + e.clientY - startY, minY, maxY);
@@ -658,6 +846,9 @@ window.IS = window.IS || {};
             paint();
         }
 
+        /**
+         * Ends dragging, removes the move listeners and briefly suppresses the trailing click if the popup was moved.
+         */
         function stopDrag() {
             document.removeEventListener("mousemove", onMove);
             document.removeEventListener("mouseup", stopDrag);
@@ -673,6 +864,9 @@ window.IS = window.IS || {};
             }
         }
 
+        /**
+         * Stops any drag and returns the popup to its original position.
+         */
         function resetPosition() {
             stopDrag();
             tx = 0;
@@ -680,12 +874,16 @@ window.IS = window.IS || {};
             if (popup) popup.style.transform = "";
         }
 
+        /**
+         * Starts dragging on a left-button press on desktop and calculates the movement limits from the popup and the navigation bar.
+         * @param {MouseEvent} e - Mouse down event.
+         */
         function onDown(e) {
             if (e.button !== 0 || !isDesktop()) return;
             if (e.target.closest("button, .cal-day:not(.cal-blank)")) return;
 
             var r = popup.getBoundingClientRect();
-            var homeLeft = r.left - tx;   /* translate hata kar asli position */
+            var homeLeft = r.left - tx;
             var homeTop = r.top - ty;
             var vw = document.documentElement.clientWidth;
             var vh = document.documentElement.clientHeight;
@@ -709,6 +907,9 @@ window.IS = window.IS || {};
             e.preventDefault();
         }
 
+        /**
+         * Finds the calendar popup, enables dragging on it and resets its position whenever it closes.
+         */
         function init() {
             popup = document.getElementById("calPopup");
             if (!popup) return;
