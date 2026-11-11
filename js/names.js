@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * Initializes the Names tab (Asma ul-Husna and Names of the Prophet) with rendering, search, audio playback, copy and scroll progress.
+ * @returns {void}
+ */
 (function() {
     var PREFS_KEY = "IS_names_v1";
     var LONG_ARABIC = 16;
@@ -21,7 +25,6 @@
     var ICON_STOP_ALL = '<svg class="icon-stop" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
     var ICON_EQUALIZER = '<span class="name-equalizer" aria-hidden="true"><span></span><span></span><span></span></span>';
 
-    // Singleton Audio Controller
     var audioPlayer = new Audio();
     audioPlayer.crossOrigin = "anonymous";
     audioPlayer.preload = "none";
@@ -31,6 +34,10 @@
     var onPlaybackComplete = null;
     var onStopPlaylistHook = null;
 
+    /**
+     * Removes the playing state and ARIA pressed state from the currently active card and speak button.
+     * @returns {void}
+     */
     function clearPlaybackUI() {
         if (activeCardEl) {
             activeCardEl.classList.remove("is-playing");
@@ -43,6 +50,10 @@
         }
     }
 
+    /**
+     * Stops the current audio, resets its source and handlers, and clears the playback UI.
+     * @returns {void}
+     */
     function stopPlayback() {
         onPlaybackComplete = null;
         audioPlayer.onended = null;
@@ -57,6 +68,10 @@
         clearPlaybackUI();
     }
 
+    /**
+     * Stops all audio playback and resets the "Play All" playlist state through the registered hook.
+     * @returns {void}
+     */
     function stopAll() {
         stopPlayback();
         if (typeof onStopPlaylistHook === "function") {
@@ -64,13 +79,19 @@
         }
     }
 
+    /**
+     * Plays an audio track for a name card, toggling it off if the same card is already playing.
+     * @param {string} src - URL of the audio file to play.
+     * @param {HTMLElement} cardEl - The name card element to highlight while playing.
+     * @param {HTMLElement} btnEl - The speak button element to mark as pressed while playing.
+     * @param {Function|null} onComplete - Callback invoked when playback ends, fails, or the source is missing.
+     * @returns {void}
+     */
     function playAudioTrack(src, cardEl, btnEl, onComplete) {
         var isSameActive = (activeCardEl === cardEl && !audioPlayer.paused);
 
-        // Previous audio ko fauran stop aur reset karo
         stopPlayback();
 
-        // Agar wahi card dubara click kiya jo chal raha tha, toh sirf pause hoga
         if (isSameActive) return;
 
         if (!src) {
@@ -110,12 +131,18 @@
         var playPromise = audioPlayer.play();
         if (playPromise !== undefined) {
             playPromise.catch(function(err) {
-                // Rapid switching par console AbortError ko safely ignore karo
                 if (err && (err.name === "AbortError" || err.name === "NotAllowedError")) return;
                 stopPlayback();
             });
         }
     }
+
+    /**
+     * Translates an i18n key and substitutes {placeholder} variables in the resulting string.
+     * @param {string} key - The i18n key to look up.
+     * @param {Object} [vars] - Map of placeholder names to replacement values.
+     * @returns {string} The translated and interpolated string, or the key itself if i18n is unavailable.
+     */
     function tr(key, vars) {
         var s = window.IS && IS.i18n ? IS.i18n.get(key) : key;
         if (vars) {
@@ -125,6 +152,12 @@
         }
         return s;
     }
+
+    /**
+     * Converts Arabic-Indic and Persian digits in a string to Latin digits.
+     * @param {string} s - The input string possibly containing non-Latin digits.
+     * @returns {string} The string with all digits converted to Latin, or an empty string if the input is empty.
+     */
     function toLatinDigits(s) {
         if (!s) return "";
         var str = window.IS && IS.toLatin ? IS.toLatin(s) : s;
@@ -135,6 +168,11 @@
         });
     }
 
+    /**
+     * Normalizes Arabic text for search by stripping diacritics and unifying letter variants.
+     * @param {string} s - The Arabic text to normalize.
+     * @returns {string} The normalized Arabic string, or an empty string if the input is empty.
+     */
     function normAr(s) {
         if (!s) return "";
         return s
@@ -145,34 +183,75 @@
             .replace(/[\u0624\u0626]/g, "\u0621");
     }
 
+    /**
+     * Cleans a raw search query by converting digits to Latin, trimming, and tightening spaces around colons.
+     * @param {string} q - The raw search query.
+     * @returns {string} The cleaned query, or an empty string if the input is empty.
+     */
     function cleanQuery(q) {
         if (!q) return "";
         var s = toLatinDigits(q).trim();
         return s.replace(/\s*:\s*/g, ":");
     }
 
+    /**
+     * Normalizes Latin transliteration text so that spelling variants match during search.
+     * @param {string} s - The Latin text to normalize.
+     * @returns {string} The lowercased string without accents, separators, or repeated letters, with ee/oo folded to i/u.
+     */
     function normLatin(s) {
         return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036F]/g, "").replace(/['\u2019`\-\s]+/g, "").replace(/ee/g, "i").replace(/oo/g, "u").replace(/(.)\1+/g, "$1");
     }
 
+    /**
+     * Checks whether a string contains any Arabic-script characters.
+     * @param {string} s - The string to test.
+     * @returns {boolean} True if at least one Arabic character is present.
+     */
     function hasArabic(s) {
         return /[\u0600-\u06FF]/.test(s);
     }
+
+    /**
+     * Creates a DOM element with an optional class name and text content.
+     * @param {string} tag - The tag name of the element to create.
+     * @param {string} [cls] - The CSS class name to assign.
+     * @param {string} [text] - The text content to set.
+     * @returns {HTMLElement} The newly created element.
+     */
     function mk(tag, cls, text) {
         var node = document.createElement(tag);
         if (cls) node.className = cls;
         if (text !== undefined) node.textContent = text;
         return node;
     }
+
+    /**
+     * Builds the localized reference label for a name's Quran reference.
+     * @param {string} ref - The reference string (e.g. "59:23").
+     * @returns {string} The translated reference text.
+     */
     function refText(ref) {
         return tr("namesRef", {
             r: ref
         });
     }
+
+    /**
+     * Determines whether a Quran reference matches a search query, as a prefix for "surah:" queries or an exact/prefix match otherwise.
+     * @param {string} ref - The reference of a name card.
+     * @param {string} q - The cleaned search query.
+     * @returns {boolean} True if the reference matches the query.
+     */
     function refMatches(ref, q) {
         if (q.charAt(q.length - 1) === ":") return ref.indexOf(q) === 0;
         return ref === q || ref.indexOf(q) === 0;
     }
+
+    /**
+     * Loads the saved collection and script preferences from localStorage.
+     * @returns {Object} The saved preferences, or an empty object if none exist or parsing fails.
+     */
     function loadPrefs() {
         try {
             return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}") || {};
@@ -180,6 +259,12 @@
             return {};
         }
     }
+
+    /**
+     * Saves the current collection and script selection to localStorage.
+     * @param {Object} state - The current UI state containing collection and script.
+     * @returns {void}
+     */
     function savePrefs(state) {
         try {
             localStorage.setItem(PREFS_KEY, JSON.stringify({
@@ -188,9 +273,12 @@
             }));
         } catch (e) {}
     }
-    // Scroll progress (slim bar at the top of the viewport).
-    // CSS lives in names.css (.names-progress). JS only writes one number, --np (0..1);
-    // the bar is animated by CSS with transform: scaleX() on the GPU (no layout, no width animation).
+
+    /**
+     * Sets up a slim scroll-progress bar that tracks how far the user has scrolled through the names section.
+     * @param {HTMLElement} section - The section element whose scroll progress is tracked.
+     * @returns {{refresh: Function}} An object exposing a refresh function that schedules a progress update.
+     */
     function initScrollProgress(section) {
         var bar = document.getElementById("namesProgress");
         if (!bar) {
@@ -202,6 +290,11 @@
         }
         var raf = 0;
         var last = -1;
+
+        /**
+         * Computes the current scroll progress and writes it to the bar's --np CSS variable.
+         * @returns {void}
+         */
         function update() {
             raf = 0;
             var shown = section.getClientRects().length > 0;
@@ -216,6 +309,11 @@
             last = p;
             bar.style.setProperty("--np", p.toFixed(4));
         }
+
+        /**
+         * Schedules a single progress update on the next animation frame if none is pending.
+         * @returns {void}
+         */
         function schedule() {
             if (!raf) raf = requestAnimationFrame(update);
         }
@@ -225,14 +323,17 @@
         window.addEventListener("resize", schedule, {
             passive: true
         });
-        // Fires when the tab is shown/hidden, when a collection renders or switches,
-        // when search filters cards, and on language change (text length).
         if (window.ResizeObserver) new ResizeObserver(schedule).observe(section);
         schedule();
         return {
             refresh: schedule
         };
     }
+
+    /**
+     * Wires up the Names tab once the DOM is ready: renders collections, search, audio, copy, script toggle and playlist.
+     * @returns {void}
+     */
     document.addEventListener("DOMContentLoaded", function() {
         var root = document.getElementById("tab-names");
         var data = window.IS && IS.namesData;
@@ -256,6 +357,12 @@
         var cards = {};
         var copyText = new WeakMap;
         var speakData = new WeakMap;
+
+        /**
+         * Builds and caches the name cards for a collection the first time it is shown.
+         * @param {string} key - The collection key ("husna" or "nabi").
+         * @returns {void}
+         */
         function renderCollection(key) {
             if (cards[key]) return;
             var grid = document.getElementById(COLLECTIONS[key].gridId);
@@ -312,6 +419,11 @@
             grid.appendChild(frag);
             cards[key] = items;
         }
+
+        /**
+         * Filters the active collection's cards by card number, Quran reference, Arabic text, transliteration or meaning.
+         * @returns {void}
+         */
         function applyFilter() {
             var items = cards[state.collection] || [];
             var q = cleanQuery(state.query);
@@ -326,18 +438,14 @@
                 return;
             }
 
-            // Parameter 1: Explicit card search (#5 ya # 5)
             var cardHashMatch = q.match(/^#\s*(\d+)$/);
             var isCardHash = !!cardHashMatch;
             var targetCardId = isCardHash ? parseInt(cardHashMatch[1], 10) : null;
 
-            // Parameter 2: Surah:Ayah reference (e.g. "2:255", "2:", "59:23")
             var isRef = /^\d{1,3}:\d{0,3}$/.test(q);
 
-            // Parameter 3: Plain digit (e.g. "2" ya "25") -> Card ID OR Surah Number
             var isPlainNum = /^\d+$/.test(q);
 
-            // Text needles
             var isAr = hasArabic(q);
             var needleAr = isAr ? normAr(q) : "";
             var needleTranslit = !isAr && !isRef && !isCardHash && !isPlainNum ? normLatin(q) : "";
@@ -367,7 +475,13 @@
             emptyEl.hidden = shown !== 0;
         }
 
-        
+        /**
+         * Updates the result counter text to show either the total or the filtered count.
+         * @param {number} shown - The number of currently visible cards.
+         * @param {number} total - The total number of cards in the collection.
+         * @param {boolean} filtered - Whether a search filter is currently active.
+         * @returns {void}
+         */
         function updateCount(shown, total, filtered) {
             countEl.textContent = filtered ? tr("namesCountSome", {
                 n: shown,
@@ -376,9 +490,20 @@
                 t: total
             });
         }
+
+        /**
+         * Updates the descriptive note text for the active collection.
+         * @returns {void}
+         */
         function updateNote() {
             if (noteEl) noteEl.textContent = tr(COLLECTIONS[state.collection].noteKey);
         }
+
+        /**
+         * Switches to a collection by stopping audio, rendering its cards, updating tabs, panels and hero text, and saving preferences.
+         * @param {string} key - The collection key to activate; falls back to "husna" if invalid.
+         * @returns {void}
+         */
         function setCollection(key) {
             if (!Object.prototype.hasOwnProperty.call(COLLECTIONS, key)) key = "husna";
             stopAll();
@@ -414,6 +539,12 @@
             setCollection(ORDER[next]);
             tabs[next].focus();
         });
+
+        /**
+         * Sets the Arabic display script (naskh or nastaliq), updates the toggle buttons, and saves preferences.
+         * @param {string} s - The script name; any value other than "nastaliq" falls back to "naskh".
+         * @returns {void}
+         */
         function setScript(s) {
             state.script = s === "nastaliq" ? "nastaliq" : "naskh";
             root.dataset.script = state.script;
@@ -427,6 +558,12 @@
                 setScript(b.dataset.script);
             });
         });
+
+        /**
+         * Updates the search query, stops any audio, syncs the input value, and re-applies the filter.
+         * @param {string} q - The new search query.
+         * @returns {void}
+         */
         function setQuery(q) {
             stopAll();
             state.query = q;
@@ -511,6 +648,11 @@ if (sp) {
         var playlistQueue = [];
         var playlistIndex = 0;
 
+        /**
+         * Updates the "Play All" button's icon, label and ARIA label to reflect whether the playlist is running.
+         * @param {boolean} active - True if the playlist is currently playing.
+         * @returns {void}
+         */
         function updatePlayAllBtn(active) {
             if (!playAllBtn) return;
             if (active) {
@@ -524,7 +666,10 @@ if (sp) {
             }
         }
 
-        // Global hook: stopAll() call hone par playlist ko reset karega
+        /**
+         * Resets the playlist state and the "Play All" button when all playback is stopped.
+         * @returns {void}
+         */
         onStopPlaylistHook = function() {
             isPlayingAll = false;
             playlistQueue = [];
@@ -532,6 +677,10 @@ if (sp) {
             updatePlayAllBtn(false);
         };
 
+        /**
+         * Plays the current playlist item, scrolls it into view, and advances to the next after a short pause.
+         * @returns {void}
+         */
         function playNextInQueue() {
             if (!isPlayingAll) return;
             if (playlistIndex >= playlistQueue.length) {
@@ -545,25 +694,26 @@ if (sp) {
                 return;
             }
 
-            // Auto-scroll to center
             item.el.scrollIntoView({ behavior: "smooth", block: "center" });
 
             var speakBtn = item.el.querySelector(".name-speak");
             var src = speakData.get(item.el);
 
-            // Audio bajao (active highlight playAudioTrack khud handle karega)
             playAudioTrack(src, item.el, speakBtn, function() {
                 if (!isPlayingAll) return;
                 playlistIndex++;
                 setTimeout(function() {
                     if (isPlayingAll) playNextInQueue();
-                }, 220); // 220ms ka natural waqfa har naam ke darmiyan
+                }, 220);
             });
         }
 
+        /**
+         * Starts sequential playback of all currently visible name cards in the active collection.
+         * @returns {void}
+         */
         function startPlayAll() {
             var items = cards[state.collection] || [];
-            // Sirf wahi cards uthao jo filter ke mutabiq visible hain
             var visibleItems = items.filter(function(it) {
                 return !it.el.hidden;
             });
