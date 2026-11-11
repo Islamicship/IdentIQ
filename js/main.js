@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * Initializes the whole application UI (i18n, theme, tabs, shortcuts, analytics, privacy wipe, install prompt) once the DOM is ready.
+ * @returns {void} Nothing.
+ */
 document.addEventListener("DOMContentLoaded", function() {
     IS.i18n.init();
     IS.theme.init();
@@ -8,6 +12,10 @@ document.addEventListener("DOMContentLoaded", function() {
             el.textContent = "v" + APP_CONFIG.VERSION;
         });
     }
+    /**
+     * Removes leftover authentication data from the legacy Firebase-based version exactly once per browser.
+     * @returns {void} Nothing.
+     */
     (function cleanLegacyAuth() {
         try {
             if (localStorage.getItem("IS_legacy_auth_cleaned")) return;
@@ -26,6 +34,11 @@ document.addEventListener("DOMContentLoaded", function() {
     var wipeEl = document.getElementById("wipeCountdown");
     var _wipeWarnShown = false;
     var _analyticsTimer;
+    /**
+     * Activates the requested app section, deactivates the others, and updates tab state, analytics rendering, the names module, and the generator button visibility.
+     * @param {string} targetId - The element id of the app section to display.
+     * @returns {void} Nothing.
+     */
     function switchTab(targetId) {
         tabs.forEach(function(t) {
             var isMe = t.getAttribute("data-target") === targetId;
@@ -51,6 +64,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     window.switchTab = switchTab;
     tabs.forEach(function(tab) {
+        /**
+         * Switches to the section targeted by the clicked navigation tab.
+         * @returns {void} Nothing.
+         */
         tab.addEventListener("click", function() {
             var target = tab.getAttribute("data-target");
             if (target) switchTab(target);
@@ -80,6 +97,11 @@ document.addEventListener("DOMContentLoaded", function() {
         Digit3: "tab-analytics",
         Digit4: "tab-names"
     };
+    /**
+     * Handles global keyboard shortcuts: Alt+digit switches tabs, Ctrl/Cmd+Enter triggers the active tab's primary action, and Escape closes the calendar or virtual keyboard.
+     * @param {KeyboardEvent} e - The keydown event.
+     * @returns {void} Nothing.
+     */
     document.addEventListener("keydown", function(e) {
         if (e.altKey && !e.ctrlKey && !e.metaKey) {
             if (window._IS_shortcutsEnabled === false) return;
@@ -122,6 +144,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     var langBtn = document.getElementById("langToggleBtn");
     if (langBtn) {
+        /**
+         * Toggles the interface language between English and Urdu.
+         * @returns {void} Nothing.
+         */
         langBtn.addEventListener("click", function() {
             var newLang = IS.i18n._lang === "en" ? "ur" : "en";
             IS.i18n.setLang(newLang);
@@ -129,10 +155,18 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     var themeBtn = document.getElementById("themeToggleBtn");
     if (themeBtn) {
+        /**
+         * Toggles the application theme.
+         * @returns {void} Nothing.
+         */
         themeBtn.addEventListener("click", function() {
             IS.theme.toggle();
         });
     }
+    /**
+     * Renders the analytics counters, the recent exports list, and the extraction history list with restore and delete actions.
+     * @returns {void} Nothing.
+     */
     function renderAnalytics() {
         var data = window.IS && IS.analytics ? IS.analytics.get() : {};
         var total = data.totalProcessed || 0;
@@ -174,6 +208,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     return '<li class="recent-item history-item" data-idx="' + idx + '">' + '<div class="history-meta">' + '<span class="history-name">' + IS.escHtml(nameLabel) + "</span>" + '<span class="history-id">' + IS.escHtml(idLabel) + "</span>" + '<span class="history-dob">' + IS.escHtml(dateLabel) + "</span>" + "</div>" + '<div class="history-actions">' + '<span class="recent-time">' + formatRelTime(ts) + "</span>" + '<button class="history-restore-btn" data-idx="' + idx + '" aria-label="Restore this extraction">' + IS.i18n.get("restoreBtn") + "</button>" + '<button class="history-delete-btn" data-idx="' + idx + '" aria-label="Delete this entry" title="Delete">✕</button>' + "</div>" + "</li>";
                 }).join("");
                 histList.querySelectorAll(".history-restore-btn").forEach(function(btn) {
+                    /**
+                     * Restores the clicked history entry into the extractor form and switches to the extractor tab.
+                     * @returns {void} Nothing.
+                     */
                     btn.addEventListener("click", function() {
                         var idx = parseInt(btn.getAttribute("data-idx"), 10);
                         var hist = IS.history.get();
@@ -184,6 +222,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
                 histList.querySelectorAll(".history-delete-btn").forEach(function(btn) {
+                    /**
+                     * Deletes the clicked history entry from storage and re-renders the analytics view.
+                     * @returns {void} Nothing.
+                     */
                     btn.addEventListener("click", function() {
                         var idx = parseInt(btn.getAttribute("data-idx"), 10);
                         var hist = IS.history.get();
@@ -198,6 +240,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     }
+    /**
+     * Fills the extractor form fields from a saved history entry and shows only the field groups that have values.
+     * @param {Object} entry - The history entry containing nameAr, nameEn, aqama, dobH, and dobG values.
+     * @returns {void} Nothing.
+     */
     function restoreExtraction(entry) {
         var nameAr = document.getElementById("nameArabic");
         var nameEn = document.getElementById("nameEnglish");
@@ -239,6 +286,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     var clearBtn = document.getElementById("clearAnalyticsBtn");
     if (clearBtn) {
+        /**
+         * Clears all analytics data and extraction history after user confirmation, then re-renders the analytics view.
+         * @returns {void} Nothing.
+         */
         clearBtn.addEventListener("click", function() {
             var confirmMsg = window.IS && IS.i18n ? IS.i18n.get("confirmClearAll") : "Clear all analytics data and extraction history?";
             if (!confirm(confirmMsg)) return;
@@ -248,6 +299,11 @@ document.addEventListener("DOMContentLoaded", function() {
             IS.showToast("All data cleared.");
         });
     }
+    /**
+     * Normalizes a privacy-wipe duration to a positive number of minutes, defaulting to 5.
+     * @param {*} v - The raw minutes value to normalize.
+     * @returns {number} A finite positive number of minutes, or 5 if the value is invalid.
+     */
     function normWipeMins(v) {
         var n = Number(v);
         return isFinite(n) && n > 0 ? n : 5;
@@ -257,11 +313,20 @@ document.addEventListener("DOMContentLoaded", function() {
         if (window.IS && IS.settings) _savedWipeMins = normWipeMins(IS.settings.read().wipeMinutes);
     } catch (e) {}
     var WIPE_MS = _savedWipeMins * 60 * 1e3;
+    /**
+     * Updates the on-screen label that shows the configured privacy-wipe duration in minutes.
+     * @param {number} mins - The wipe duration in minutes to display.
+     * @returns {void} Nothing.
+     */
     function syncWipeLabel(mins) {
         var el = document.getElementById("wipeMinsLabel");
         if (el) el.textContent = mins;
     }
     syncWipeLabel(_savedWipeMins);
+    /**
+     * Performs the privacy wipe by clearing all extractor inputs, displayed results, and stored history.
+     * @returns {void} Nothing.
+     */
     function doWipe() {
         var inputText = document.getElementById("inputText");
         if (inputText) {
@@ -289,6 +354,10 @@ document.addEventListener("DOMContentLoaded", function() {
         if (wipeEl) wipeEl.textContent = "";
         wipeStart = null;
     }
+    /**
+     * Restarts the inactivity countdown that triggers the privacy wipe, showing a warning toast and a live countdown until it fires.
+     * @returns {void} Nothing.
+     */
     function resetWipeTimer() {
         clearInterval(wipeTimer);
         if (wipeEl) wipeEl.textContent = "";
@@ -316,6 +385,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 1e3);
     }
     var _lastWipeReset = 0;
+    /**
+     * Resets the privacy-wipe timer on user activity, at most once every two seconds.
+     * @returns {void} Nothing.
+     */
     function throttledResetWipeTimer() {
         var now = Date.now();
         if (now - _lastWipeReset < 2e3) return;
@@ -328,19 +401,37 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
     resetWipeTimer();
+    /**
+     * Applies a changed privacy-wipe duration by updating the timeout, the label, and restarting the timer.
+     * @param {CustomEvent} e - The event whose detail holds the new wipe duration in minutes.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("IS_wipe_mins_changed", function(e) {
         var mins = normWipeMins(e.detail);
         WIPE_MS = mins * 60 * 1e3;
         syncWipeLabel(mins);
         resetWipeTimer();
     });
+    /**
+     * Re-renders the analytics view and wipe label after the interface language changes.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("IS_lang_changed", function() {
         renderAnalytics();
         syncWipeLabel(WIPE_MS / 6e4);
     });
+    /**
+     * Stops the privacy-wipe interval before the page is unloaded.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("beforeunload", function() {
         clearInterval(wipeTimer);
     });
+    /**
+     * Formats a date as a short relative-time label in English or Urdu, falling back to the locale date after one day.
+     * @param {Date} d - The date to describe relative to now.
+     * @returns {string} The relative-time label.
+     */
     function formatRelTime(d) {
         var diff = Date.now() - d.getTime();
         var isUr = window.IS && IS.i18n && IS.i18n._lang === "ur";
@@ -349,11 +440,24 @@ document.addEventListener("DOMContentLoaded", function() {
         if (diff < 864e5) return Math.floor(diff / 36e5) + (isUr ? " گھنٹے پہلے" : "h ago");
         return d.toLocaleDateString();
     }
+    /**
+     * Animates an element's numeric text from one value to another with an ease-out curve, cancelling any previous animation on that element.
+     * @param {HTMLElement} el - The element whose text content is animated.
+     * @param {number} from - The starting value.
+     * @param {number} to - The final value.
+     * @param {string} [suffix] - Optional text appended to the number, such as "%".
+     * @returns {void} Nothing.
+     */
     function animateCount(el, from, to, suffix) {
         suffix = suffix || "";
         var dur = 600;
         var start = performance.now();
         var animId = el._animId = (el._animId || 0) + 1;
+        /**
+         * Advances the count animation by one frame.
+         * @param {number} now - The current high-resolution timestamp.
+         * @returns {void} Nothing.
+         */
         function step(now) {
             if (el._animId !== animId) return;
             var p = Math.min((now - start) / dur, 1);
@@ -363,11 +467,21 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         requestAnimationFrame(step);
     }
+    /**
+     * Applies a cubic ease-out curve to a normalized progress value.
+     * @param {number} t - Linear progress between 0 and 1.
+     * @returns {number} The eased progress between 0 and 1.
+     */
     function easeOut(t) {
         return 1 - Math.pow(1 - t, 3);
     }
     var installBtn = document.getElementById("installAppBtn");
     var isStandalone = !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+    /**
+     * Captures the browser's install prompt and reveals the install button unless the app already runs standalone.
+     * @param {Event} e - The beforeinstallprompt event.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("beforeinstallprompt", function(e) {
         e.preventDefault();
         if (isStandalone) return;
@@ -375,6 +489,10 @@ document.addEventListener("DOMContentLoaded", function() {
         if (installBtn) installBtn.style.display = "";
     });
     if (installBtn) {
+        /**
+         * Shows the deferred install prompt to the user and hides the install button.
+         * @returns {void} Nothing.
+         */
         installBtn.addEventListener("click", function() {
             var deferred = window._IS_deferredInstall;
             if (!deferred) return;
@@ -387,6 +505,10 @@ document.addEventListener("DOMContentLoaded", function() {
             }).catch(function() {});
         });
     }
+    /**
+     * Hides the install button, clears the stored install prompt, and confirms installation to the user.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("appinstalled", function() {
         if (installBtn) installBtn.style.display = "none";
         window._IS_deferredInstall = null;
@@ -394,6 +516,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     var genFabBtn = document.getElementById("genFabBtn");
     if (genFabBtn) {
+        /**
+         * Triggers the main generate button and plays a brief flash animation on the floating action button.
+         * @returns {void} Nothing.
+         */
         genFabBtn.addEventListener("click", function() {
             var realBtn = document.getElementById("generate-btn");
             if (realBtn) realBtn.click();
@@ -408,6 +534,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
+/**
+ * Registers the root-scoped service worker, removes the legacy js/-scoped one, and prompts the user to reload when an update is ready.
+ * @returns {void} Nothing.
+ */
 (function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return;
     var hadController = !!navigator.serviceWorker.controller;
@@ -415,17 +545,29 @@ document.addEventListener("DOMContentLoaded", function() {
     var reloading = false;
     var toastShown = false;
 
+    /**
+     * Reloads the page a single time, ignoring repeated calls.
+     * @returns {void} Nothing.
+     */
     function reloadOnce() {
         if (reloading) return;
         reloading = true;
         window.location.reload();
     }
 
-    // Reload only when the user explicitly accepted the update (avoids wiping extracted data unexpectedly)
+    /**
+     * Reloads the page after a service worker takeover only if the user explicitly accepted the update.
+     * @returns {void} Nothing.
+     */
     navigator.serviceWorker.addEventListener("controllerchange", function() {
         if (userAccepted) reloadOnce();
     });
 
+    /**
+     * Shows an "Update ready" toast with a reload button that activates the waiting service worker and reloads the page.
+     * @param {ServiceWorker|null} worker - The waiting service worker to activate, or null if unavailable.
+     * @returns {void} Nothing.
+     */
     function showUpdateToast(worker) {
         if (toastShown || !(window.IS && IS.showToast)) return;
         toastShown = true;
@@ -441,6 +583,10 @@ document.addEventListener("DOMContentLoaded", function() {
         btn.textContent = "Reload now";
         btn.style.cssText = "background:rgba(0,180,255,0.2);border:1px solid rgba(0,180,255,0.4);color:#00d4ff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;margin-left:6px;";
         toast.appendChild(btn);
+        /**
+         * Accepts the update by asking the waiting worker to skip waiting, falling back to a plain reload.
+         * @returns {void} Nothing.
+         */
         btn.addEventListener("click", function() {
             if (worker && worker.state === "installed") {
                 userAccepted = true;
@@ -461,13 +607,21 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    /**
+     * Shows the update toast when the service worker reports an update and a previous controller existed.
+     * @param {MessageEvent} e - The message event from the service worker.
+     * @returns {void} Nothing.
+     */
     navigator.serviceWorker.addEventListener("message", function(e) {
         if (e.data && e.data.type === "SW_UPDATED" && hadController) showUpdateToast(null);
     });
 
+    /**
+     * Cleans up legacy registrations, registers the service worker, wires update detection, and schedules hourly update checks once the page has loaded.
+     * @returns {void} Nothing.
+     */
     window.addEventListener("load", function() {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
-            // Remove the legacy js/-scoped SW if it was registered earlier
             return Promise.all(regs.filter(function(r) {
                 return /\/js\/$/.test(r.scope);
             }).map(function(r) {
@@ -487,7 +641,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     if (worker.state === "installed" && navigator.serviceWorker.controller) showUpdateToast(worker);
                 });
             });
-            // Hourly update check for long-running tabs / installed PWA
             setInterval(function() {
                 reg.update().catch(function() {});
             }, 60 * 60 * 1000);
