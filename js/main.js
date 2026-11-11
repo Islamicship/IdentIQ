@@ -104,10 +104,8 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         if (e.key === "Escape") {
-            var calPopup = document.getElementById("calPopup");
-            if (calPopup && calPopup.classList.contains("open")) {
-                calPopup.classList.remove("open");
-                document.removeEventListener("click", window._calOutsideClick || function() {});
+            if (window.IS && IS.calendar && IS.calendar.isOpen()) {
+                IS.calendar.close();
                 e.preventDefault();
                 return;
             }
@@ -154,10 +152,11 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!data.recentExports || !data.recentExports.length) {
                 expList.innerHTML = '<li class="recent-empty" data-i18n="noExports">' + IS.i18n.get("noExports") + "</li>";
             } else {
+                var exportIcon = (window.IS && IS.ICONS && IS.ICONS.export) ? IS.ICONS.export : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
                 expList.innerHTML = data.recentExports.map(function(ex) {
                     var d = new Date(ex.ts);
                     var label = String(ex && ex.label || "").replace(/_/g, " ").replace(/\d{13}$/, "").trim();
-                    return '<li class="recent-item">' + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' + '<span class="recent-label-text">' + IS.escHtml(label) + "</span>" + '<span class="recent-time">' + formatRelTime(d) + "</span>" + "</li>";
+                    return '<li class="recent-item">' + exportIcon + '<span class="recent-label-text">' + IS.escHtml(label) + "</span>" + '<span class="recent-time">' + formatRelTime(d) + "</span>" + "</li>";
                 }).join("");
             }
         }
@@ -230,35 +229,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
         }
-        var ageBadge = document.getElementById("ageBadge");
-        if (ageBadge) {
-            var dobGVal = entry.dobG || "";
-            var parts = dobGVal.split("/");
-            if (parts.length === 3) {
-                var dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10) - 1, yyyy = parseInt(parts[2], 10);
-                var birthDate = new Date(yyyy, mm, dd);
-                if (!isNaN(birthDate.getTime())) {
-                    var now = new Date;
-                    var age = now.getFullYear() - birthDate.getFullYear();
-                    var mDiff = now.getMonth() - birthDate.getMonth();
-                    if (mDiff < 0 || mDiff === 0 && now.getDate() < birthDate.getDate()) age--;
-                    if (age >= 0 && age < 130) {
-                        ageBadge.textContent = age + (age === 1 ? " year old" : " years old");
-                        ageBadge.style.display = "inline-flex";
-                    } else {
-                        ageBadge.style.display = "none";
-                    }
-                } else {
-                    ageBadge.style.display = "none";
-                }
-            } else {
-                ageBadge.style.display = "none";
-            }
+        if (window.IS && IS.updateAgeBadge) {
+            IS.updateAgeBadge(entry.dobG || "");
         }
-        var completeBanner = document.getElementById("dataCompleteBanner");
-        if (completeBanner) {
+        if (window.IS && IS.showDataCompleteIndicator) {
             var allComplete = !!(entry.nameAr && entry.nameEn && entry.aqama && (entry.dobG || entry.dobH));
-            completeBanner.classList.toggle("visible", allComplete);
+            IS.showDataCompleteIndicator(allComplete);
         }
     }
     var clearBtn = document.getElementById("clearAnalyticsBtn");

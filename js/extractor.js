@@ -33,10 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function toLatin(s) { return (window.IS && IS.toLatin) ? IS.toLatin(s) : s; }
     function stripHidden(s) { return (window.IS && IS.stripHiddenChars) ? IS.stripHiddenChars(s) : s; }
     function escHtml(s) {
-        if (window.IS && IS.escHtml) return IS.escHtml(s);
-        return String(s).replace(/[&<>"']/g, function (c) {
-            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-        });
+        return (window.IS && IS.escHtml) ? IS.escHtml(s) : String(s || "");
     }
     // moment-hijri ka default locale 'ar-sa' hai => Arabic-Indic digits. Hamesha 'en' mein format karo.
     function fmt(m, pattern) { return m.clone().locale("en").format(pattern); }
@@ -107,6 +104,8 @@ document.addEventListener("DOMContentLoaded", function() {
             banner.classList.remove("visible");
         }
     }
+    window.IS = window.IS || {};
+    IS.showDataCompleteIndicator = showDataCompleteIndicator;
 
 
     var TW = { timer: null, token: 0, lastKey: '', activeEl: null };
@@ -460,6 +459,7 @@ document.addEventListener("DOMContentLoaded", function() {
             ageBadge.style.display = "none";
         }
     }
+    IS.updateAgeBadge = updateAgeBadge;
     var _debounceTimer = null;
     var HIDDEN_RE = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\u206A-\u206F\uFEFF\u00AD\uFFF9-\uFFFB\u2060-\u2064\u0007\u001F\u00A0\u202F\u205F\u2028\u2029\u000C\u0085\r]/;
     f.input.addEventListener("input", function(e) {

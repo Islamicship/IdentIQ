@@ -3,6 +3,24 @@
 window.IS = window.IS || {};
 
 (function(IS) {
+    var CFG = IS.CONFIG || window.APP_CONFIG || {
+        VERSION: "5.9.1",
+        COPYRIGHT_RANGE: "2024–2026",
+        APP_NAME: "IdentIQ",
+        DEVELOPER: "Creative Men",
+        PLATFORM: "Gulf Identity Intelligence Platform",
+        STORAGE_KEYS: {
+            LANG: "IS_lang_v4",
+            THEME: "IS_theme_v4",
+            HISTORY: "IS_history_v4",
+            ANALYTICS: "IS_analytics_v3"
+        },
+        DEFAULTS: {
+            HISTORY_MAX: 15,
+            EXPORTS_MAX: 5
+        }
+    };
+    var KEYS = CFG.STORAGE_KEYS;
     var _sharedAC = null;
     function getAudioContext() {
         var AC = window.AudioContext || window.webkitAudioContext;
@@ -154,8 +172,13 @@ window.IS = window.IS || {};
         expiry.setDate(expiry.getDate() - 1);
         return expiry;
     };
-    IS.COPY_SVG = '<svg class="icon-copy" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="12" rx="2"/><path d="M5 13H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"/></svg>';
-    IS.TICK_SVG = '<svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path class="tick-path" d="M6.5 11l3.5 3.5 5.5-6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"/></svg>';
+    IS.ICONS = {
+        copy: '<svg class="icon-copy" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="12" rx="2"/><path d="M5 13H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"/></svg>',
+        tick: '<svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path class="tick-path" d="M6.5 11l3.5 3.5 5.5-6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"/></svg>',
+        export: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+    };
+    IS.COPY_SVG = IS.ICONS.copy;
+    IS.TICK_SVG = IS.ICONS.tick;
     var FX_SPARKS = 8;
     var FX_ICON_MS = 1150;
     var FX_END_MS = 1300;
@@ -285,8 +308,8 @@ window.IS = window.IS || {};
             navGen: "Realistic ID",
             navAnalytics: "Analytics",
             navInstall: "Install",
-            headerTitle: "IdentIQ · Identity Intel",
-            headerVersion: "v" + (window.APP_CONFIG ? APP_CONFIG.VERSION : "5.9.1") + " Core Processor",
+            headerTitle: CFG.APP_NAME + " · Identity Intel",
+            headerVersion: "v" + CFG.VERSION + " Core Processor",
             headerLive: "● LIVE",
             extractedInfo: "EXTRACTED INFORMATION",
             nameAr: "Name (Arabic / Urdu)",
@@ -334,7 +357,7 @@ window.IS = window.IS || {};
             themeToggle: "Light Mode",
             langToggle: "اردو",
             wipeUntil: "until wipe",
-            footerText: "© " + (window.APP_CONFIG ? APP_CONFIG.COPYRIGHT_RANGE : "2024–2026") + " " + (window.APP_CONFIG ? APP_CONFIG.APP_NAME : "IdentIQ") + " · " + (window.APP_CONFIG ? APP_CONFIG.DEVELOPER : "Creative Men") + " · " + (window.APP_CONFIG ? APP_CONFIG.PLATFORM : "Gulf Identity Intelligence Platform") + " v" + (window.APP_CONFIG ? APP_CONFIG.VERSION : "5.9.1"),
+            footerText: "© " + CFG.COPYRIGHT_RANGE + " " + CFG.APP_NAME + " · " + CFG.DEVELOPER + " · " + CFG.PLATFORM + " v" + CFG.VERSION,
             navNames: "Names",
             shortcut4: "[Alt+4] Names",
             namesTitle: "Divine & Prophetic Names",
@@ -364,7 +387,7 @@ window.IS = window.IS || {};
             navAnalytics: "تجزیات",
             navInstall: "انسٹال",
             headerTitle: "انٹرپرائز شناخت پروسیسر",
-            headerVersion: "ورژن " + (window.APP_CONFIG ? APP_CONFIG.VERSION : "5.9.1") + " کور پروسیسر",
+            headerVersion: "ورژن " + CFG.VERSION + " کور پروسیسر",
             headerLive: "● فعال",
             extractedInfo: "نکالی گئی معلومات",
             nameAr: "نام (عربی / اردو)",
@@ -412,7 +435,7 @@ window.IS = window.IS || {};
             themeToggle: "لائٹ موڈ",
             langToggle: "English",
             wipeUntil: "تک صفائی",
-            footerText: "© " + (window.APP_CONFIG ? APP_CONFIG.COPYRIGHT_RANGE : "2024–2026") + " " + (window.APP_CONFIG ? APP_CONFIG.APP_NAME : "IdentIQ") + " · " + (window.APP_CONFIG ? APP_CONFIG.DEVELOPER : "Creative Men") + " · گلف شناخت پلیٹ فارم v" + (window.APP_CONFIG ? APP_CONFIG.VERSION : "5.9.1"),
+            footerText: "© " + CFG.COPYRIGHT_RANGE + " " + CFG.APP_NAME + " · " + CFG.DEVELOPER + " · گلف شناخت پلیٹ فارم v" + CFG.VERSION,
             navNames: "اسماء",
             shortcut4: "[Alt+4] اسماء",
             namesTitle: "اسمائے الٰہی و نبوی",
@@ -445,7 +468,7 @@ window.IS = window.IS || {};
         setLang: function(lang) {
             this._lang = lang === "ur" ? "ur" : "en";
             try {
-                localStorage.setItem("IS_lang_v4", this._lang);
+                localStorage.setItem(KEYS.LANG, this._lang);
             } catch (e) {}
             this._apply();
             window.dispatchEvent(new CustomEvent("IS_lang_changed"));
@@ -453,7 +476,7 @@ window.IS = window.IS || {};
         init: function() {
             var prev = this._lang;
             try {
-                var s = localStorage.getItem("IS_lang_v4");
+                var s = localStorage.getItem(KEYS.LANG);
                 if (s === "en" || s === "ur") this._lang = s;
             } catch (e) {}
             this._apply();
@@ -483,7 +506,7 @@ window.IS = window.IS || {};
         _mode: "dark",
         init: function() {
             try {
-                var s = localStorage.getItem("IS_theme_v4");
+                var s = localStorage.getItem(KEYS.THEME);
                 if (s) this._mode = s;
             } catch (e) {}
             this._apply();
@@ -491,7 +514,7 @@ window.IS = window.IS || {};
         toggle: function() {
             this._mode = this._mode === "dark" ? "light" : "dark";
             try {
-                localStorage.setItem("IS_theme_v4", this._mode);
+                localStorage.setItem(KEYS.THEME, this._mode);
             } catch (e) {}
             this._apply();
         },
@@ -513,9 +536,9 @@ window.IS = window.IS || {};
             }
         }
     };
-    IS.HISTORY_MAX = 15;
-    IS.EXPORTS_MAX = 5;
-    var HKEY = "IS_history_v4";
+    IS.HISTORY_MAX = (CFG.DEFAULTS && CFG.DEFAULTS.HISTORY_MAX) || 15;
+    IS.EXPORTS_MAX = (CFG.DEFAULTS && CFG.DEFAULTS.EXPORTS_MAX) || 5;
+    var HKEY = KEYS.HISTORY;
     IS.history = {
         _max: IS.HISTORY_MAX,
         get: function() {
@@ -530,6 +553,7 @@ window.IS = window.IS || {};
             }
         },
         save: function(entry) {
+            if (!entry || typeof entry !== "object") return;
             var list = this.get();
             list.unshift(entry);
             list = list.slice(0, IS.HISTORY_MAX);
@@ -543,7 +567,7 @@ window.IS = window.IS || {};
             } catch (e) {}
         }
     };
-    var AKEY = "IS_analytics_v3";
+    var AKEY = KEYS.ANALYTICS;
     IS.analytics = {
         _defaults: function() {
             return {

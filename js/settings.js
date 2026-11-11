@@ -4,31 +4,20 @@ window.IS = window.IS || {};
 
 try {
     (function() {
-        var SKEY = "IS_settings_v1";
+        var CFG = (window.IS && IS.CONFIG) || window.APP_CONFIG || {};
+        var KEYS = CFG.STORAGE_KEYS || { SETTINGS: "IS_settings_v1", LAST_CLEARED: "IS_last_cleared", PWA_INSTALLED: "pwa_installed" };
+        var SKEY = KEYS.SETTINGS;
         var DEFAULTS = {
             userName: "",
             userEmail: "",
             avatarEmoji: "",
-            defaultTab: "tab-extractor",
+            defaultTab: (CFG.DEFAULTS && CFG.DEFAULTS.DEFAULT_TAB) || "tab-extractor",
             defaultCountry: "",
             defaultCity: "",
-            wipeMinutes: 5,
+            wipeMinutes: (CFG.DEFAULTS && CFG.DEFAULTS.WIPE_MINUTES) || 5,
             soundEnabled: true,
             shortcutsVisible: true,
             shortcutsEnabled: true
-        };
-        var COUNTRY_CITIES = {
-            pakistan: [ "Punjab", "Lahore", "Karachi", "Islamabad", "Peshawar", "Quetta", "Azad Kashmir" ],
-            india: [ "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai" ],
-            uae: [ "Dubai", "Abu Dhabi", "Sharjah" ],
-            qatar: [ "Doha", "Al Rayyan", "Al Wakrah" ],
-            saudiarabia: [ "Riyadh", "Jeddah", "Dammam", "Makkah", "Madinah", "Abha", "Al Khobar" ],
-            kuwait: [ "Kuwait City", "Salmiya", "Farwaniya", "Ahmadi", "Hawalli" ],
-            bahrain: [ "Manama", "Muharraq", "Riffa", "Northern Area", "Southern Area" ],
-            oman: [ "Muscat", "Salalah", "Sohar", "Nizwa", "Sur" ],
-            bangladesh: [ "Dhaka", "Chittagong", "Sylhet", "Rajshahi" ],
-            nepal: [ "Kathmandu", "Pokhara", "Lalitpur", "Biratnagar" ],
-            afghanistan: [ "Kabul", "Herat", "Mazar-i-Sharif", "Kandahar" ]
         };
         var COUNTRY_LABELS = {
             pakistan: "Pakistan",
@@ -43,11 +32,17 @@ try {
             nepal: "Nepal",
             afghanistan: "Afghanistan"
         };
-       var APP_META = {
-            name: (window.APP_CONFIG && APP_CONFIG.APP_NAME) || "IdentIQ",
-            version: "v" + ((window.APP_CONFIG && APP_CONFIG.VERSION) || "5.9.1"),
+        // Single Source of Truth for cities (from IS.CITY_MAP)
+        function getCitiesForCountry(countryKey) {
+            var map = (window.IS && IS.CITY_MAP) || {};
+            var pascalKey = COUNTRY_LABELS[countryKey] ? COUNTRY_LABELS[countryKey].replace(/\s+/g, "") : "";
+            return map[pascalKey] || map[countryKey] || [];
+        }
+        var APP_META = CFG.META || {
+            name: "IdentIQ",
+            version: "v5.9.1",
             released: "2024",
-            developer: (window.APP_CONFIG && APP_CONFIG.DEVELOPER) || "Creative Men",
+            developer: "Creative Men",
             location: "Jhang, Punjab, Pakistan",
             supportHours: "Weekdays · 24 Hours",
             email: "creativemen70@gmail.com",
@@ -58,8 +53,8 @@ try {
             ocrApp: "https://personal-ocr-tool.netlify.app",
             deenApp: "https://deen-toolkit.netlify.app",
             tagline: "Crafting Digital Intelligence for the Gulf & South Asia",
-            copyright: "© " + ((window.APP_CONFIG && APP_CONFIG.COPYRIGHT_RANGE) || "2024–2026") + " " + ((window.APP_CONFIG && APP_CONFIG.DEVELOPER) || "Creative Men") + ". All rights reserved.",
-            privacyVer: "Privacy Policy v2.0 (" + ((window.APP_CONFIG && APP_CONFIG.YEAR) || 2026) + ")"
+            copyright: "© 2024–2026 Creative Men. All rights reserved.",
+            privacyVer: "Privacy Policy v2.0 (2026)"
         };
         var STR = {
             en: {
@@ -422,7 +417,7 @@ try {
             }, 1600);
         }
         function buildCityOpts(countryKey, selectedCity) {
-            var cities = COUNTRY_CITIES[countryKey] || [];
+            var cities = getCitiesForCountry(countryKey);
             var html = '<option value="">' + esc(t("cityNone")) + "</option>";
             cities.forEach(function(c) {
                 html += '<option value="' + esc(c) + '"' + (c === selectedCity ? " selected" : "") + ">" + esc(c) + "</option>";
@@ -988,9 +983,9 @@ try {
                     if (window.IS && IS.history) {
                         IS.history.clear();
                     } else {
-                        localStorage.removeItem("IS_history_v4");
+                        localStorage.removeItem(KEYS.HISTORY || "IS_history_v4");
                     }
-                    localStorage.setItem("IS_last_cleared", Date.now().toString());
+                    localStorage.setItem(KEYS.LAST_CLEARED || "IS_last_cleared", Date.now().toString());
                     _updateLastClearedDisplay();
                     if (window.IS && IS.showToast) IS.showToast(t("clearedToast"), "info");
                 });
@@ -1002,9 +997,9 @@ try {
                     if (window.IS && IS.analytics) {
                         IS.analytics.clear();
                     } else {
-                        localStorage.removeItem("IS_analytics_v3");
+                        localStorage.removeItem(KEYS.ANALYTICS || "IS_analytics_v3");
                     }
-                    localStorage.setItem("IS_last_cleared", Date.now().toString());
+                    localStorage.setItem(KEYS.LAST_CLEARED || "IS_last_cleared", Date.now().toString());
                     _updateLastClearedDisplay();
                     if (window.IS && IS.showToast) IS.showToast(t("clearedToast"), "info");
                 });
@@ -1013,10 +1008,11 @@ try {
             if (clrAll) {
                 clrAll.addEventListener("click", function() {
                     if (!confirm(t("confirmClearAll"))) return;
-                    [ "IS_history_v4", "IS_analytics_v3", "IS_settings_v1", "IS_lang_v4", "IS_theme_v4", "IS_names_v1" ].forEach(function(k) {
+                    var keysToClear = (CFG.ALL_WIPEABLE_KEYS) || [ "IS_history_v4", "IS_analytics_v3", "IS_settings_v1", "IS_lang_v4", "IS_theme_v4", "IS_names_v1" ];
+                    keysToClear.forEach(function(k) {
                         localStorage.removeItem(k);
                     });
-                    localStorage.setItem("IS_last_cleared", Date.now().toString());
+                    localStorage.setItem(KEYS.LAST_CLEARED || "IS_last_cleared", Date.now().toString());
                     if (window.IS && IS.showToast) IS.showToast(t("clearedToast"), "info");
                     closePanel();
                 });

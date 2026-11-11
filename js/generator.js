@@ -312,6 +312,8 @@ document.addEventListener("DOMContentLoaded", function() {
         Bahrain: [ "Manama", "Muharraq", "Riffa", "Northern Area", "Southern Area" ],
         Oman: [ "Muscat", "Salalah", "Sohar", "Nizwa", "Sur" ]
     };
+    window.IS = window.IS || {};
+    window.IS.CITY_MAP = CITY_MAP;
     function rand(a, b) {
         return Math.floor(Math.random() * (b - a + 1)) + a;
     }
@@ -685,6 +687,8 @@ document.addEventListener("DOMContentLoaded", function() {
         renderCalendar();
         if (calPopup) calPopup.classList.add("open");
         clearTimeout(_calOutsideTimer);
+        document.removeEventListener("click", outsideClick);
+        document.removeEventListener("keydown", onCalKeydown);
         _calOutsideTimer = setTimeout(function() {
             document.addEventListener("click", outsideClick);
         }, 10);
@@ -696,6 +700,13 @@ document.addEventListener("DOMContentLoaded", function() {
         document.removeEventListener("click", outsideClick);
         document.removeEventListener("keydown", onCalKeydown);
     }
+    IS.calendar = {
+        open: openCalendar,
+        close: closeCalendar,
+        isOpen: function() {
+            return !!(calPopup && calPopup.classList.contains("open"));
+        }
+    };
     function outsideClick(e) {
         var card = document.getElementById("date-card");
         if (card && !card.contains(e.target)) closeCalendar();
