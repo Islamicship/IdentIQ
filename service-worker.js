@@ -8,13 +8,18 @@
 const VERSION      = '6.1.0';
 const CACHE_PREFIX = 'identiq-';
 const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
-const CACHE_AUDIO  = `${CACHE_PREFIX}audio-v1`; // Audio cache app updates par delete nahi hoga
+const CACHE_AUDIO  = `${CACHE_PREFIX}audio-v1`;
 
 const SCOPE     = self.registration.scope;
+
+/**
+ * Resolves a relative path to an absolute URL against the service worker scope.
+ * @param {string} path - Relative path to resolve.
+ * @returns {string} Absolute URL string.
+ */
 const toURL     = path => new URL(path, SCOPE).href;
 const INDEX_URL = toURL('./index.html');
 
-/* Core App Shell Precache */
 const PRECACHE = [
   './index.html',
   './css/style.css',
@@ -36,18 +41,31 @@ const PRECACHE = [
   './assets/logo.png'
 ].map(toURL);
 
-const TIMEOUT_NAVIGATION = 4000;   // ms
-const TIMEOUT_CORE       = 3000;   // ms
+const TIMEOUT_NAVIGATION = 4000;
+const TIMEOUT_CORE       = 3000;
 const CORE_DESTINATIONS  = new Set(['script', 'style', 'worker']);
 
-/* ----------------------------- Helpers ------------------------------ */
-
+/**
+ * Determines whether a cache key belongs to this application's cache namespace.
+ * @param {string} key - Cache storage key name.
+ * @returns {boolean} True if the key starts with the app cache prefix.
+ */
 const isOwnCache = key => key.startsWith(CACHE_PREFIX);
 
+/**
+ * Sends a message back to the client that originated the given event.
+ * @param {ExtendableMessageEvent} event - Message event carrying the source client.
+ * @param {Object} message - Payload to post to the source client.
+ * @returns {void}
+ */
 const reply = (event, message) => {
   if (event.source && event.source.postMessage) event.source.postMessage(message);
 };
 
+/**
+ * Builds the fallback HTML page shown when a navigation fails while offline.
+ * @returns {Response} A 503 HTML response with an offline notice.
+ */
 const offlineResponse = () => new Response(
   '<!doctype html><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -58,9 +76,19 @@ const offlineResponse = () => new Response(
   { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
 );
 
+/**
+ * Checks whether a response is a successful same-origin response that may be stored in cache.
+ * @param {Response} res - Response to evaluate.
+ * @returns {boolean} True if the response has status 200 and a basic or default type.
+ */
 const isCacheable = res =>
   !!res && res.status === 200 && (res.type === 'basic' || res.type === 'default');
 
+/**
+ * Rebuilds a redirected response into a clean response so it can be safely cached and served.
+ * @param {Response} response - Response that may have been redirected.
+ * @returns {Promise<Response>} The original response, or a new non-redirected copy if it was redirected.
+ */
 async function cleanResponse(response) {
   if (!response.redirected) return response;
   const body = await response.blob();
@@ -71,12 +99,24 @@ async function cleanResponse(response) {
   });
 }
 
+/**
+ * Stores a cleaned copy of a response in the app shell cache, logging a warning on failure.
+ * @param {Request|string} key - Request or URL used as the cache key.
+ * @param {Response} response - Response to clean and store.
+ * @returns {Promise<void>} Resolves once the cache write completes or the error is logged.
+ */
 function safePut(key, response) {
   return cleanResponse(response)
     .then(res => caches.open(CACHE_NAME).then(cache => cache.put(key, res)))
     .catch(err => console.warn('[SW] cache.put failed:', err));
 }
 
+/**
+ * Rejects a promise with a timeout error if it does not settle within the given time.
+ * @param {Promise<any>} promise - Promise to race against the timeout.
+ * @param {number} ms - Timeout duration in milliseconds.
+ * @returns {Promise<any>} The original promise result, or a rejection with "Network timeout".
+ */
 function withTimeout(promise, ms) {
   let timer;
   const timeout = new Promise((_, reject) => {
@@ -85,6 +125,10 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+/**
+ * Downloads every core app shell asset fresh from the network and stores it in the current cache, failing if any asset is invalid.
+ * @returns {Promise<void>} Resolves when all precache assets are stored, rejects on any failure.
+ */
 async function precache() {
   const cache = await caches.open(CACHE_NAME);
   await Promise.all(PRECACHE.map(async url => {
@@ -100,8 +144,14 @@ async function precache() {
   }));
 }
 
-/* ------------------------- Strategies ------------------------- */
-
+/**
+ * Serves a request from the network within a time limit, refreshing the cache in the background and falling back to the cached copy on failure.
+ * @param {FetchEvent} event - The fetch event being handled.
+ * @param {Request|string} cacheKey - Key used to read and write the cached response.
+ * @param {number} timeoutMs - Maximum time in milliseconds to wait for the network.
+ * @param {boolean} isNavigation - Whether the request is a page navigation, enabling the offline page fallback.
+ * @returns {Promise<Response>} Network response, cached response, offline page, or an error response.
+ */
 async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
   const network = (async () => (await event.preloadResponse) || fetch(event.request))();
 
@@ -123,6 +173,11 @@ async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
   }
 }
 
+/**
+ * Serves a cached response immediately when available while refreshing the cache from the network in the background.
+ * @param {FetchEvent} event - The fetch event being handled.
+ * @returns {Promise<Response>} Cached response, fresh network response, or an error response.
+ */
 async function staleWhileRevalidate(event) {
   const { request } = event;
   const cache  = await caches.open(CACHE_NAME);
@@ -139,7 +194,11 @@ async function staleWhileRevalidate(event) {
   return cached || (await update) || Response.error();
 }
 
-/* AUDIO CACHE-FIRST STRATEGY (With HTTP 206 Partial Content for Safari/Chrome) */
+/**
+ * Serves audio from a persistent audio cache, downloading on demand, and answers Range requests with HTTP 206 partial content.
+ * @param {FetchEvent} event - The fetch event for the audio request.
+ * @returns {Promise<Response>} Full audio response, a 206 partial response for range requests, or an error response.
+ */
 async function audioCacheFirst(event) {
   const { request } = event;
   const cleanUrl = request.url.split('?')[0];
@@ -147,7 +206,6 @@ async function audioCacheFirst(event) {
   
   let response = await cache.match(cleanUrl);
 
-  // Agar cache mein nahi hai toh download karo aur store karo (On-Demand)
   if (!response) {
     try {
       const netRes = await fetch(cleanUrl);
@@ -162,7 +220,6 @@ async function audioCacheFirst(event) {
     }
   }
 
-  // Range Header handling (Seeking & Safari compatibility)
   const rangeHeader = request.headers.get('range');
   if (!rangeHeader) return response;
 
@@ -186,8 +243,11 @@ async function audioCacheFirst(event) {
   });
 }
 
-/* ------------------------------ Install ----------------------------- */
-
+/**
+ * Handles the install event by precaching the full app shell and failing installation if any asset cannot be cached.
+ * @param {ExtendableEvent} event - The service worker install event.
+ * @returns {void}
+ */
 self.addEventListener('install', event => {
   event.waitUntil(
     precache()
@@ -196,8 +256,11 @@ self.addEventListener('install', event => {
   );
 });
 
-/* ------------------------------ Activate ---------------------------- */
-
+/**
+ * Handles the activate event by enabling navigation preload, deleting outdated shell caches while keeping the audio cache, claiming clients, and notifying them of the update.
+ * @param {ExtendableEvent} event - The service worker activate event.
+ * @returns {void}
+ */
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     if (self.registration.navigationPreload) {
@@ -205,7 +268,6 @@ self.addEventListener('activate', event => {
       catch (err) {}
     }
 
-    // Sirf purani shell caches delete honi chahiye, CACHE_AUDIO ko safe rakho
     const keys = await caches.keys();
     await Promise.all(
       keys
@@ -222,8 +284,11 @@ self.addEventListener('activate', event => {
   })().catch(err => console.error(`[SW v${VERSION}] Activate failed:`, err)));
 });
 
-/* ------------------------------- Fetch ------------------------------ */
-
+/**
+ * Routes same-origin GET requests to the audio, navigation, core asset, or static asset caching strategy.
+ * @param {FetchEvent} event - The service worker fetch event.
+ * @returns {void}
+ */
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -233,33 +298,31 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // 1. Audio Handler (Range requests aur bypass se pehle pakro)
   if (request.destination === 'audio' || url.pathname.includes('/audio/')) {
     event.respondWith(audioCacheFirst(event));
     return;
   }
 
-  // 2. Non-audio range requests
   if (request.headers.has('range')) return;
 
-  // 3. Single Page Navigation
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(event, INDEX_URL, TIMEOUT_NAVIGATION, true));
     return;
   }
 
-  // 4. Core Scripts & Styles
   if (CORE_DESTINATIONS.has(request.destination)) {
     event.respondWith(networkFirst(event, request, TIMEOUT_CORE, false));
     return;
   }
 
-  // 5. Static Assets
   event.respondWith(staleWhileRevalidate(event).catch(() => fetch(request)));
 });
 
-/* ------------------------------ Messages ---------------------------- */
-
+/**
+ * Handles client messages to skip waiting, report the worker version, or clear and rebuild the app caches.
+ * @param {ExtendableMessageEvent} event - The service worker message event carrying a string or object with a type.
+ * @returns {void}
+ */
 self.addEventListener('message', event => {
   const data = event.data;
   const type = typeof data === 'string' ? data : data && data.type;
