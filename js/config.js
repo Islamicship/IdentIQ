@@ -1,6 +1,11 @@
 'use strict';
 
 (function() {
+    /**
+     * Recursively freezes an object and all of its nested objects and functions so the configuration cannot be modified at runtime.
+     * @param {Object} obj - The object to freeze deeply.
+     * @returns {Object} The same object after it has been frozen.
+     */
     function deepFreeze(obj) {
         Object.keys(obj).forEach(function(prop) {
             var val = obj[prop];
@@ -31,9 +36,7 @@
         DEVELOPER: 'Creative Men',
         PLATFORM: 'Gulf Identity Intelligence Platform',
 
-        // Centralized Storage Contracts
         STORAGE_KEYS: STORAGE_KEYS,
-        // All persistent keys that must be erased on full wipe
         ALL_WIPEABLE_KEYS: [
             STORAGE_KEYS.HISTORY,
             STORAGE_KEYS.ANALYTICS,
@@ -43,7 +46,6 @@
             STORAGE_KEYS.NAMES
         ],
 
-        // System Constants & Defaults
         DEFAULTS: {
             WIPE_MINUTES: 5,
             HISTORY_MAX: 15,
@@ -51,7 +53,6 @@
             DEFAULT_TAB: 'tab-extractor'
         },
 
-        // Application Global Metadata (Single Source of Truth)
         META: {
             name: 'IdentIQ',
             version: 'v5.9.1',
@@ -74,7 +75,6 @@
 
     var FROZEN_CONFIG = deepFreeze(CONFIG);
 
-    // Global exposure (Namespace bridge)
     window.APP_CONFIG = FROZEN_CONFIG;
     window.IS = window.IS || {};
     window.IS.CONFIG = FROZEN_CONFIG;
