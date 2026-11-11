@@ -1,11 +1,11 @@
 /* =====================================================================
  * IdentIQ — Service Worker (production)
  * LOCATION : site ROOT  ->  /service-worker.js
- * VERSION  : 6.0.0 (Audio On-Demand Cache Architecture)
+ * VERSION  : 6.1.0 (Architecture Refactor & Centralized Contracts)
  * ===================================================================== */
 'use strict';
 
-const VERSION      = '6.0.0';
+const VERSION      = '6.1.0';
 const CACHE_PREFIX = 'identiq-';
 const CACHE_NAME   = `${CACHE_PREFIX}v${VERSION}`;
 const CACHE_AUDIO  = `${CACHE_PREFIX}audio-v1`; // Audio cache app updates par delete nahi hoga
