@@ -3,6 +3,9 @@
 window.IS = window.IS || {};
 
 try {
+    /**
+     * Runs the settings module in an isolated scope and exposes its public API on IS.settings.
+     */
     (function() {
         var CFG = (window.IS && IS.CONFIG) || window.APP_CONFIG || {};
         var KEYS = CFG.STORAGE_KEYS || { SETTINGS: "IS_settings_v1", LAST_CLEARED: "IS_last_cleared", PWA_INSTALLED: "pwa_installed" };
@@ -32,7 +35,11 @@ try {
             nepal: "Nepal",
             afghanistan: "Afghanistan"
         };
-        // Single Source of Truth for cities (from IS.CITY_MAP)
+        /**
+         * Returns the list of city names available for the given country key from the shared city map.
+         * @param {string} countryKey - Lowercase country key (e.g. "pakistan").
+         * @returns {string[]} Cities for the country, or an empty array if none are found.
+         */
         function getCitiesForCountry(countryKey) {
             var map = (window.IS && IS.CITY_MAP) || {};
             var pascalKey = COUNTRY_LABELS[countryKey] ? COUNTRY_LABELS[countryKey].replace(/\s+/g, "") : "";
@@ -342,9 +349,16 @@ try {
             iconKey: "info",
             strKey: "navAbout"
         } ];
+        /**
+         * Returns the PWA install button element from the settings panel.
+         * @returns {HTMLElement|null} The install button, or null if it is not in the DOM.
+         */
         function _getInstallBtn() {
             return document.getElementById("spInstallBtn");
         }
+        /**
+         * Shows or hides the PWA install button depending on whether the app is already installed or an install prompt is available, then refreshes the gear indicator dot.
+         */
         function _syncInstallBtnVisibility() {
             var btn = _getInstallBtn();
             if (!btn) return;
@@ -364,6 +378,10 @@ try {
         } catch (e) {}
         var _focusTrap = null;
         var _startupApplied = false;
+        /**
+         * Reads the saved settings from local storage merged over the defaults, falling back to the defaults on any error.
+         * @returns {Object} The effective settings object.
+         */
         function readSettings() {
             try {
                 return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(SKEY) || "{}"));
@@ -371,32 +389,64 @@ try {
                 return Object.assign({}, DEFAULTS);
             }
         }
+        /**
+         * Persists the given settings object to local storage, silently ignoring storage failures.
+         * @param {Object} obj - Settings object to save.
+         */
         function writeSettings(obj) {
             try {
                 localStorage.setItem(SKEY, JSON.stringify(obj));
             } catch (e) {}
         }
+        /**
+         * Updates a single setting and writes the full settings object back to storage.
+         * @param {string} key - Name of the setting to update.
+         * @param {*} val - New value for the setting.
+         */
         function saveProp(key, val) {
             var cur = readSettings();
             cur[key] = val;
             writeSettings(cur);
         }
+        /**
+         * Determines the active UI language, returning Urdu only when the i18n module reports it and English otherwise.
+         * @returns {string} "ur" or "en".
+         */
         function lang() {
             return window.IS && IS.i18n && IS.i18n._lang === "ur" ? "ur" : "en";
         }
+        /**
+         * Translates a string key into the active language, falling back to English and then to the key itself.
+         * @param {string} key - Translation key.
+         * @returns {string} The translated text.
+         */
         function t(key) {
             var L = lang();
             return STR[L] && STR[L][key] || STR.en[key] || key;
         }
+        /**
+         * Derives up to two uppercase initials from a display name for the avatar fallback.
+         * @param {string} name - User display name.
+         * @returns {string} The initials, or "?" when the name is empty.
+         */
         function getInitials(name) {
             if (!name || !name.trim()) return "?";
             var parts = name.trim().split(/\s+/);
             if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
             return parts[0].slice(0, 2).toUpperCase();
         }
+        /**
+         * Escapes HTML special characters so text can be safely embedded in markup and attribute values.
+         * @param {string} str - Raw text to escape.
+         * @returns {string} The escaped text.
+         */
         function esc(str) {
             return (str || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+        /**
+         * Shows a brief "saved" confirmation next to the given element and removes it automatically.
+         * @param {HTMLElement} anchorEl - Element beside which the toast is shown.
+         */
         function microToast(anchorEl) {
             if (!anchorEl || !anchorEl.parentNode) return;
             var toast = document.createElement("span");
@@ -416,6 +466,12 @@ try {
                 }, 300);
             }, 1600);
         }
+        /**
+         * Builds the HTML option list of cities for a country, marking the selected city.
+         * @param {string} countryKey - Lowercase country key.
+         * @param {string} selectedCity - City to mark as selected.
+         * @returns {string} HTML string of option elements.
+         */
         function buildCityOpts(countryKey, selectedCity) {
             var cities = getCitiesForCountry(countryKey);
             var html = '<option value="">' + esc(t("cityNone")) + "</option>";
@@ -424,6 +480,9 @@ try {
             });
             return html;
         }
+        /**
+         * Toggles the notification dot on the settings gear button based on whether an install prompt is pending.
+         */
         function _updateGearDot() {
             var btn = document.getElementById("settingsGearBtn");
             if (!btn) return;
@@ -433,6 +492,9 @@ try {
                 btn.classList.remove("sp-gear-dot");
             }
         }
+        /**
+         * Shows the gear notification dot when a service worker update is waiting to be activated.
+         */
         function _checkSWUpdateDot() {
             if (!navigator.serviceWorker) return;
             navigator.serviceWorker.ready.then(function(reg) {
@@ -442,6 +504,11 @@ try {
                 }
             }).catch(function() {});
         }
+        /**
+         * Builds the HTML for the General section (default tab, country, city, wipe timer and shortcuts bar).
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the section.
+         */
         function buildGeneral(cfg) {
             var tabs = [ {
                 v: "tab-extractor",
@@ -471,6 +538,11 @@ try {
             var cityOpts = buildCityOpts(cfg.defaultCountry, cfg.defaultCity);
             return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("generalTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelDefaultTab") + "</label>" + '<div class="sp-seg-group" id="spTabGroup">' + tabBtns + "</div>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label" for="spCountry">' + t("labelDefaultCountry") + "</label>" + '<select id="spCountry" class="sp-select">' + countryOpts + "</select>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label" for="spCity">' + t("labelDefaultCity") + "</label>" + '<select id="spCity" class="sp-select">' + cityOpts + "</select>" + "</div>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelWipe") + "</label>" + '<div class="sp-seg-group sp-seg-group--wipe" id="spWipeGroup">' + wipeBtns + "</div>" + '<p class="sp-wipe-readout" id="spWipeReadout">' + esc(wipeCurrent) + "</p>" + "</div>" + '<div class="sp-field sp-field--row">' + '<span class="sp-field-label">' + t("labelShortcutsBar") + "</span>" + '<label class="sp-toggle" title="' + t("labelShortcutsBar") + '">' + '<input type="checkbox" id="spShortcutsBar"' + (cfg.shortcutsVisible ? " checked" : "") + ">" + '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' + "</label>" + "</div>" + "</div>";
         }
+        /**
+         * Builds the HTML for the Appearance section with theme and language selection cards.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the section.
+         */
         function buildAppearance(cfg) {
             var isDark = !(window.IS && IS.theme && IS.theme._mode === "light");
             var isLight = !isDark;
@@ -487,6 +559,11 @@ try {
             nexus: '<svg width="100%" height="100%" viewBox="0 0 36 36"><rect width="36" height="36" rx="18" fill="#2d0c1e"/><circle cx="18" cy="14" r="7" fill="#ff4d6d"/><path d="M7 32c0-6 5-10 11-10s11 4 11 10" fill="#590d22"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><circle cx="21" cy="13" r="1.5" fill="#fff"/><path d="M14 8l4-3 4 3" stroke="#ff758f" stroke-width="1.5" fill="none"/></svg>'
         };
 
+        /**
+         * Builds the HTML for the Profile section including avatar, avatar style options, name and email fields.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the section.
+         */
         function buildProfile(cfg) {
             var avatarContent = cfg.avatarImage ? '<img src="' + cfg.avatarImage + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (cfg.avatarEmoji && CYBER_AVATARS[cfg.avatarEmoji] ? CYBER_AVATARS[cfg.avatarEmoji] : (cfg.avatarEmoji ? esc(cfg.avatarEmoji) : esc(getInitials(cfg.userName))));
             var greeting = cfg.userName ? t("profileGreeting") + " " + cfg.userName.split(" ")[0] + "!" : "";
@@ -518,6 +595,11 @@ try {
                 '<p class="sp-note">' + t("profileNote") + "</p>" +
             "</div>";
         }
+        /**
+         * Builds the HTML for the Privacy section with the wipe timer, sound toggle, data clearing actions and last-cleared time.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the section.
+         */
         function buildPrivacy(cfg) {
             var wipes = [ 1, 3, 5, 10, 30 ];
             var wipeBtns = wipes.map(function(w) {
@@ -538,6 +620,11 @@ try {
             }
             return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("privacyTitle") + "</h3>" + '<div class="sp-field">' + '<label class="sp-field-label">' + t("labelWipePrivacy") + "</label>" + '<div class="sp-seg-group sp-seg-group--wipe" id="spWipeGroupP">' + wipeBtns + "</div>" + '<p class="sp-wipe-readout" id="spWipeReadoutP">' + esc(wipeCurrent) + "</p>" + "</div>" + '<div class="sp-field sp-field--row">' + '<span class="sp-field-label">' + t("labelSound") + "</span>" + '<label class="sp-toggle">' + '<input type="checkbox" id="spSound"' + (cfg.soundEnabled ? " checked" : "") + ">" + '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' + "</label>" + "</div>" + '<div class="sp-divider"></div>' + '<div class="sp-field">' + '<label class="sp-field-label">' + t("dataManagement") + "</label>" + '<div class="sp-danger-stack">' + '<button class="sp-danger-btn" id="spClearHistory">' + ICONS.trash + t("btnClearHistory") + "</button>" + '<button class="sp-danger-btn" id="spClearAnalytics">' + ICONS.trash + t("btnClearAnalytics") + "</button>" + '<button class="sp-danger-btn sp-danger-btn--strong" id="spClearAll">' + ICONS.trash + t("btnClearAll") + "</button>" + "</div>" + '<p class="sp-last-cleared" id="spLastCleared">' + esc(lastClearedStr) + "</p>" + "</div>" + '<p class="sp-note sp-note--privacy">' + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' + t("privacyNote") + "</p>" + "</div>";
         }
+        /**
+         * Builds the HTML for the Shortcuts section with an enable toggle and a table of keyboard shortcuts.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the section.
+         */
         function buildShortcuts(cfg) {
             var rows = [ {
                 keys: [ "Alt", "1" ],
@@ -569,12 +656,19 @@ try {
             }).join("");
             return '<div class="sp-content-inner">' + '<h3 class="sp-content-title">' + t("shortcutsTitle") + "</h3>" + '<div class="sp-field sp-field--row">' + '<span class="sp-field-label">' + t("labelEnableShortcuts") + "</span>" + '<label class="sp-toggle">' + '<input type="checkbox" id="spShortcutsEnabled"' + (cfg.shortcutsEnabled ? " checked" : "") + ">" + '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' + "</label>" + "</div>" + '<div class="sp-sc-table-wrap">' + '<table class="sp-sc-table">' + "<tbody>" + tableRows + "</tbody>" + "</table>" + "</div>" + '<button class="sp-copy-shortcuts-btn" id="spCopyShortcuts">' + ICONS.copy + " " + t("copyShortcuts") + "</button>" + '<p class="sp-note">' + t("shortcutsNote") + "</p>" + "</div>";
         }
+        /**
+         * Builds the HTML for the About section including app details, developer info, support links, changelog and legal links.
+         * @returns {string} HTML string for the section.
+         */
         function buildAbout() {
             var changelogItems = [ "changelog1", "changelog2", "changelog3", "changelog4", "changelog5" ].map(function(k) {
                 return '<li class="sp-changelog-item">' + ICONS.zap + "<span>" + t(k) + "</span></li>";
             }).join("");
             return '<div class="sp-content-inner sp-about-content">' + '<div class="sp-about-section-label">' + t("aboutAppSection") + "</div>" + '<div class="sp-app-card">' + '<div class="sp-app-logo">' + '<img src="assets/logo.png" alt="IdentIQ" style="width:44px;height:44px;border-radius:10px;object-fit:cover;">' + "</div>" + '<div class="sp-app-info">' + '<div class="sp-app-name-row">' + '<span class="sp-app-name">' + t("appName") + "</span>" + '<span class="sp-version-badge">' + t("appVersion") + "</span>" + '<span class="sp-released-badge">' + APP_META.released + "</span>" + "</div>" + '<p class="sp-app-tagline">' + t("appTagline") + "</p>" + '<p class="sp-powered-by">' + t("poweredBy") + "</p>" + "</div>" + "</div>" + '<div class="sp-about-actions">' + '<button class="sp-about-btn" id="spInstallBtn" style="' + (!!window._IS_deferredInstall ? "" : "display:none;") + '">' + ICONS.download + t("btnInstall") + "</button>" + '<button class="sp-about-btn" id="spUpdateBtn">' + ICONS.refresh + t("btnUpdate") + "</button>" + "</div>" + '<div class="sp-about-section-label">' + t("aboutDeveloperSection") + "</div>" + '<div class="sp-dev-card">' + '<div class="sp-dev-avatar">CM</div>' + '<div class="sp-dev-info">' + '<div class="sp-dev-name">' + APP_META.developer + "</div>" + '<div class="sp-dev-tagline">' + t("developerTagline") + "</div>" + '<div class="sp-dev-meta-row">' + '<span class="sp-dev-meta-item">' + ICONS.pin + " " + t("locationVal") + "</span>" + '<span class="sp-dev-meta-item">' + ICONS.clock + " " + t("supportHoursVal") + "</span>" + "</div>" + "</div>" + "</div>" + '<div class="sp-about-section-label">' + t("aboutSupportSection") + "</div>" + '<div class="sp-contact-card">' + '<a href="mailto:' + APP_META.email + '" class="sp-contact-item">' + '<span class="sp-contact-icon">✉️</span>' + "<div>" + '<div class="sp-contact-label">' + t("labelEmailSupport") + "</div>" + '<div class="sp-contact-val">' + APP_META.email + "</div>" + "</div>" + "</a>" + '<a href="' + APP_META.whatsappUrl + '" target="_blank" rel="noopener" class="sp-contact-item sp-contact-item--wa">' + '<span class="sp-contact-icon">💬</span>' + "<div>" + '<div class="sp-contact-label">' + t("labelWA") + "</div>" + '<div class="sp-contact-val">' + APP_META.whatsapp + "</div>" + "</div>" + "</a>" + '<a href="' + APP_META.github + '" target="_blank" rel="noopener" class="sp-contact-item sp-contact-item--gh">' + '<span class="sp-contact-icon">🐙</span>' + "<div>" + '<div class="sp-contact-label">' + t("labelGithub") + "</div>" + '<div class="sp-contact-val">' + t("githubVal") + "</div>" + "</div>" + "</a>" + "</div>" + '<div class="sp-about-section-label">' + t("aboutProjectsSection") + "</div>" + '<div class="sp-projects-grid">' + '<a href="' + APP_META.nexusApp + '" target="_blank" rel="noopener" class="sp-project-card sp-project-card--primary">' + '<span class="sp-project-icon">🔍</span>' + '<div class="sp-project-info">' + '<div class="sp-project-name">' + t("projectNexus") + "</div>" + '<div class="sp-project-url">' + APP_META.nexusApp.replace(/^https?:\/\//, "") + '</div>' + "</div>" + '<span class="sp-project-star">' + ICONS.star + "</span>" + "</a>" + '<a href="' + APP_META.ocrApp + '" target="_blank" rel="noopener" class="sp-project-card">' + '<span class="sp-project-icon">📄</span>' + '<div class="sp-project-info">' + '<div class="sp-project-name">' + t("projectOcr") + "</div>" + '<div class="sp-project-url">personal-ocr-tool.netlify.app</div>' + "</div>" + ICONS.globe + "</a>" + '<a href="' + APP_META.deenApp + '" target="_blank" rel="noopener" class="sp-project-card">' + '<span class="sp-project-icon">🕌</span>' + '<div class="sp-project-info">' + '<div class="sp-project-name">' + t("projectDeen") + "</div>" + '<div class="sp-project-url">deen-toolkit.netlify.app</div>' + "</div>" + ICONS.globe + "</a>" + "</div>" + '<div class="sp-about-section-label">' + t("changelogTitle") + "</div>" + '<ul class="sp-changelog-list">' + changelogItems + "</ul>" + '<div class="sp-divider"></div>' + '<div class="sp-about-section-label">' + t("aboutLegalSection") + "</div>" + '<button class="sp-about-btn sp-about-btn--full" id="spPrivacyBtn">' + ICONS.lock + " " + t("privacyPolicyBtn") + "</button>" + '<p class="sp-copyright-notice">' + t("copyrightNotice") + "</p>" + '<div class="sp-divider"></div>' + '<button class="sp-reset-btn" id="spResetBtn">' + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>' + t("btnReset") + "</button>" + "</div>";
         }
+        /**
+         * Displays the privacy policy in a modal overlay in the active language and wires up its close behavior.
+         */
         function showPrivacyPolicy() {
             var overlay = document.createElement("div");
             overlay.className = "sp-privacy-overlay";
@@ -600,9 +694,17 @@ try {
                 }
             });
         }
+        /**
+         * Returns the English privacy policy content as HTML.
+         * @returns {string} HTML string of the policy.
+         */
         function buildPrivacyContentEn() {
               return "" + "<h4>Privacy Policy — " + APP_META.name + " " + APP_META.version + "</h4>" + '<p class="sp-pp-date">Effective Date: January 1, ' + ((window.APP_CONFIG && APP_CONFIG.YEAR) || 2026) + ' &nbsp;|&nbsp; Developer: ' + APP_META.developer + ', ' + APP_META.location + '</p>' + "<h5>1. Data We Collect</h5>" + "<p>IdentIQ does <strong>not</strong> collect, transmit, or store any personal data on external servers. All information you enter — including names, emails, extracted identity data, and analytics — is stored exclusively in your browser's <code>localStorage</code> on your own device.</p>" + "<h5>2. Local Storage Only</h5>" + "<p>The following data may be saved locally on your device:</p>" + "<ul><li>Your display name and email (optional, for profile)</li><li>App settings and preferences</li><li>Extraction history and analytics counters</li><li>Theme and language preference</li></ul>" + "<p>None of this data leaves your device. You can delete it at any time via <strong>Privacy → Clear All Data</strong>.</p>" + "<h5>3. Third-Party Services</h5>" + "<p>IdentIQ does not integrate with any third-party analytics, advertising, or tracking services. No cookies are set. No telemetry is sent.</p>" + "<h5>4. Service Worker & Caching</h5>" + "<p>IdentIQ uses a service worker to cache app files locally for offline use. This cache contains only app code and assets — no user data is cached by the service worker.</p>" + "<h5>5. External Links</h5>" + "<p>This app contains links to external sites (GitHub, WhatsApp, Netlify-hosted projects). Creative Men is not responsible for the privacy practices of those external services.</p>" + "<h5>6. Children's Privacy</h5>" + "<p>IdentIQ is not directed at children under 13. We do not knowingly collect any information from minors.</p>" + "<h5>7. Changes to This Policy</h5>" + "<p>We may update this policy occasionally. Updates will be reflected in the app version notes. Continued use of the app constitutes acceptance of any changes.</p>" + "<h5>8. Contact</h5>" + '<p>For privacy questions, contact us at <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a> or WhatsApp <strong>0321-8232140</strong>.</p>';
         }
+        /**
+         * Returns the Urdu privacy policy content as HTML.
+         * @returns {string} HTML string of the policy.
+         */
         function buildPrivacyContentUr() {
             return "" + "<h4>رازداری پالیسی — " + APP_META.name + " " + APP_META.version + "</h4>" +
                 '<p class="sp-pp-date">تاریخ نفاذ: یکم جنوری ' + ((window.APP_CONFIG && APP_CONFIG.YEAR) || 2026) + ' &nbsp;|&nbsp; ڈویلپر: ' + APP_META.developer + '، ' + APP_META.location + '</p>' +
@@ -617,11 +719,20 @@ try {
                 "<h5>4. رابطہ</h5>" +
                 '<p>رازداری سے متعلق سوالات کے لیے: <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a></p>';
         }
+        /**
+         * Builds the HTML for the sidebar navigation buttons, marking the active section.
+         * @returns {string} HTML string of the navigation buttons.
+         */
         function buildSidebarNav() {
             return NAV_ITEMS.map(function(item) {
                 return '<button class="sp-nav-item' + (item.id === _activeNav ? " active" : "") + '" data-section="' + item.id + '" role="tab" aria-selected="' + (item.id === _activeNav ? "true" : "false") + '">' + ICONS[item.iconKey] + '<span class="sp-nav-label">' + t(item.strKey) + "</span>" + "</button>";
             }).join("");
         }
+        /**
+         * Builds the HTML for whichever settings section is currently active.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the active section.
+         */
         function buildContentPane(cfg) {
             switch (_activeNav) {
               case "general":
@@ -646,9 +757,17 @@ try {
                 return buildGeneral(cfg);
             }
         }
+        /**
+         * Builds the complete settings panel markup including header, sidebar navigation and the active content pane.
+         * @param {Object} cfg - Current settings object.
+         * @returns {string} HTML string for the panel.
+         */
         function buildPanelHTML(cfg) {
             return '<div class="sp-header" id="spHeader">' + '<div class="sp-header-inner">' + ICONS.gear + '<span class="sp-header-title">' + t("settingsTitle") + "</span>" + "</div>" + '<button class="sp-close-x" id="spCloseX" aria-label="Close settings">' + ICONS.close + "</button>" + "</div>" + '<div class="sp-layout">' + '<nav class="sp-sidebar" role="tablist" aria-label="Settings sections">' + buildSidebarNav() + "</nav>" + '<div class="sp-content" id="spContent" role="tabpanel">' + buildContentPane(cfg) + "</div>" + "</div>";
         }
+        /**
+         * Creates the settings overlay and dialog panel elements once and attaches them to the document body.
+         */
         function ensureDOM() {
             if (_overlay) return;
             _overlay = document.createElement("div");
@@ -667,14 +786,24 @@ try {
             _overlay.appendChild(_panel);
             document.body.appendChild(_overlay);
         }
+        /**
+         * Re-renders the settings panel from the saved settings and rebinds its event handlers.
+         */
         function renderPanel() {
             _aboutBound = false;
             var cfg = readSettings();
             _panel.innerHTML = buildPanelHTML(cfg);
             bindEvents(cfg);
         }
+        /**
+         * Installs a keydown handler that keeps Tab focus cycling inside the open settings panel.
+         */
         function setupFocusTrap() {
             var focusable = 'button:not([disabled]), input, select, a[href], [tabindex]:not([tabindex="-1"])';
+            /**
+             * Handles Tab key presses so focus wraps between the first and last focusable elements of the panel.
+             * @param {KeyboardEvent} e - Keydown event.
+             */
             _focusTrap = function(e) {
                 if (e.key !== "Tab") return;
                 var els = Array.prototype.slice.call(_panel.querySelectorAll(focusable));
@@ -694,12 +823,19 @@ try {
             };
             document.addEventListener("keydown", _focusTrap);
         }
+        /**
+         * Removes the focus-trap keydown handler if one is active.
+         */
         function removeFocusTrap() {
             if (_focusTrap) {
                 document.removeEventListener("keydown", _focusTrap);
                 _focusTrap = null;
             }
         }
+        /**
+         * Opens the settings panel, optionally on a given section, and manages focus, scroll lock and gear button state.
+         * @param {string} [section] - Optional id of the section to open.
+         */
         function openPanel(section) {
             ensureDOM();
             if (section && NAV_ITEMS.some(function(n) {
@@ -720,6 +856,9 @@ try {
                 setupFocusTrap();
             }, 180);
         }
+        /**
+         * Closes the settings panel, unlocks page scrolling, removes the focus trap and returns focus to the gear button.
+         */
         function closePanel() {
             if (!_overlay) return;
             _overlay.classList.remove("sp-open");
@@ -730,6 +869,10 @@ try {
             if (gearBtn) gearBtn.classList.remove("sp-gear-btn--open");
             if (gearBtn) gearBtn.focus();
         }
+        /**
+         * Switches the active settings section, remembers it for the session and swaps the content pane with a short transition.
+         * @param {string} id - Id of the section to show.
+         */
         function switchSection(id) {
             _activeNav = id;
             _aboutBound = false;
@@ -756,6 +899,10 @@ try {
                 }, 120);
             }
         }
+        /**
+         * Attaches the close button and sidebar navigation handlers and binds events for the active section.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindEvents(cfg) {
             var closeX = document.getElementById("spCloseX");
             if (closeX) closeX.addEventListener("click", closePanel);
@@ -766,6 +913,10 @@ try {
             });
             bindContentEvents(cfg);
         }
+        /**
+         * Binds the event handlers that belong to the currently active settings section.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindContentEvents(cfg) {
             var pane = document.getElementById("spContent");
             if (!pane) return;
@@ -795,6 +946,10 @@ try {
                 break;
             }
         }
+        /**
+         * Wires up the General section controls to save the default tab, country, city, wipe timer and shortcuts bar visibility.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindGeneral(cfg) {
             var tabGroup = document.getElementById("spTabGroup");
             if (tabGroup) {
@@ -840,6 +995,10 @@ try {
                 });
             }
         }
+        /**
+         * Wires up the theme and language cards to switch the app theme and language.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindAppearance(cfg) {
             var themeCards = document.getElementById("spThemeCards");
             if (themeCards) {
@@ -873,6 +1032,10 @@ try {
                 });
             }
         }
+        /**
+         * Wires up the Profile section so the avatar choice, uploaded photo, name and email are saved and previewed.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindProfile(cfg) {
             var nameInput = document.getElementById("spUserName");
             var emailInput = document.getElementById("spUserEmail");
@@ -925,8 +1088,15 @@ try {
                     if (!file) return;
 
                     var reader = new FileReader();
+                    /**
+                     * Loads the selected image file into an Image element once it has been read.
+                     * @param {ProgressEvent} event - FileReader load event.
+                     */
                     reader.onload = function(event) {
                         var img = new Image();
+                        /**
+                         * Resizes the loaded image to a 128x128 PNG, saves it as the avatar and updates the preview.
+                         */
                         img.onload = function() {
                             var canvas = document.createElement("canvas");
                             canvas.width = 128;
@@ -967,6 +1137,10 @@ try {
                 });
             }
         }
+        /**
+         * Wires up the Privacy section for the sound toggle, wipe timer and the clear history, analytics and all-data actions.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindPrivacy(cfg) {
             bindWipeGroup("spWipeGroupP", "spWipeReadoutP");
             var soundChk = document.getElementById("spSound");
@@ -1018,6 +1192,9 @@ try {
                 });
             }
         }
+        /**
+         * Updates the last-cleared label with the stored timestamp when one exists.
+         */
         function _updateLastClearedDisplay() {
             var el = document.getElementById("spLastCleared");
             if (!el) return;
@@ -1029,6 +1206,10 @@ try {
                 } catch (e) {}
             }
         }
+        /**
+         * Wires up the shortcuts enable toggle and the copy-shortcuts button.
+         * @param {Object} cfg - Current settings object.
+         */
         function bindShortcuts(cfg) {
             var scEnabled = document.getElementById("spShortcutsEnabled");
             if (scEnabled) {
@@ -1042,6 +1223,9 @@ try {
                 copyBtn.addEventListener("click", function() {
                     var lines = [ "Alt + 1  — " + t("scAlt1"), "Alt + 2  — " + t("scAlt2"), "Alt + 3  — " + t("scAlt3"), "Alt + 4  — " + t("scAlt4"), "Alt + S  — " + t("scAltS"), "Ctrl + ↵ — " + t("scCtrlEnter"), "Esc      — " + t("scEsc") ];
                     var text = lines.join("\n");
+                    /**
+                     * Shows the saved confirmation on the copy shortcuts button.
+                     */
                     var done = function() {
                         microToast(copyBtn);
                     };
@@ -1055,6 +1239,9 @@ try {
             }
         }
         var _aboutBound = false;
+        /**
+         * Wires up the About section's install, update, privacy policy and reset buttons, only once per render.
+         */
         function bindAbout() {
             if (_aboutBound) return;
             _aboutBound = true;
@@ -1136,6 +1323,11 @@ try {
                 });
             }
         }
+        /**
+         * Wires up a wipe-timer button group to save the chosen minutes, broadcast the change and update its readout.
+         * @param {string} groupId - Id of the button group element.
+         * @param {string} readoutId - Id of the element that displays the current value.
+         */
         function bindWipeGroup(groupId, readoutId) {
             var grp = document.getElementById(groupId);
             if (!grp) return;
@@ -1159,6 +1351,10 @@ try {
                 });
             });
         }
+        /**
+         * Applies the given settings to the global runtime flags and notifies the app through change events.
+         * @param {Object} cfg - Settings object to apply.
+         */
         function applySettings(cfg) {
             window._IS_soundEnabled = cfg.soundEnabled;
             window._IS_wipeMins = cfg.wipeMinutes;
@@ -1171,10 +1367,18 @@ try {
                 detail: cfg
             }));
         }
+        /**
+         * Shows or hides the keyboard shortcuts legend bar.
+         * @param {boolean} show - True to show the bar, false to hide it.
+         */
         function applyShortcutsVisibility(show) {
             var bar = document.querySelector(".shortcut-legend");
             if (bar) bar.style.display = show ? "" : "none";
         }
+        /**
+         * Activates the given app tab through the global tab switcher or by clicking its navigation button.
+         * @param {string} tabId - Id of the tab to activate.
+         */
         function applyDefaultTab(tabId) {
             if (typeof window.switchTab === "function") {
                 window.switchTab(tabId);
@@ -1183,6 +1387,11 @@ try {
                 if (btn) btn.click();
             }
         }
+        /**
+         * Applies the default country and city to the generator selectors and triggers their change events.
+         * @param {string} country - Settings country key.
+         * @param {string} city - City name to select.
+         */
         function applyDefaultCountryCity(country, city) {
             var SETTINGS_TO_GEN_KEY = {
                 pakistan: "Pakistan",
@@ -1215,14 +1424,23 @@ try {
                 }
             }
         }
+        /**
+         * Wraps the copy sound player so it stays silent when sound effects are disabled.
+         */
         function patchCopySound() {
             if (!window.IS || !IS.playCopySound) return;
             var orig = IS.playCopySound;
+            /**
+             * Plays the original copy sound only when sound effects are enabled.
+             */
             IS.playCopySound = function() {
                 if (window._IS_soundEnabled === false) return;
                 orig.call(IS);
             };
         }
+        /**
+         * Hides the legacy theme and language toggles and adds the settings gear button to the navigation bar once.
+         */
         function injectGearButton() {
             if (document.getElementById("settingsGearBtn")) return;
             var container = document.querySelector(".nav-container");
@@ -1246,6 +1464,9 @@ try {
             });
             container.appendChild(btn);
         }
+        /**
+         * Initialises the settings module by injecting the gear button, applying saved settings and registering the global shortcut and language-change handlers.
+         */
         function init() {
             injectGearButton();
             patchCopySound();
