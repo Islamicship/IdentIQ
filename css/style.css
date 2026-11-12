@@ -3739,3 +3739,29 @@ body.theme-light :is(.gen-toast, #gen-toast)::after {
     display: none !important;
   }
 }
+
+  /* WCAG AA Contrast Overrides */
+  .shortcut-label { color: #334155 !important; font-weight: 500; }
+  .header-badge { background-color: #0f172a !important; color: #f8fafc !important; border: 1px solid #334155; font-weight: 600; }
+
+  @media (prefers-color-scheme: dark) {
+    .shortcut-label { color: #cbd5e1 !important; }
+    .header-badge { background-color: #1e293b !important; color: #38bdf8 !important; border-color: #475569; }
+  }
+
+  /* ==========================================================================
+   Header & Badge WCAG AA Contrast Fixes (> 10:1 Ratio)
+   ========================================================================== */
+.app-header .title-text span,
+[data-i18n="headerVersion"] {
+  color: #e2e8f0 !important; /* Slate 200 - Crystal clear against dark header */
+  font-weight: 500;
+}
+
+.header-badge,
+span.header-badge {
+  background-color: #0f172a !important; /* Deep Slate Background */
+  color: #ffffff !important;            /* Pure Crisp White (15:1 Ratio Guaranteed) */
+  border: 1px solid #38bdf8 !important; /* Sky Blue Accent Border */
+  font-weight: 700 !important;
+}
