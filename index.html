@@ -98,11 +98,8 @@
 
     <!-- === NAVIGATION BAR === -->
     <nav class="main-nav" role="navigation" aria-label="Main navigation">
-      <div
-        class="nav-container"
-        role="tablist"
-        aria-label="Main navigation tabs"
-      >
+      <div class="nav-container">
+        <div class="nav-tabs" role="tablist" aria-label="Main navigation tabs">
         <button
           class="nav-tab active"
           role="tab"
@@ -191,14 +188,14 @@
           </svg>
           <span data-i18n="navNames">Names</span>
         </button>
+      </div>
 
+      <div class="nav-actions">
         <button
           id="themeToggleBtn"
           class="nav-tab icon-nav-btn"
           aria-label="Toggle light/dark mode"
           title="Toggle Light Mode"
-          aria-hidden="true"
-          tabindex="-1"
         >
           <svg
             width="14"
@@ -223,8 +220,6 @@
           class="nav-tab icon-nav-btn"
           aria-label="Toggle language"
           title="Switch Language"
-          aria-hidden="true"
-          tabindex="-1"
         >
           <svg
             width="14"
@@ -266,6 +261,7 @@
           </svg>
           <span data-i18n="navInstall">Install</span>
         </button>
+        </div>
       </div>
     </nav>
 
