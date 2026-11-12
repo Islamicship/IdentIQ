@@ -359,10 +359,12 @@
    * Wires up the Names tab once the DOM is ready: renders collections, search, audio, copy, script toggle and playlist.
    * @returns {void}
    */
-  document.addEventListener("DOMContentLoaded", function () {
+  function initNames() {
     var root = document.getElementById("tab-names");
     var data = window.IS && IS.namesData;
     if (!root || !data) return;
+    if (root.getAttribute("data-rendered") === "true") return;
+    root.setAttribute("data-rendered", "true");
     var tablist = root.querySelector(".names-tabs");
     var tabs = Array.prototype.slice.call(root.querySelectorAll(".names-tab"));
     var panels = Array.prototype.slice.call(
@@ -395,6 +397,8 @@
     function renderCollection(key) {
       if (cards[key]) return;
       var grid = document.getElementById(COLLECTIONS[key].gridId);
+      if (!grid) return;
+      grid.innerHTML = "";
       var frag = document.createDocumentFragment();
       var items = [];
       (data[key] || []).forEach(function (n) {
@@ -645,8 +649,13 @@
         var card = sp.closest(".name-card");
         var src = speakData.get(card);
         if (src) {
+          var isSameActive = (activeCardEl === card) && !audioPlayer.paused;
           if (isPlayingAll) stopAll();
-          playAudioTrack(src, card, sp, null);
+          if (isSameActive) {
+            stopPlayback();
+          } else {
+            playAudioTrack(src, card, sp, null);
+          }
         }
         return;
       }
@@ -713,6 +722,19 @@
     var playAllBtn = document.getElementById("namesPlayAll");
     var isPlayingAll = false;
     var playlistQueue = [];
+    var playlistTimer = null;
+
+    function stopPlayAll() {
+      isPlayingAll = false;
+      if (playlistTimer) {
+        clearTimeout(playlistTimer);
+        playlistTimer = null;
+      }
+      playlistQueue = [];
+      playlistIndex = 0;
+      updatePlayAllBtn(false);
+    }
+    onStopPlaylistHook = stopPlayAll;
     var playlistIndex = 0;
 
     /**
@@ -741,10 +763,14 @@
      */
     onStopPlaylistHook = function () {
       isPlayingAll = false;
+      if (playlistTimer) {
+        clearTimeout(playlistTimer);
+        playlistTimer = null;
+      }
       playlistQueue = [];
       playlistIndex = -1;
       updatePlayAllBtn(false);
-    };
+    };;
 
     /**
      * Plays the current playlist item, scrolls it into view, and advances to the next after a short pause.
@@ -771,7 +797,7 @@
       playAudioTrack(src, item.el, speakBtn, function () {
         if (!isPlayingAll) return;
         playlistIndex++;
-        setTimeout(function () {
+        playlistTimer = setTimeout(function () {
           if (isPlayingAll) playNextInQueue();
         }, 220);
       });
@@ -822,5 +848,11 @@
       stop: stopAll,
       progress: progress,
     };
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initNames);
+  } else {
+    initNames();
+  }
 })();

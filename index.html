@@ -34,27 +34,24 @@
     <link rel="icon" type="image/png" href="assets/logo.webp" />
     <link rel="apple-touch-icon" href="assets/logo.webp" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="preload" as="image" href="assets/logo.webp" fetchpriority="high" type="image/webp" />
 
     <!-- === FONTS === -->
     <!-- === PERFORMANCE: CRITICAL PRECONNECTS === -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- === NON-BLOCKING GOOGLE FONTS === -->
+    <!-- === NON-BLOCKING GOOGLE FONTS (LCP Optimized via display=optional) === -->
+     <!-- 
     <link 
       rel="preload" 
       as="style" 
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" 
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=optional" 
+      onload="this.onload=null;this.rel='stylesheet'" 
     />
-    <link 
-      rel="stylesheet" 
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" 
-      media="print" 
-      onload="this.media='all'" 
-    />
-
+ -->
     <!-- === CRITICAL STYLESHEET (Keep Render-Critical) === -->
-    <link rel="stylesheet" href="css/style.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
 
     <!-- === DEFERRED NON-CRITICAL STYLESHEETS === -->
     <link rel="stylesheet" href="css/settings.min.css" media="print" onload="this.media='all'" />
@@ -63,10 +60,10 @@
 
     <!-- Fallback for JavaScript-disabled browsers -->
     <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" />
-      <link rel="stylesheet" href="css/settings.min.css" />
-      <link rel="stylesheet" href="css/names.min.css" />
-      <link rel="stylesheet" href="css/copy-fx.min.css" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" />
+      
+      
+      
     </noscript>
   </head>
   <body>
@@ -192,53 +189,15 @@
 
       <div class="nav-actions">
         <button
-          id="themeToggleBtn"
-          class="nav-tab icon-nav-btn"
-          aria-label="Toggle light/dark mode"
-          title="Toggle Light Mode"
+          type="button"
+          id="settingsGearBtn"
+          class="sp-gear-btn"
+          aria-label="Open Settings (Alt+S)"
+          title="Settings · Alt+S"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="5" />
-            <path
-              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-            />
-          </svg>
-          <span data-i18n="themeToggle">Light Mode</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
 
-        <button
-          id="langToggleBtn"
-          class="nav-tab icon-nav-btn"
-          aria-label="Toggle language"
-          title="Switch Language"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path
-              d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"
-            />
-            <path d="M2 12h20" />
-          </svg>
-          <span data-i18n="langToggle">اردو</span>
-        </button>
         <button
           id="installAppBtn"
           class="nav-tab install-btn"
@@ -646,9 +605,10 @@
             <textarea
               id="inputText"
               data-i18n-placeholder="inputPlaceholder"
-              placeholder="Paste Iqama / ID text here…"
+              placeholder="Paste Iqama / ID text here…&#10;Data extracts automatically as you type or paste."
               aria-label="Input terminal for identity data"
               spellcheck="false"
+              maxlength="50000"
             ></textarea>
           </div>
           <div class="terminal-footer">
@@ -1323,18 +1283,14 @@
       </div>
     </div>
 
-    <!-- === SCRIPTS: LIBRARIES === -->
+   <!-- === SCRIPTS: CRITICAL CORE ENGINE === -->
     <script src="lib/moment.min.js" defer></script>
     <script src="lib/moment-hijri.min.js" defer></script>
-    <script src="lib/confetti.browser.min.js" defer></script>
-    <!-- === SCRIPTS: APPLICATION === -->
-    <script src="js/config.js" defer></script>
+    <script src="js/config.min.js" defer></script>
     <script src="js/ui.js" defer></script>
-    <script src="js/extractor.js" defer></script>
-    <script src="js/generator.js" defer></script>
+    <script src="js/extractor.min.js" defer></script>
+    <script src="js/generator.min.js" defer></script>
     <script src="js/main.js" defer></script>
-    <script src="js/settings.js" defer></script>
-    <script src="js/names-data.js" defer></script>
-    <script src="js/names.js" defer></script>
+   
   </body>
 </html>

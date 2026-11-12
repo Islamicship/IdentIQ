@@ -40,6 +40,15 @@ document.addEventListener("DOMContentLoaded", function () {
    * @returns {void} Nothing.
    */
   function switchTab(targetId) {
+
+    if (targetId === "tab-names" && (!window.IS || !IS.namesData)) {
+      if (window.IS && IS.loadScript) {
+        IS.loadScript("js/names-data.js", function () {
+  IS.loadScript("js/names.js");
+});
+      }
+    }
+
     tabs.forEach(function (t) {
       var isMe = t.getAttribute("data-target") === targetId;
       t.classList.toggle("active", isMe);
@@ -780,5 +789,66 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(function (err) {
         console.error("[SW] registration failed:", err);
       });
+  });
+})();
+
+
+
+// ==========================================================================
+// SMART INTENT PRELOAD: ZERO LIGHTHOUSE OVERHEAD
+// ==========================================================================
+(function setupIntentPreload() {
+  var namesTabBtn = document.querySelector('[data-target="tab-names"]');
+  if (!namesTabBtn) return;
+
+  function preloadNames() {
+    if (window.IS && IS.loadScript && !window.IS.namesData) {
+      IS.loadScript("js/names-data.js", function () {
+  IS.loadScript("js/names.js");
+});
+    }
+  }
+
+  // Desktop par mouse aane par, ya mobile par pehla touch aane par prefetch karega
+  namesTabBtn.addEventListener("pointerenter", preloadNames, { once: true });
+  namesTabBtn.addEventListener("touchstart", preloadNames, { once: true, passive: true });
+})();
+
+// === ON-DEMAND SETTINGS LOADER ===
+(function setupSettingsOnDemand() {
+  function openSettings() {
+    if (window.IS && IS.settings && IS.settings.open) {
+      IS.settings.open();
+    } else if (window.IS && IS.loadScript) {
+      IS.loadScript("js/settings.min.js", function () {
+        if (window.IS && IS.settings && IS.settings.open) {
+          IS.settings.open();
+        }
+      });
+    }
+  }
+
+  var gear = document.getElementById("settingsGearBtn");
+  if (gear) {
+    gear.addEventListener("click", openSettings);
+    // User cursor laye ya touch kare to background mein instant load ho
+    gear.addEventListener("pointerenter", function () {
+      if (window.IS && IS.loadScript && (!window.IS || !IS.settings)) {
+        IS.loadScript("js/settings.min.js");
+      }
+    }, { once: true });
+    gear.addEventListener("touchstart", function () {
+      if (window.IS && IS.loadScript && (!window.IS || !IS.settings)) {
+        IS.loadScript("js/settings.min.js");
+      }
+    }, { once: true, passive: true });
+  }
+
+  // Keyboard shortcut Alt+S ko handle karo
+  window.addEventListener("keydown", function (e) {
+    if (e.altKey && (e.key === "s" || e.key === "S")) {
+      e.preventDefault();
+      openSettings();
+    }
   });
 })();

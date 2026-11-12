@@ -412,22 +412,52 @@ window.IS = window.IS || {};
    * Fires a confetti burst with default settings that can be overridden, if the confetti library is loaded.
    * @param {Object} [opts] - Confetti options that override the defaults.
    */
+  /**
+   * Universal dynamic script loader with deduplication.
+   */
+  var _loadedScripts = {};
+  IS.loadScript = function (src, cb) {
+    if (_loadedScripts[src] === "done") {
+      if (cb) cb();
+      return;
+    }
+    var existing = document.querySelector('script[src="' + src + '"]');
+    if (existing) {
+      if (cb) existing.addEventListener("load", cb, { once: true });
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = function () {
+      _loadedScripts[src] = "done";
+      if (cb) cb();
+    };
+    document.body.appendChild(s);
+  };
+
   IS.triggerConfetti = function (opts) {
-    if (typeof window.confetti !== "function") return;
-    window.confetti(
-      Object.assign(
-        {
-          particleCount: 90,
-          spread: 70,
-          origin: {
-            y: 0.55,
-          },
-          disableForReducedMotion: true,
-          colors: ["#00f5e8", "#00e87a", "#00a2ff", "#ffffff", "#ffcc00"],
-        },
-        opts || {},
-      ),
-    );
+    function fire() {
+      if (typeof window.confetti === "function") {
+        window.confetti(
+          Object.assign(
+            {
+              particleCount: 90,
+              spread: 70,
+              origin: { y: 0.55 },
+              disableForReducedMotion: true,
+              colors: ["#00f5e8", "#00e87a", "#00a2ff", "#ffffff", "#ffcc00"],
+            },
+            opts || {},
+          ),
+        );
+      }
+    }
+    if (typeof window.confetti === "function") {
+      fire();
+    } else {
+      IS.loadScript("lib/confetti.browser.min.js", fire);
+    }
   };
   var _exportConfettiRunning = false;
   /**
@@ -723,12 +753,11 @@ window.IS = window.IS || {};
      */
     _apply: function () {
       var lang = this._lang;
-      document.querySelectorAll("[data-i18n]").forEach(function (el) {
-        var key = el.getAttribute("data-i18n");
-        var str = (STRINGS[lang] || STRINGS.en)[key];
-        if (str === undefined) return;
-        if (/<[a-z]/i.test(str)) el.innerHTML = str;
-        else el.textContent = str;
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(function(e){
+        var n=e.getAttribute("data-i18n-placeholder"),a=(c[t]||c.en)[n];
+        if (void 0 !== a && e.placeholder !== a) {
+          e.placeholder = a;
+        }
       });
       document
         .querySelectorAll("[data-i18n-placeholder]")

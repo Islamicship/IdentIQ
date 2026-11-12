@@ -5,7 +5,7 @@
  * ===================================================================== */
 "use strict";
 
-const VERSION = "6.1.1";
+const VERSION = "6.4.0";
 const CACHE_PREFIX = "identiq-";
 const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
 const CACHE_AUDIO = `${CACHE_PREFIX}audio-v1`;
@@ -22,27 +22,27 @@ const INDEX_URL = toURL("./index.html");
 
 const PRECACHE = [
   "./index.html",
-  "./css/style.css",
-  "./css/settings.css",
-  "./css/names.css",
-  "./css/copy-fx.css",
-  "./js/config.js",
+  "./css/style.min.css",
+  "./css/settings.min.css",
+  "./css/names.min.css",
+  "./css/copy-fx.min.css",
+  "./js/config.min.js",
   "./js/ui.js",
-  "./js/extractor.js",
-  "./js/generator.js",
-  "./js/settings.js",
+  "./js/extractor.min.js",
+  "./js/generator.min.js",
   "./js/main.js",
+  "./js/settings.min.js",
   "./js/names-data.js",
   "./js/names.js",
   "./lib/moment.min.js",
   "./lib/moment-hijri.min.js",
-  "./lib/confetti.browser.min.js",
   "./manifest.json",
-  "./assets/logo.png",
+  "./assets/logo.webp",
 ].map(toURL);
 
-const TIMEOUT_NAVIGATION = 4000;
-const TIMEOUT_CORE = 3000;
+// Safe thresholds against 4x CPU slowdown and throttled mobile emulation
+const TIMEOUT_NAVIGATION = 10000; // 10 seconds
+const TIMEOUT_CORE = 8000;        // 8 seconds
 const CORE_DESTINATIONS = new Set(["script", "style", "worker"]);
 
 /**

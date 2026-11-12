@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap");
 
 /* === DESIGN TOKENS (DARK THEME DEFAULT) === */
 :root {
@@ -43,8 +42,8 @@
   --font-main: "Rajdhani", "Inter", "Poppins", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-arabic: "Amiri", "Scheherazade New", serif;
-  --font-mono: "Share Tech Mono", "Courier New", monospace;
-  --font-mrzocr: "Share Tech Mono", "OCR-B", "Courier New", monospace;
+  --font-mono: "Share Tech Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mrzocr: "Share Tech Mono", ui-monospace, Consolas, "OCR-B", monospace;
 
   --z-tooltip: 99;
   --z-popup: 500;
@@ -158,6 +157,21 @@ body.theme-light .main-nav {
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.sp-gear-btn {
+  margin-left: auto;
+  color: var(--c-text2);
+  background: transparent;
+  border: none;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* === NAV TABS === */
@@ -3803,4 +3817,17 @@ span.header-badge {
 .shortcut-label {
   color: #cbd5e1 !important;
   font-weight: 600;
+}
+
+
+/* ==========================================================================
+   DOM NODE OPTIMIZATION: CONTENT-VISIBILITY (CRITICAL CPU SAVING)
+   Tells the browser to skip layout and paint for inactive tabs
+   ========================================================================== */
+.tab-panel:not(.active),
+#tab-names:not(.active),
+#tab-generator:not(.active),
+#tab-analytics:not(.active) {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
 }
