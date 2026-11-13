@@ -3001,9 +3001,9 @@ body.theme-light textarea[readonly] {
   }
 }
 .nav-tabs,
-  .nav-actions {
-    gap: 2px;
-  }
+.nav-actions {
+  gap: 2px;
+}
 
 /* === LIGHT THEME OVERRIDES: CARDS & PANELS === */
 body.theme-light .tpl-modern .id-card-inner {
@@ -3751,7 +3751,7 @@ body.theme-light :is(.gen-toast, #gen-toast)::after {
   }
 }
 
-  /* ==========================================================================
+/* ==========================================================================
    WCAG AA 100/100 CONTRAST FIX: APP HEADER & BADGE
    ========================================================================== */
 
@@ -3779,7 +3779,7 @@ body.theme-light .app-header .title-text h1 {
 .header-badge,
 span.header-badge {
   background-color: #0b1329 !important; /* Deep Slate Navy */
-  color: #ffffff !important;            /* Pure Crisp White: 15.4:1 Ratio */
+  color: #ffffff !important; /* Pure Crisp White: 15.4:1 Ratio */
   border: 1px solid #00e87a !important; /* Crisp Emerald Accent */
   font-weight: 700 !important;
   opacity: 1 !important;
@@ -3789,7 +3789,8 @@ span.header-badge {
 
 /* Pulse with Box-Shadow and Scale, NOT Opacity (Never drops contrast) */
 @keyframes pulse-badge-safe {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(0, 232, 122, 0.4);
   }
