@@ -1072,7 +1072,8 @@ document.addEventListener("DOMContentLoaded", function () {
     /**
      * Stops voice input, shows a temporary microphone error message and clears it after two seconds.
      */
-    recognition.onerror = function () {
+    recognition.onerror = function (event) {
+      console.error("Asli Error Yeh Hai:", event.error);
       stopVoice();
       if (f.voiceStatus) f.voiceStatus.textContent = "⚠ Mic error";
       setTimeout(function () {
