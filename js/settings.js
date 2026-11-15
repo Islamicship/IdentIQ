@@ -53,9 +53,10 @@ try {
     }
     var APP_META = CFG.META || {
       name: "IdentIQ",
-      version: "v6.1.2",
+      version: "v6.1.3",
       released: "2024",
       developer: "Creative Men",
+      devLogo: "assets/dev-logo.svg",
       location: "Jhang, Punjab, Pakistan",
       supportHours: "Weekdays · 24 Hours",
       email: "creativemen70@gmail.com",
@@ -182,7 +183,7 @@ try {
         updateChecking: "Checking for updates…",
         updateDone: "✓ Already up to date",
         updateInstalling: "Update installing… reload to apply",
-        changelogTitle: "What's New in v6.1.2",
+        changelogTitle: "What's New in v6.1.3",
         changelog1:
           "Divine & Prophetic Names module (110 Audio Pronunciations)",
         changelog2: "Quranic first-occurrence arrangement & Ayah citations",
@@ -306,7 +307,7 @@ try {
         updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
         updateDone: "✓ ایپ تازہ ترین ہے",
         updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-        changelogTitle: "v6.1.2 میں نیا کیا ہے",
+        changelogTitle: "v6.1.3 میں نیا کیا ہے",
         changelog1: "اسمائے الہٰی اور اسمائے نبی ﷺ ماڈیول (110 آڈیو تلفظ)",
         changelog2: "قرآنی ترتیب اور سورت و آیت کے حوالہ جات",
         changelog3: "نسخ اور نستعلیق عربی خطاطی سپورٹ",
@@ -1108,7 +1109,9 @@ try {
         t("aboutDeveloperSection") +
         "</div>" +
         '<div class="sp-dev-card">' +
-        '<div class="sp-dev-avatar">CM</div>' +
+        '<div class="sp-dev-avatar">' +
+          '<img src="' + (APP_META.devLogo || 'assets/dev-logo.svg') + '" alt="' + APP_META.developer + '" class="sp-dev-avatar-img" width="48" height="48" loading="lazy">' +
+        '</div>' +
         '<div class="sp-dev-info">' +
         '<div class="sp-dev-name">' +
         APP_META.developer +

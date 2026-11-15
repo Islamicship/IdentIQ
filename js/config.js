@@ -33,11 +33,12 @@
   };
 
   var CONFIG = {
-    VERSION: "6.1.2",
+    VERSION: "6.1.3",
     YEAR: 2026,
     COPYRIGHT_RANGE: "2024–2026",
     APP_NAME: "IdentIQ",
     DEVELOPER: "Creative Men",
+    DEV_LOGO: "assets/dev-logo.svg",
     PLATFORM: "Gulf Identity Intelligence Platform",
 
     STORAGE_KEYS: STORAGE_KEYS,
@@ -59,9 +60,10 @@
 
     META: {
       name: "IdentIQ",
-      version: "v6.1.2",
+      version: "v6.1.3",
       released: "2024",
       developer: "Creative Men",
+      devLogo: "assets/dev-logo.svg",
       location: "Jhang, Punjab, Pakistan",
       supportHours: "Weekdays · 24 Hours",
       email: "creativemen70@gmail.com",

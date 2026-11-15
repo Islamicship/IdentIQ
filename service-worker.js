@@ -5,7 +5,7 @@
  * ===================================================================== */
 "use strict";
 
-const VERSION = "6.1.2";
+const VERSION = "6.1.3";
 const CACHE_PREFIX = "identiq-";
 const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
 const CACHE_AUDIO = `${CACHE_PREFIX}audio-v1`;
@@ -39,6 +39,7 @@ const PRECACHE = [
   "./lib/confetti.browser.min.js",
   "./manifest.json",
   "./assets/logo.png",
+  "./assets/dev-logo.svg",
 ].map(toURL);
 
 const TIMEOUT_NAVIGATION = 4000;
