@@ -112,8 +112,12 @@ try {
         labelName: "Display Name",
         namePlaceholder: "Enter your name…",
         labelEmail: "Email Address",
-        emailPlaceholder: "optional — stored locally",
+        emailPlaceholder: "username (optional)",
+        emailInvalid: "Enter a valid email: lowercase, no spaces.",
+        emailOtherDomain: "Other…",
+        emailDomainLabel: "Email domain",
         profileGreeting: "Welcome,",
+        profileDefaultName: "User",
         profileNote: "Your profile is stored locally on this device only.",
         labelAvatarEmoji: "Avatar Style",
         privacyTitle: "Privacy & Data",
@@ -236,8 +240,12 @@ try {
         labelName: "نمائشی نام",
         namePlaceholder: "اپنا نام لکھیں…",
         labelEmail: "ای میل",
-        emailPlaceholder: "اختیاری — مقامی طور پر محفوظ",
+        emailPlaceholder: "یوزر نیم (اختیاری)",
+        emailInvalid: "درست ای میل لکھیں: چھوٹے حروف، بغیر خالی جگہ۔",
+        emailOtherDomain: "دیگر…",
+        emailDomainLabel: "ای میل ڈومین",
         profileGreeting: "خوش آمدید،",
+        profileDefaultName: "صارف",
         profileNote: "آپ کا پروفائل صرف اس ڈیوائس پر مقامی طور پر محفوظ ہے۔",
         labelAvatarEmoji: "اوتار اسٹائل",
         privacyTitle: "رازداری اور ڈیٹا",
@@ -475,6 +483,137 @@ try {
       if (parts.length >= 2)
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       return parts[0].slice(0, 2).toUpperCase();
+    }
+    /**
+     * Renders the profile greeting as separate prefix, name and punctuation spans and replays the entrance animation.
+     * @param {HTMLElement} el - The #spGreeting element.
+     * @param {string} name - User display name.
+     * @param {boolean} [animate] - Replay the entrance animation right away.
+     */
+    function renderGreeting(el, name, animate) {
+      if (!el) return;
+      var full = String(name || "").trim() || t("profileDefaultName");
+
+      var prefix = document.createElement("span");
+      prefix.className = "sp-greeting-prefix";
+      prefix.textContent = t("profileGreeting") + " ";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "sp-greeting-name";
+      nameEl.title = full;
+      nameEl.textContent = full;
+
+      var punct = document.createElement("span");
+      punct.className = "sp-greeting-punct";
+      punct.textContent = "!";
+
+      el.textContent = "";
+      el.appendChild(prefix);
+      el.appendChild(nameEl);
+      el.appendChild(punct);
+      el.style.opacity = "1";
+
+      if (animate) playGreeting(el);
+      else el.classList.remove("sp-greeting-animated");
+    }
+    /**
+     * Replays the greeting animation by resetting its class with a forced reflow.
+     * @param {HTMLElement} el - The #spGreeting element.
+     */
+    function playGreeting(el) {
+      if (!el) return;
+      el.classList.remove("sp-greeting-animated");
+      void el.offsetWidth; // force reflow so the CSS animation restarts
+      el.classList.add("sp-greeting-animated");
+    }
+    var EMAIL_DOMAINS = [
+      "gmail.com",
+      "outlook.com",
+      "hotmail.com",
+      "yahoo.com",
+      "icloud.com",
+      "live.com",
+      "proton.me",
+    ];
+    var DEFAULT_EMAIL_DOMAIN = EMAIL_DOMAINS[0];
+    var EMAIL_RE =
+      /^[a-z0-9]+(?:[._%+-][a-z0-9]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/;
+    /**
+     * Normalizes raw email field input: lowercase, no whitespace, at most one "@", length capped.
+     * @param {string} raw - Raw value typed or pasted into the email field.
+     * @returns {string} The cleaned value.
+     */
+    function cleanEmailInput(raw) {
+      var v = String(raw || "")
+        .toLowerCase()
+        .replace(/\s+/g, "");
+      var at = v.indexOf("@");
+      if (at === -1) v = v.slice(0, 64);
+      else v = v.slice(0, at + 1) + v.slice(at + 1).replace(/@/g, "");
+      return v.slice(0, 80);
+    }
+    /**
+     * Builds the full address from the field value, appending the chosen domain when no "@" was typed.
+     * @param {string} value - Value of the email field.
+     * @param {string} domain - Domain chosen in the dropdown, without "@".
+     * @returns {string} Full email address, or "" when the field is empty.
+     */
+    function buildEmail(value, domain) {
+      var v = cleanEmailInput(value);
+      if (!v) return "";
+      return v.indexOf("@") === -1
+        ? v + "@" + (domain || DEFAULT_EMAIL_DOMAIN)
+        : v;
+    }
+    /**
+     * Checks a full email address against the allowed format (lowercase, no spaces, valid domain).
+     * @param {string} email - Full email address.
+     * @returns {boolean} True when the address is valid.
+     */
+    function isValidEmail(email) {
+      return (
+        email.length <= 80 &&
+        EMAIL_RE.test(email) &&
+        email.split("@")[0].length <= 64
+      );
+    }
+    /**
+     * Splits a stored email into the field value and dropdown domain: a known domain moves to the dropdown, any other address stays whole in the field.
+     * @param {string} email - Stored email address.
+     * @returns {{value: string, domain: string}} Field text and the domain to preselect.
+     */
+    function splitEmail(email) {
+      var e = String(email || "")
+        .trim()
+        .toLowerCase();
+      var at = e.lastIndexOf("@");
+      if (at > 0 && EMAIL_DOMAINS.indexOf(e.slice(at + 1)) !== -1) {
+        return { value: e.slice(0, at), domain: e.slice(at + 1) };
+      }
+      return { value: e, domain: DEFAULT_EMAIL_DOMAIN };
+    }
+    /**
+     * Builds the HTML option list for the email domain dropdown, ending with an "Other" entry for custom domains.
+     * @param {string} selected - Domain to mark as selected.
+     * @returns {string} HTML string of option elements.
+     */
+    function buildDomainOptions(selected) {
+      return (
+        EMAIL_DOMAINS.map(function (d) {
+          return (
+            '<option value="' +
+            d +
+            '"' +
+            (d === selected ? " selected" : "") +
+            ">@" +
+            d +
+            "</option>"
+          );
+        }).join("") +
+        '<option value="__other__">' +
+        esc(t("emailOtherDomain")) +
+        "</option>"
+      );
     }
     /**
      * Escapes HTML special characters so text can be safely embedded in markup and attribute values.
@@ -795,9 +934,7 @@ try {
           : cfg.avatarEmoji
             ? esc(cfg.avatarEmoji)
             : esc(getInitials(cfg.userName));
-      var greeting = cfg.userName
-        ? t("profileGreeting") + " " + cfg.userName.split(" ")[0] + "!"
-        : "";
+      var emailParts = splitEmail(cfg.userEmail);
       var emojiOptions = Object.keys(CYBER_AVATARS)
         .map(function (key) {
           return (
@@ -829,9 +966,7 @@ try {
         "</button>" +
         "</div>" +
         '<input type="file" id="spAvatarInput" accept="image/*" style="display:none">' +
-        (greeting
-          ? '<p class="sp-greeting" id="spGreeting">' + esc(greeting) + "</p>"
-          : '<p class="sp-greeting" id="spGreeting" style="opacity:0"></p>') +
+        '<p class="sp-greeting" id="spGreeting"></p>' +
         '<div class="sp-emoji-row" id="spEmojiRow">' +
         emojiOptions +
         "</div>" +
@@ -840,7 +975,7 @@ try {
         '<label class="sp-field-label" for="spUserName">' +
         t("labelName") +
         "</label>" +
-        '<input type="text" id="spUserName" class="sp-input" placeholder="' +
+        '<input type="text" id="spUserName" class="sp-input sp-input--name" placeholder="' +
         esc(t("namePlaceholder")) +
         '" value="' +
         esc(cfg.userName) +
@@ -850,11 +985,22 @@ try {
         '<label class="sp-field-label" for="spUserEmail">' +
         t("labelEmail") +
         "</label>" +
-        '<input type="email" id="spUserEmail" class="sp-input" placeholder="' +
+        '<div class="sp-email-wrap' +
+        (emailParts.value.indexOf("@") === -1 ? " sp-email-wrap--suffix" : "") +
+        '" dir="ltr">' +
+        '<input type="text" id="spUserEmail" class="sp-input" inputmode="email" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="' +
         esc(t("emailPlaceholder")) +
         '" value="' +
-        esc(cfg.userEmail || "") +
-        '" maxlength="80" autocomplete="email">' +
+        esc(emailParts.value) +
+        '" maxlength="80" autocomplete="email" aria-describedby="spEmailError">' +
+        '<select id="spEmailDomain" class="sp-email-domain" aria-label="' +
+        esc(t("emailDomainLabel")) +
+        '">' +
+        buildDomainOptions(emailParts.domain) +
+        "</select>" +
+        "</div>" +
+        '<p class="sp-field-error" id="spEmailError" role="alert" hidden></p>' +
+        '<p class="sp-email-preview" id="spEmailPreview" aria-live="polite"></p>' +
         "</div>" +
         '<p class="sp-note">' +
         t("profileNote") +
@@ -1733,6 +1879,8 @@ try {
       var emailInput = document.getElementById("spUserEmail");
       var avatarEl = document.getElementById("spAvatar");
       var greetingEl = document.getElementById("spGreeting");
+      var greetTimer = null;
+      renderGreeting(greetingEl, cfg.userName, true);
       var emojiRow = document.getElementById("spEmojiRow");
       if (emojiRow) {
         emojiRow.querySelectorAll(".sp-emoji-opt").forEach(function (btn) {
@@ -1819,13 +1967,14 @@ try {
         nameInput.addEventListener("input", function () {
           var curEmoji = readSettings().avatarEmoji;
           if (!curEmoji) avatarEl.textContent = getInitials(nameInput.value);
-          if (greetingEl) {
-            var first = nameInput.value.trim().split(" ")[0];
-            greetingEl.style.opacity = first ? "1" : "0";
-            greetingEl.textContent = first
-              ? t("profileGreeting") + " " + first + "!"
-              : "";
-          }
+          renderGreeting(greetingEl, nameInput.value, false);
+          clearTimeout(greetTimer);
+          greetTimer = setTimeout(function () {
+            playGreeting(greetingEl);
+          }, 300);
+          nameInput.classList.remove("sp-input--pulse");
+          void nameInput.offsetWidth; // force reflow so the pulse restarts
+          nameInput.classList.add("sp-input--pulse");
         });
         nameInput.addEventListener("change", function () {
           saveProp("userName", nameInput.value.trim());
@@ -1833,10 +1982,122 @@ try {
         });
       }
       if (emailInput) {
-        emailInput.addEventListener("change", function () {
-          saveProp("userEmail", emailInput.value.trim());
-          microToast(emailInput);
+        var emailWrap = emailInput.parentNode;
+        var emailDomain = document.getElementById("spEmailDomain");
+        var emailError = document.getElementById("spEmailError");
+        var emailPreview = document.getElementById("spEmailPreview");
+        var lastDomain = emailDomain ? emailDomain.value : DEFAULT_EMAIL_DOMAIN;
+        var committedEmail = String(cfg.userEmail || "");
+        /**
+         * Returns the domain currently chosen in the dropdown.
+         * @returns {string} Domain without "@".
+         */
+        var currentDomain = function () {
+          return emailDomain ? emailDomain.value : DEFAULT_EMAIL_DOMAIN;
+        };
+        /**
+         * Shows the domain dropdown only while no "@" is typed, and refreshes the live preview of the resulting address.
+         */
+        var syncEmailUI = function () {
+          emailWrap.classList.toggle(
+            "sp-email-wrap--suffix",
+            emailInput.value.indexOf("@") === -1,
+          );
+          if (emailPreview) {
+            var full = buildEmail(emailInput.value, currentDomain());
+            emailPreview.textContent = full && isValidEmail(full) ? full : "";
+          }
+        };
+        /**
+         * Marks the email field valid or invalid and shows or hides the error message.
+         * @param {boolean} ok - True when the field has no error.
+         */
+        var setEmailValid = function (ok) {
+          emailInput.classList.toggle("sp-input--invalid", !ok);
+          emailInput.setAttribute("aria-invalid", ok ? "false" : "true");
+          if (emailError) {
+            emailError.hidden = ok;
+            emailError.textContent = ok ? "" : t("emailInvalid");
+          }
+        };
+        /**
+         * Writes a stored email back into the field and dropdown in their split form.
+         * @param {string} email - Full email address, or "" to clear the field.
+         */
+        var applyEmailToField = function (email) {
+          var parts = splitEmail(email);
+          emailInput.value = parts.value;
+          if (emailDomain && email) {
+            emailDomain.value = parts.domain;
+            lastDomain = parts.domain;
+          }
+          syncEmailUI();
+        };
+        /**
+         * Validates and saves the email (Enter key, blur or domain change), showing the "saved" toast.
+         * @param {boolean} explicit - True when the user asked for it (Enter or domain pick), so feedback is shown even if nothing changed.
+         */
+        var commitEmail = function (explicit) {
+          if (emailInput.value === "@") {
+            applyEmailToField(committedEmail);
+            setEmailValid(true);
+            return;
+          }
+          var full = buildEmail(emailInput.value, currentDomain());
+          if (full && !isValidEmail(full)) {
+            setEmailValid(false);
+            return;
+          }
+          var changed = full !== committedEmail;
+          if (changed) {
+            saveProp("userEmail", full);
+            committedEmail = full;
+          }
+          applyEmailToField(full);
+          setEmailValid(true);
+          if (changed || explicit) microToast(emailWrap);
+        };
+        emailInput.addEventListener("input", function () {
+          var raw = emailInput.value;
+          var clean = cleanEmailInput(raw);
+          if (clean !== raw) {
+            var caret = emailInput.selectionStart;
+            emailInput.value = clean;
+            if (caret !== null) {
+              var pos = Math.max(0, caret - (raw.length - clean.length));
+              emailInput.setSelectionRange(pos, pos);
+            }
+          }
+          syncEmailUI();
+          setEmailValid(true);
         });
+        emailInput.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter" || e.isComposing) return;
+          e.preventDefault();
+          commitEmail(true);
+        });
+        emailInput.addEventListener("change", function () {
+          commitEmail(false);
+        });
+        if (emailDomain) {
+          emailDomain.addEventListener("change", function () {
+            if (emailDomain.value === "__other__") {
+              emailDomain.value = lastDomain;
+              if (emailInput.value.indexOf("@") === -1) {
+                emailInput.value = cleanEmailInput(emailInput.value) + "@";
+              }
+              emailInput.focus();
+              var end = emailInput.value.length;
+              emailInput.setSelectionRange(end, end);
+              syncEmailUI();
+              return;
+            }
+            lastDomain = emailDomain.value;
+            syncEmailUI();
+            if (emailInput.value) commitEmail(true);
+          });
+        }
+        syncEmailUI();
       }
     }
     /**
