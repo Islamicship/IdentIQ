@@ -33,7 +33,7 @@
   };
 
   var CONFIG = {
-    VERSION: "6.1.1",
+    VERSION: "6.1.2",
     YEAR: 2026,
     COPYRIGHT_RANGE: "2024–2026",
     APP_NAME: "IdentIQ",
@@ -59,7 +59,7 @@
 
     META: {
       name: "IdentIQ",
-      version: "v5.9.1",
+      version: "v6.1.2",
       released: "2024",
       developer: "Creative Men",
       location: "Jhang, Punjab, Pakistan",
