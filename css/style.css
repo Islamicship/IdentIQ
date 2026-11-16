@@ -55,6 +55,75 @@
   --z-modal: 3000;
   --z-toast: 9999;
 }
+/* ==========================================================================
+   PRODUCTION SCROLLBAR ENGINE (PREMIUM CYBER-GLOW EDITION)
+   ========================================================================== */
+
+/* 1. Global Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 2. Desktop Mouse Users Only */
+@media (hover: hover) and (pointer: fine) {
+
+  /* --- CHROMIUM (Chrome, Edge, Brave), SAFARI & OPERA --- */
+  *::-webkit-scrollbar {
+    width: 13px;  /* Barhi hui, comfortable width */
+    height: 13px; /* Horizontal scrolling */
+  }
+
+  /* No Stepper Arrows */
+  *::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Luxury Subtle Groove Track (Content length indicator) */
+  *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 9999px;
+  }
+
+  /* Thicker 3D Floating Pill with Brand Gradient */
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+    border-radius: 9999px;
+    border: 2.5px solid transparent; /* 8px solid visible core with inset floating effect */
+    background-clip: padding-box;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35); /* Subtle Glass Highlight */
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Hover State: Neon Bloom Glow */
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #7dd3fc 0%, #0ea5e9 100%);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Active / Drag State: High-Contrast Solid Core */
+  *::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 8px rgba(2, 132, 199, 0.8);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* --- FIREFOX FALLBACK --- */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #0284c7 rgba(255, 255, 255, 0.02);
+    }
+  }
+}
 
 /* === DESIGN TOKENS (LIGHT THEME) === */
 body.theme-light {
