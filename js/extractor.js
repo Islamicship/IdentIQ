@@ -38,7 +38,41 @@ document.addEventListener("DOMContentLoaded", function () {
    * @returns {string} The converted text.
    */
   function toLatin(s) {
-    return window.IS && IS.toLatin ? IS.toLatin(s) : s;
+    var str = window.IS && IS.toLatin ? IS.toLatin(s) : (s || "");
+    return String(str)
+      .replace(/[\u0660-\u0669]/g, function (c) {
+        return String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48);
+      })
+      .replace(/[\u06F0-\u06F9]/g, function (c) {
+        return String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48);
+      });
+  }
+
+  /**
+   * Retrieves the current Hijri format preference from localStorage or selector.
+   * @returns {string} The moment format pattern.
+   */
+  function getHijriFormat() {
+    var sel = document.getElementById("hijriFormatSelect");
+    if (sel && sel.value) return sel.value;
+    return localStorage.getItem("identiq_hijri_fmt") || "iYYYY/iMM/iDD";
+  }
+
+  // Hijri Format Dropdown State & Live Switcher
+  var _hijriSel = document.getElementById("hijriFormatSelect");
+  if (_hijriSel) {
+    _hijriSel.value = getHijriFormat();
+    _hijriSel.addEventListener("change", function () {
+      localStorage.setItem("identiq_hijri_fmt", _hijriSel.value);
+      if (f.dobG && f.dobG.value && window.moment && moment.fn.iYear) {
+        try {
+          var _gd = moment(f.dobG.value, "DD/MM/YYYY", "en", true);
+          if (_gd.isValid()) {
+            f.dobH.value = fmt(_gd, _hijriSel.value);
+          }
+        } catch (e) {}
+      }
+    });
   }
   /**
    * Removes invisible and control characters through the shared IS helper when available, otherwise returns the text unchanged.
@@ -86,9 +120,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var RE = {
     id10: /\b[0-9]{10}\b/g,
-    date: /[0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2}|[0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4}/g,
-    enRun: /[A-Za-z][A-Za-z'’.\-]*(?: +[A-Za-z][A-Za-z'’.\-]*)*/g,
-    arName: new RegExp("[" + AR_L + "][" + AR_L + AR_M + " ]{7,}"),
+    date: /[0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2}|[0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{4}/g,
+    enRun: /[A-Za-z][A-Za-z'’.\-]*(?:\s*(?:[-–—/|]+\s*|\s+)[A-Za-z][A-Za-z'’.\-]*)*/g,
+    arName: new RegExp("[" + AR_L + "][" + AR_L + AR_M + " ]{4,}"),
     nameLead: /^\s*(?:FULL\s+)?NAME\b\s*/i,
     birthHint: /BIRTH|DOB|B\.?DATE|ميلاد|مولد/i,
     otherDateHint: /EXPIR|VALID|ISSUE|انتهاء|صلاحية|اصدار|إصدار/i,
@@ -502,7 +536,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return t && !AR_LABELS[normAr(t)];
       })
       .join(" ");
-    return name.replace(/ /g, "").length >= 6 ? name : "";
+    var noSpaceLen = name.replace(/ /g, "").length;
+    return (name.indexOf(" ") !== -1 && noSpaceLen >= 5) || noSpaceLen >= 6 ? name : "";
   }
   /**
    * Extracts the best English name candidate from a line together with a confidence score.
@@ -518,6 +553,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (lettersOnly(r) > lettersOnly(best)) best = r;
     });
     var cand = best
+      .replace(/\s*[-–—/|]{2,}\s*|\s+[-–—/|]+\s+/g, " ")
       .replace(/\s+/g, " ")
       .replace(/^[\s.'’\-]+|[\s.'’\-]+$/g, "")
       .toUpperCase();
@@ -536,7 +572,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * @returns {{m: moment.Moment, hijri: boolean}|null} The parsed date, or null if it is invalid.
    */
   function parseDate(ds, hijriOk) {
-    var std = ds.replace(/-/g, "/"),
+    var std = ds.replace(/[\-\.]/g, "/"),
       p = std.split("/");
     var yrFirst = p[0].length === 4;
     var yr = parseInt(yrFirst ? p[0] : p[2], 10);
@@ -566,9 +602,13 @@ document.addEventListener("DOMContentLoaded", function () {
         return x.hint >= 0;
       });
     if (!pool.length) pool = c;
-    pool = pool.filter(function (x) {
+
+    // Past date ko pehle prefer karo (real DOB), agar koi past na mile toh future date accept karo
+    var pastPool = pool.filter(function (x) {
       return !x.m.isAfter(now);
     });
+    pool = pastPool.length ? pastPool : pool;
+
     if (!pool.length) return null;
     pool.sort(function (a, b) {
       return a.m.valueOf() - b.m.valueOf();
@@ -658,7 +698,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var best = pickDob(dates, now);
     if (best) {
       var G = "DD/MM/YYYY",
-        H = "iYYYY/iMM/iDD";
+        H = getHijriFormat();
       out.dobG = fmt(best.m, G);
       out.dobH = hijriOk ? fmt(best.m, H) : "";
       dates.forEach(function (o) {
@@ -726,7 +766,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       try {
         var _gd = moment(f.dobG.value, "DD/MM/YYYY", "en", true);
-        if (_gd.isValid()) f.dobH.value = fmt(_gd, "iYYYY/iMM/iDD");
+        if (_gd.isValid()) f.dobH.value = fmt(_gd, getHijriFormat());
       } catch (e) {}
     }
 
@@ -811,15 +851,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (birthDate && !isNaN(birthDate.getTime())) {
       var now = new Date();
-      var age = now.getFullYear() - birthDate.getFullYear();
-      var mDiff = now.getMonth() - birthDate.getMonth();
-      if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDate.getDate()))
-        age--;
-      if (age >= 0 && age < 130) {
-        ageBadge.textContent = age + (age === 1 ? " year old" : " years old");
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var target = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+
+      if (target > today) {
+        // Future Date Formula: -days / -months / -years
+        var diffMs = target.getTime() - today.getTime();
+        var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+        var relText = "";
+
+        if (diffDays < 30) {
+          relText = "-" + diffDays + (diffDays === 1 ? " day" : " days");
+        } else if (diffDays < 365) {
+          var mCount = Math.round(diffDays / 30.4375);
+          relText = "-" + mCount + (mCount === 1 ? " month" : " months");
+        } else {
+          var yCount = (diffDays / 365.25).toFixed(1);
+          if (yCount.endsWith(".0")) yCount = parseInt(yCount, 10);
+          relText = "-" + yCount + (yCount == 1 ? " year" : " years");
+        }
+
+        ageBadge.textContent = "⏳ " + relText;
+        ageBadge.classList.add("future-badge");
         ageBadge.style.display = "inline-flex";
       } else {
-        ageBadge.style.display = "none";
+        // Standard Past DOB Age
+        ageBadge.classList.remove("future-badge");
+        var age = now.getFullYear() - birthDate.getFullYear();
+        var mDiff = now.getMonth() - birthDate.getMonth();
+        if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDate.getDate()))
+          age--;
+        if (age >= 0 && age < 130) {
+          ageBadge.textContent = age + (age === 1 ? " year old" : " years old");
+          ageBadge.style.display = "inline-flex";
+        } else {
+          ageBadge.style.display = "none";
+        }
       }
     } else {
       ageBadge.style.display = "none";
@@ -842,6 +909,11 @@ document.addEventListener("DOMContentLoaded", function () {
         next = oc;
       }
     }
+    var D_CHARS = "0-9\\u0660-\\u0669\\u06F0-\\u06F9";
+    var _sep1 = new RegExp("([" + D_CHARS + "]{10})[ \\t]+([" + D_CHARS + "]{2,4}[\\/\\-\\.]" + "[" + D_CHARS + "]{1,2}[\\/\\-\\.]" + "[" + D_CHARS + "]{2,4})", "g");
+    var _sep2 = new RegExp("([" + D_CHARS + "]{2,4}[\\/\\-\\.]" + "[" + D_CHARS + "]{1,2}[\\/\\-\\.]" + "[" + D_CHARS + "]{2,4})[ \\t]+([" + D_CHARS + "]{10})", "g");
+    next = next.replace(_sep1, "$1\n$2").replace(_sep2, "$1\n$2");
+
     if (HIDDEN_RE.test(next)) next = stripHidden(next);
     if (next !== value) {
       var sel = f.input.selectionStart;
@@ -1120,7 +1192,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           var gDate = moment(formatted, "DD/MM/YYYY", "en", true);
           if (gDate.isValid()) {
-            var hFormatted = fmt(gDate, "iYYYY/iMM/iDD");
+            var hFormatted = fmt(gDate, getHijriFormat());
             if (f.dobH) {
               f.dobH.value = hFormatted;
               if (f.grpDobH) f.grpDobH.style.display = "block";

@@ -3874,3 +3874,34 @@ span.header-badge {
   color: #cbd5e1 !important;
   font-weight: 600;
 }
+
+
+/* Hijri Format Micro-Selector */
+.hijri-fmt-select {
+  background: rgba(15, 23, 42, 0.85);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 1px 4px;
+  margin-left: 6px;
+  cursor: pointer;
+  outline: none;
+  vertical-align: middle;
+}
+.hijri-fmt-select:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+.hijri-fmt-select option {
+  background: #0b1329;
+  color: #e2e8f0;
+}
+
+/* Future Date Badge (Amber Notice) */
+#ageBadge.future-badge {
+  color: #f59e0b !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  background: rgba(245, 158, 11, 0.1) !important;
+}
