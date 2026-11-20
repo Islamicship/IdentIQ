@@ -49,28 +49,39 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /**
-   * Retrieves the current Hijri format preference from localStorage or selector.
+   * Retrieves the current Hijri format preference from localStorage.
+   * Supports: YYYY/MM/DD (iYYYY/iMM/iDD) and D/M/YYYY (iD/iM/iYYYY)
    * @returns {string} The moment format pattern.
    */
   function getHijriFormat() {
-    var sel = document.getElementById("hijriFormatSelect");
-    if (sel && sel.value) return sel.value;
-    return localStorage.getItem("identiq_hijri_fmt") || "iYYYY/iMM/iDD";
+    var saved = localStorage.getItem("identiq_hijri_fmt");
+    return saved === "iD/iM/iYYYY" ? "iD/iM/iYYYY" : "iYYYY/iMM/iDD";
   }
 
-  // Hijri Format Dropdown State & Live Switcher
-  var _hijriSel = document.getElementById("hijriFormatSelect");
-  if (_hijriSel) {
-    _hijriSel.value = getHijriFormat();
-    _hijriSel.addEventListener("change", function () {
-      localStorage.setItem("identiq_hijri_fmt", _hijriSel.value);
+  // Hijri Format Pill Toggle & Live Switcher
+  var _hijriBtn = document.getElementById("hijriFormatToggle");
+  function updateHijriBtnText() {
+    if (!_hijriBtn) return;
+    var current = getHijriFormat();
+    _hijriBtn.textContent = current === "iD/iM/iYYYY" ? "D/M/YYYY" : "YYYY/MM/DD";
+  }
+
+  if (_hijriBtn) {
+    updateHijriBtnText();
+    _hijriBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      var next = getHijriFormat() === "iYYYY/iMM/iDD" ? "iD/iM/iYYYY" : "iYYYY/iMM/iDD";
+      localStorage.setItem("identiq_hijri_fmt", next);
+      updateHijriBtnText();
+
+      // Live re-format if Gregorian date is already present on screen
       if (f.dobG && f.dobG.value && window.moment && moment.fn.iYear) {
         try {
           var _gd = moment(f.dobG.value, "DD/MM/YYYY", "en", true);
           if (_gd.isValid()) {
-            f.dobH.value = fmt(_gd, _hijriSel.value);
+            f.dobH.value = fmt(_gd, next);
           }
-        } catch (e) {}
+        } catch (err) {}
       }
     });
   }
@@ -855,23 +866,27 @@ document.addEventListener("DOMContentLoaded", function () {
       var target = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
 
       if (target > today) {
-        // Future Date Formula: -days / -months / -years
-        var diffMs = target.getTime() - today.getTime();
-        var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-        var relText = "";
+        // Exact Calendar Decomposition (Years, Months, Days)
+        var yDiff = target.getFullYear() - today.getFullYear();
+        var mDiff = target.getMonth() - today.getMonth();
+        var dDiff = target.getDate() - today.getDate();
 
-        if (diffDays < 30) {
-          relText = "-" + diffDays + (diffDays === 1 ? " day" : " days");
-        } else if (diffDays < 365) {
-          var mCount = Math.round(diffDays / 30.4375);
-          relText = "-" + mCount + (mCount === 1 ? " month" : " months");
-        } else {
-          var yCount = (diffDays / 365.25).toFixed(1);
-          if (yCount.endsWith(".0")) yCount = parseInt(yCount, 10);
-          relText = "-" + yCount + (yCount == 1 ? " year" : " years");
+        if (dDiff < 0) {
+          mDiff--;
+          var prevMonthDays = new Date(target.getFullYear(), target.getMonth(), 0).getDate();
+          dDiff += prevMonthDays;
+        }
+        if (mDiff < 0) {
+          yDiff--;
+          mDiff += 12;
         }
 
-        ageBadge.textContent = "⏳ " + relText;
+        var parts = [];
+        if (yDiff > 0) parts.push(yDiff + (yDiff === 1 ? " Year" : " Years"));
+        if (mDiff > 0) parts.push(mDiff + (mDiff === 1 ? " Month" : " Months"));
+        if (dDiff > 0 || parts.length === 0) parts.push(dDiff + (dDiff === 1 ? " Day" : " Days"));
+
+        ageBadge.textContent = "⏳ -" + parts.join(" ");
         ageBadge.classList.add("future-badge");
         ageBadge.style.display = "inline-flex";
       } else {

@@ -5,12 +5,12 @@
 </p>
 
 <p align="center">
-  <strong>v6.1.5 · Progressive Web App · Offline-First · Zero-Backend Privacy</strong>
+  <strong>v6.1.6 · Progressive Web App · Offline-First · Zero-Backend Privacy</strong>
 </p>
 
 <p align="center">
   <a href="https://ident-lq.netlify.app"><img src="https://img.shields.io/badge/Live%20Demo-ident--lq.netlify.app-00a2ff?style=flat-square" alt="Live Demo"/></a>
-  <img src="https://img.shields.io/badge/Version-6.1.5-00d4ff?style=flat-square" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-6.1.6-00d4ff?style=flat-square" alt="Version"/>
   <img src="https://img.shields.io/badge/PWA-Offline%20Ready-00e676?style=flat-square" alt="PWA"/>
   <img src="https://img.shields.io/badge/Stack-Vanilla%20JS-f5c542?style=flat-square" alt="Vanilla JS"/>
 </p>

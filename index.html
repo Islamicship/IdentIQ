@@ -423,7 +423,10 @@
               </div>
             </div>
             <div class="field-group" id="grp-dobH" style="display: none">
-              <label><span data-i18n="dobH">DOB (Hijri)</span></label>
+              <label>
+                <span data-i18n="dobH">DOB (Hijri)</span>
+                <button type="button" id="hijriFormatToggle" class="hijri-fmt-badge" title="Click to switch: YYYY/MM/DD ⇄ D/M/YYYY">YYYY/MM/DD</button>
+              </label>
               <div class="wrapper">
                 <input
                   type="text"
@@ -540,10 +543,7 @@
         <div class="terminal-box">
           <div class="terminal-header">
             <label for="inputText" data-i18n="inputLabel">INPUT TERMINAL</label>
-            <select id="hijriFormatSelect" class="hijri-fmt-select" title="Select Hijri Date Format">
-  <option value="iYYYY/iMM/iDD">YYYY/MM/DD</option>
-  <option value="iYYYY/iM/iD">YYYY/M/D</option>
-</select>
+            
             <div class="terminal-actions">
               <span
                 class="char-counter"
@@ -695,7 +695,7 @@
           <!-- === GENERATOR: HEADER === -->
           <header class="gen-header">
             <h1 data-i18n="genTitle">Realistic Digital Identity</h1>
-            <span class="gen-version-tag">v6.1.5</span>
+            <span class="gen-version-tag">v6.1.6</span>
           </header>
 
           <main>
@@ -940,7 +940,7 @@
           <footer class="gen-footer">
             <p data-i18n="footerText">
               © 2024–2026 IdentIQ · Creative Men · Gulf Identity Intelligence
-              Platform v6.1.5
+              Platform v6.1.6
             </p>
           </footer>
         </div>

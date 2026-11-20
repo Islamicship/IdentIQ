@@ -53,7 +53,7 @@ try {
     }
     var APP_META = CFG.META || {
       name: "IdentIQ",
-      version: "v6.1.5",
+      version: "v6.1.6",
       released: "2024",
       developer: "Creative Men",
       devLogo: "assets/dev-logo.svg",
@@ -187,7 +187,7 @@ try {
         updateChecking: "Checking for updates…",
         updateDone: "✓ Already up to date",
         updateInstalling: "Update installing… reload to apply",
-        changelogTitle: "What's New in v6.1.5",
+        changelogTitle: "What's New in v6.1.6",
         changelog1:
           "Divine & Prophetic Names module (110 Audio Pronunciations)",
         changelog2: "Quranic first-occurrence arrangement & Ayah citations",
@@ -315,7 +315,7 @@ try {
         updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
         updateDone: "✓ ایپ تازہ ترین ہے",
         updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-        changelogTitle: "v6.1.5 میں نیا کیا ہے",
+        changelogTitle: "v6.1.6 میں نیا کیا ہے",
         changelog1: "اسمائے الہٰی اور اسمائے نبی ﷺ ماڈیول (110 آڈیو تلفظ)",
         changelog2: "قرآنی ترتیب اور سورت و آیت کے حوالہ جات",
         changelog3: "نسخ اور نستعلیق عربی خطاطی سپورٹ",
