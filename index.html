@@ -15,19 +15,11 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="IdentIQ" />
-
-    <!-- === TOUCH BEHAVIOR OVERRIDE === -->
-    <style>
-      input,
-      textarea,
-      select {
-        touch-action: manipulation;
-      }
-    </style>
     <meta
       name="description"
       content="IdentIQ v4.4 — Gulf &amp; South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Jhang, Pakistan. Powered by Creative AI. Supports Iqama, CNIC, Emirates ID, and more."
     />
+
     <meta name="author" content="Creative Men, Pakistan" />
     <link rel="canonical" href="https://nexux-gen.netlify.app/" />
     <title>IdentIQ · Gulf Identity Intelligence Platform</title>
@@ -35,6 +27,7 @@
     <link rel="apple-touch-icon" href="assets/logo.webp" />
     <link rel="manifest" href="manifest.json" />
 
+    <!-- === TOUCH BEHAVIOR OVERRIDE === -->
     <!-- === FONTS === -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -48,28 +41,15 @@
     <link rel="stylesheet" href="css/settings.css" />
     <link rel="stylesheet" href="css/names.min.css" />
     <link rel="stylesheet" href="css/copy-fx.min.css" />
+    <link rel="stylesheet" href="css/ocr.css" />
   </head>
   <body>
     <!-- === NO-JAVASCRIPT FALLBACK === -->
     <noscript>
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          background: #080a0d;
-          color: #00d4ff;
-          font-family: monospace;
-          text-align: center;
-          padding: 20px;
-        "
-      >
+      <div class="noscript-wrap">
         <div>
-          <h2 style="font-size: 22px; margin-bottom: 12px">
-            ⚠️ IdentIQ requires JavaScript
-          </h2>
-          <p style="color: #7ab; font-size: 14px">
+          <h2 class="noscript-title">⚠️ IdentIQ requires JavaScript</h2>
+          <p class="noscript-text">
             Please enable JavaScript in your browser to use this application.
           </p>
         </div>
@@ -168,7 +148,32 @@
             </svg>
             <span data-i18n="navNames">Names</span>
           </button>
+
+          <button
+            class="nav-tab"
+            role="tab"
+            data-target="tab-ocr"
+            aria-selected="false"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>OCR Scanner</span>
+          </button>
         </div>
+
+        
 
         <div class="nav-actions">
           <button
@@ -221,8 +226,7 @@
           </button>
           <button
             id="installAppBtn"
-            class="nav-tab install-btn"
-            style="display: none"
+            class="nav-tab install-btn is-hidden-init"
             aria-label="Install App"
           >
             <svg
@@ -252,6 +256,122 @@
       <kbd class="shortcut-key" data-i18n="shortcut2">[Alt+2] Generator</kbd>
       <kbd class="shortcut-key" data-i18n="shortcut3">[Alt+3] Analytics</kbd>
       <kbd class="shortcut-key" data-i18n="shortcut4">[Alt+4] Names</kbd>
+      <kbd class="shortcut-key" data-i18n="shortcut5">[Alt+5] OCR</kbd>
+    </div>
+
+    <!-- === OCR SCANNER SECTION === -->
+    <div
+      id="tab-ocr"
+      class="app-section is-hidden-init"
+      role="region"
+      aria-label="OCR Scanner"
+    >
+      <div class="main-container">
+        <header class="app-header">
+          <div class="logo-area">
+            <img
+              src="assets/logo.webp"
+              alt="IdentIQ Logo"
+              class="app-logo"
+              width="46"
+              height="46"
+              decoding="async"
+            />
+            <div class="title-text">
+              <h1>IdentIQ · OCR Scanner</h1>
+              <span>Saudi Iqama · AI Vision</span>
+            </div>
+          </div>
+        </header>
+
+        <section class="ocr-card" aria-label="Iqama photo">
+          <div
+            id="ocrDropzone"
+            class="ocr-dropzone"
+            role="button"
+            tabindex="0"
+            aria-label="Choose, drop or paste an Iqama card photo"
+          >
+            <svg class="ocr-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <div class="ocr-drop-title">Drop Iqama photo here</div>
+            <div class="ocr-drop-hint">
+              or tap to choose · <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste · JPG, PNG, WebP
+            </div>
+          </div>
+
+          <figure id="ocrPreview" class="ocr-preview" hidden>
+            <img id="ocrPreviewImg" alt="Selected Iqama card photo" />
+            <div class="ocr-scanline" aria-hidden="true"></div>
+            <figcaption id="ocrPreviewMeta" class="ocr-preview-meta"></figcaption>
+          </figure>
+
+          <input
+            id="ocrFileInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/*"
+            hidden
+          />
+
+          <div class="ocr-actions">
+            <button
+              type="button"
+              id="ocrScanBtn"
+              class="ocr-scan-btn"
+              disabled
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+              </svg>
+              <span class="ocr-scan-label">Scan Iqama Card</span>
+            </button>
+            <button type="button" id="ocrChangeBtn" class="ocr-ghost-btn" disabled>Change photo</button>
+            <button type="button" id="ocrClearBtn" class="ocr-ghost-btn ocr-ghost-btn--danger" disabled>✕ Remove</button>
+          </div>
+        </section>
+
+        <section class="ocr-card" aria-label="Scan progress">
+          <ol id="ocrSteps" class="ocr-steps">
+            <li class="ocr-step" data-step="upload"><span class="ocr-step-dot">1</span><span>Uploading</span></li>
+            <li class="ocr-step" data-step="compress"><span class="ocr-step-dot">2</span><span>Compressing</span></li>
+            <li class="ocr-step" data-step="ai"><span class="ocr-step-dot">3</span><span>AI Processing</span></li>
+            <li class="ocr-step" data-step="done"><span class="ocr-step-dot">4</span><span>Completed</span></li>
+          </ol>
+          <p id="ocrStatus" class="ocr-status" role="status" aria-live="polite"></p>
+          <p class="ocr-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+            <span>The photo is resized in your browser, read by Gemini, and kept only in this tab. It is wiped after 5 minutes of inactivity. Always compare the result with the physical card.</span>
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <!-- === OCR: SCANNED CARD INSPECTOR (floating, draggable, zoomable) === -->
+    <!-- position:fixed, so it must stay a direct child of <body>, outside every tab -->
+    <div
+      id="ocrInspector"
+      class="ocr-inspector"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Scanned card inspector"
+      tabindex="-1"
+    >
+      <div id="ocrInspHead" class="ocr-insp-head">
+        <span class="ocr-insp-title"><span aria-hidden="true">🖼️</span> Scanned Card</span>
+        <span id="ocrInspZoomLabel" class="ocr-insp-zoom">100%</span>
+        <button type="button" id="ocrInspZoomOut" class="ocr-insp-btn" aria-label="Zoom out" title="Zoom out (-)">−</button>
+        <button type="button" id="ocrInspZoomIn" class="ocr-insp-btn" aria-label="Zoom in" title="Zoom in (+)">+</button>
+        <button type="button" id="ocrInspReset" class="ocr-insp-btn" aria-label="Reset zoom" title="Reset (0 or double-click)">⟲ Reset</button>
+        <button type="button" id="ocrInspClose" class="ocr-insp-btn ocr-insp-btn--close" aria-label="Close scanned card" title="Close (Esc)">✕</button>
+      </div>
+      <div id="ocrInspViewport" class="ocr-insp-viewport">
+        <img id="ocrInspImg" class="ocr-insp-img" alt="Original scanned Iqama card" draggable="false" />
+      </div>
+      <div id="ocrInspMeta" class="ocr-insp-foot"></div>
     </div>
 
     <!-- === EXTRACTOR SECTION === -->
@@ -301,7 +421,7 @@
         </header>
 
         <!-- === EXTRACTED DATA CARD === -->
-        <fieldset class="data-card" id="dataCard" style="display: none">
+        <fieldset class="data-card is-hidden-init" id="dataCard">
           <legend class="badge" data-i18n="extractedInfo">
             EXTRACTED INFORMATION
           </legend>
@@ -332,7 +452,7 @@
             </div>
           </div>
           <div class="grid-layout">
-            <div class="field-group" id="grp-nameAr" style="display: none">
+            <div class="field-group is-hidden-init" id="grp-nameAr">
               <label>
                 <svg
                   width="11"
@@ -362,7 +482,7 @@
                 <button class="copy-btn" aria-label="Copy Arabic name"></button>
               </div>
             </div>
-            <div class="field-group" id="grp-nameEn" style="display: none">
+            <div class="field-group is-hidden-init" id="grp-nameEn">
               <label>
                 <svg
                   width="11"
@@ -392,7 +512,7 @@
                 ></button>
               </div>
             </div>
-            <div class="field-group" id="grp-aqama" style="display: none">
+            <div class="field-group is-hidden-init" id="grp-aqama">
               <label>
                 <svg
                   width="11"
@@ -422,7 +542,7 @@
                 ></button>
               </div>
             </div>
-            <div class="field-group" id="grp-dobH" style="display: none">
+            <div class="field-group is-hidden-init" id="grp-dobH">
               <label>
                 <span data-i18n="dobH">DOB (Hijri)</span>
                 <button type="button" id="hijriFormatToggle" class="hijri-fmt-badge" title="Click to switch: YYYY/MM/DD ⇄ D/M/YYYY">YYYY/MM/DD</button>
@@ -438,7 +558,7 @@
                 <button class="copy-btn" aria-label="Copy Hijri date"></button>
               </div>
             </div>
-            <div class="field-group" id="grp-dobG" style="display: none">
+            <div class="field-group is-hidden-init" id="grp-dobG">
               <label><span data-i18n="dobG">DOB (Gregorian)</span></label>
               <div class="wrapper">
                 <input
@@ -454,16 +574,14 @@
                 ></button>
               </div>
               <span
-                class="age-badge"
+                class="age-badge is-hidden-init"
                 id="ageBadge"
                 aria-live="polite"
-                style="display: none"
               ></span>
             </div>
             <div
-              class="field-group full-width"
+              class="field-group full-width is-hidden-init"
               id="grp-nat"
-              style="display: none"
             >
               <label
                 ><span data-i18n="natSelect"
@@ -537,6 +655,20 @@
           <span data-i18n="noData"
             >No recognisable data found — check input and try again.</span
           >
+        </div>
+
+        <!-- === OCR: VIEW SCANNED CARD BUTTON (shown only after a scan) === -->
+        <div class="ocr-verify-row" id="ocrVerifyRow" hidden>
+          <button
+            type="button"
+            id="ocrViewCardBtn"
+            class="ocr-view-badge"
+            aria-controls="ocrInspector"
+            aria-expanded="false"
+            hidden
+          >
+            <span aria-hidden="true">🖼️</span> View Scanned Card
+          </button>
         </div>
 
         <!-- === INPUT TERMINAL === -->
@@ -650,8 +782,7 @@
         <!-- === VIRTUAL KEYBOARD === -->
         <div
           id="virtualKbd"
-          class="vkbd-panel"
-          style="display: none"
+          class="vkbd-panel is-hidden-init"
           role="dialog"
           aria-label="Virtual keyboard"
           aria-modal="false"
@@ -685,8 +816,7 @@
     <!-- === GENERATOR SECTION === -->
     <div
       id="tab-generator"
-      class="app-section"
-      style="display: none"
+      class="app-section is-hidden-init"
       role="region"
       aria-label="Realistic ID Generator"
     >
@@ -695,7 +825,7 @@
           <!-- === GENERATOR: HEADER === -->
           <header class="gen-header">
             <h1 data-i18n="genTitle">Realistic Digital Identity</h1>
-            <span class="gen-version-tag">v6.1.6</span>
+            <span class="gen-version-tag">v6.2.0</span>
           </header>
 
           <main>
@@ -807,7 +937,6 @@
               <div
                 class="gen-data-box gen-date-box gen-full-width"
                 id="date-card"
-                style="position: relative"
               >
                 <div class="date-box-header">
                   <label data-i18n="labelDate">Current Date</label>
@@ -940,7 +1069,7 @@
           <footer class="gen-footer">
             <p data-i18n="footerText">
               © 2024–2026 IdentIQ · Creative Men · Gulf Identity Intelligence
-              Platform v6.1.6
+              Platform v6.2.0
             </p>
           </footer>
         </div>
@@ -983,8 +1112,7 @@
     <!-- === ANALYTICS SECTION === -->
     <div
       id="tab-analytics"
-      class="app-section"
-      style="display: none"
+      class="app-section is-hidden-init"
       role="region"
       aria-label="Analytics Dashboard"
     >
@@ -1106,7 +1234,7 @@
         </div>
 
         <!-- === ANALYTICS: EXTRACTION HISTORY === -->
-        <div class="recent-exports-card" style="margin-top: 14px">
+        <div class="recent-exports-card recent-exports-card--spaced">
           <h3 class="recent-label" data-i18n="extractHistory">
             Extraction History
           </h3>
@@ -1151,8 +1279,7 @@
     <!-- === NAMES SECTION === -->
     <div
       id="tab-names"
-      class="app-section names-section"
-      style="display: none"
+      class="app-section names-section is-hidden-init"
       data-collection="husna"
       data-script="naskh"
       role="region"
@@ -1320,5 +1447,6 @@
     <script src="js/settings.js" defer></script>
     <script src="js/names-data.js" defer></script>
     <script src="js/names.js" defer></script>
+    <script src="js/ocr.js" defer></script>
   </body>
 </html>

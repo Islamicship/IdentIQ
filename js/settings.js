@@ -53,7 +53,7 @@ try {
     }
     var APP_META = CFG.META || {
       name: "IdentIQ",
-      version: "v6.1.6",
+      version: "v6.2.0",
       released: "2024",
       developer: "Creative Men",
       devLogo: "assets/dev-logo.svg",
@@ -187,14 +187,18 @@ try {
         updateChecking: "Checking for updates…",
         updateDone: "✓ Already up to date",
         updateInstalling: "Update installing… reload to apply",
-        changelogTitle: "What's New in v6.1.6",
+        changelogTitle: "What's New in v6.2.0",
         changelog1:
-          "Divine & Prophetic Names module (110 Audio Pronunciations)",
-        changelog2: "Quranic first-occurrence arrangement & Ayah citations",
-        changelog3: "Naskh & Nastaliq Arabic typography engine",
+          "Iqama OCR Intelligence: Client-side AI Vision extraction powered by Google Gemini",
+        changelog2:
+          "Canvas Preprocessor: Transparent PNG auto-flattening & smart image compression",
+        changelog3:
+          "Interactive Inspector: Zoomable preview card with instant terminal injection",
         changelog4:
-          "Enhanced identity generator with realistic regional addresses",
-        changelog5: "Service worker performance and offline PWA optimization",
+          "Dual-Deployment Engine: Unified routing for GitHub Pages & Netlify functions",
+        changelog5:
+          "Security Hardened: Nonce-safe styles, strict CSP, and 9s abort timeout guard",
+        shortcut_ocr: "OCR",
         saved: "Saved ✓",
         on: "On",
         off: "Off",
@@ -315,12 +319,13 @@ try {
         updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
         updateDone: "✓ ایپ تازہ ترین ہے",
         updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-        changelogTitle: "v6.1.6 میں نیا کیا ہے",
-        changelog1: "اسمائے الہٰی اور اسمائے نبی ﷺ ماڈیول (110 آڈیو تلفظ)",
-        changelog2: "قرآنی ترتیب اور سورت و آیت کے حوالہ جات",
-        changelog3: "نسخ اور نستعلیق عربی خطاطی سپورٹ",
-        changelog4: "شناختی جنریٹر میں حقیقت پسندانہ ایڈریسز کی بہتری",
-        changelog5: "آف لائن سروس ورکر اور کارکردگی میں بہتری",
+        changelogTitle: "v6.2.0 میں نیا کیا ہے",
+        changelog1: "اقامہ او سی آر انٹیلیجنس: جیمینائی اے آئی وژن کے ذریعے اقامہ ڈیٹا ایکسٹریکشن",
+        changelog2: "کینوس پری پروسیسنگ: شفاف PNG بیک گراؤنڈ درستگی اور سمارٹ امیج کمپریشن",
+        changelog3: "انٹرایکٹو انسپیکٹر: زوم پریویو اور ون کلک ٹرمینل آٹو فلنگ",
+        changelog4: "ڈوئل ڈپلائمنٹ سپورٹ: گٹ ہب پیجز اور نیٹلیفائی سرور لیس راؤٹنگ",
+        changelog5: "سیکیورٹی اپ گریڈ: محفوظ کنٹینٹ پالیسی اور 9 سیکنڈ ٹائم آؤٹ گارڈ",
+        shortcut_ocr: "او سی آر",
         saved: "محفوظ ✓",
         on: "آن",
         off: "آف",

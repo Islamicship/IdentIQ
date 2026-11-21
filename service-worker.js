@@ -5,7 +5,7 @@
  * ===================================================================== */
 "use strict";
 
-const VERSION = "6.1.6";
+const VERSION = "6.2.0";
 const CACHE_PREFIX = "identiq-";
 const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
 const CACHE_AUDIO = `${CACHE_PREFIX}audio-v1`;
@@ -24,8 +24,9 @@ const PRECACHE = [
   "./index.html",
   "./css/style.css",
   "./css/settings.css",
-  "./css/names.css",
-  "./css/copy-fx.css",
+  "./css/names.min.css",
+  "./css/copy-fx.min.css",
+  "./css/ocr.css",
   "./js/config.js",
   "./js/ui.js",
   "./js/extractor.js",
@@ -34,11 +35,13 @@ const PRECACHE = [
   "./js/main.js",
   "./js/names-data.js",
   "./js/names.js",
+  "./js/ocr.js",
   "./lib/moment.min.js",
   "./lib/moment-hijri.min.js",
   "./lib/confetti.browser.min.js",
   "./manifest.json",
   "./assets/logo.png",
+  "./assets/logo.webp",
   "./assets/dev-logo.svg",
 ].map(toURL);
 

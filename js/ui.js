@@ -3,13 +3,25 @@
 window.IS = window.IS || {};
 
 /**
+ * CSP-safe boot: converts the .is-hidden-init class into inline display:none
+ * through CSSOM (allowed by CSP), then removes the class. Runs before the other
+ * deferred modules so extractor.js / main.js see the exact original state.
+ */
+(function bootHiddenInit() {
+  document.querySelectorAll(".is-hidden-init").forEach(function (el) {
+    el.style.display = "none";
+    el.classList.remove("is-hidden-init");
+  });
+})();
+
+/**
  * Defines the shared IdentIQ utilities (audio, clipboard, text cleaning, toasts, language, theme, history, analytics and the draggable calendar) on the IS namespace.
  * @param {Object} IS - Shared application namespace.
  */
 (function (IS) {
   var CFG = IS.CONFIG ||
     window.APP_CONFIG || {
-      VERSION: "6.1.6",
+      VERSION: "6.2.0",
       COPYRIGHT_RANGE: "2024–2026",
       APP_NAME: "IdentIQ",
       DEVELOPER: "Creative Men",

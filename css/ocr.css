@@ -1,0 +1,564 @@
+/* ==========================================================================
+   css/ocr.css — IdentIQ OCR Scanner tab + floating Card Inspector window
+   Standalone. Every selector is scoped to .ocr-* / #tab-ocr / #ocr*, and no
+   rule targets any IdentIQ container (#dataCard, .field-group, .terminal-box,
+   .app-section, ...). Nothing here can change what is shown or hidden on
+   the Identity Intel tab.
+   ========================================================================== */
+
+:root {
+  --ocr-cyan: #00f2fe;
+  --ocr-blue: #4facfe;
+  --ocr-green: #00f080;
+  --ocr-red: #ff4d6a;
+  --ocr-glass: rgba(13, 23, 32, 0.62);
+  --ocr-glass-strong: rgba(8, 14, 22, 0.92);
+  --ocr-line: rgba(79, 172, 254, 0.28);
+  --ocr-line-hot: rgba(0, 242, 254, 0.7);
+  --ocr-glow: 0 0 22px rgba(0, 242, 254, 0.2), 0 0 60px rgba(79, 172, 254, 0.08);
+}
+body.theme-light {
+  --ocr-cyan: #0077cc;
+  --ocr-blue: #0a6bb8;
+  --ocr-glass: rgba(255, 255, 255, 0.78);
+  --ocr-glass-strong: rgba(255, 255, 255, 0.97);
+  --ocr-line: rgba(10, 60, 120, 0.22);
+  --ocr-line-hot: rgba(0, 119, 204, 0.7);
+  --ocr-glow: 0 0 18px rgba(0, 119, 204, 0.16);
+}
+
+/* ---------- Glass card ---------- */
+.ocr-card {
+  position: relative;
+  background: var(--ocr-glass);
+  border: 1px solid var(--ocr-line);
+  border-radius: var(--card-radius, 18px);
+  padding: 16px;
+  margin-bottom: 12px;
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3), 0 8px 28px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: ocrRise 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ocr-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: var(--card-radius, 18px) var(--card-radius, 18px) 0 0;
+  background: linear-gradient(90deg, transparent, var(--ocr-blue), var(--ocr-cyan), transparent);
+  opacity: 0.65;
+}
+@keyframes ocrRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Drop zone ---------- */
+.ocr-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 200px;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--c-text2, #7aadcc);
+  border: 2px dashed var(--ocr-line);
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0, 242, 254, 0.07), transparent 70%);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.ocr-dropzone:hover,
+.ocr-dropzone:focus-visible {
+  border-color: var(--ocr-line-hot);
+  box-shadow: var(--ocr-glow);
+}
+.ocr-dropzone[hidden] { display: none; }
+.ocr-dropzone.is-dragging {
+  border-style: solid;
+  border-color: var(--ocr-cyan);
+  background: radial-gradient(ellipse at 50% 50%, rgba(0, 242, 254, 0.16), transparent 75%);
+  box-shadow: var(--ocr-glow), inset 0 0 36px rgba(0, 242, 254, 0.12);
+  transform: scale(1.012);
+}
+.ocr-drop-icon {
+  width: 46px;
+  height: 46px;
+  color: var(--ocr-cyan);
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ocr-dropzone.is-dragging .ocr-drop-icon { transform: translateY(-6px) scale(1.15); }
+.ocr-drop-title {
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--c-text, #e0eeff);
+}
+.ocr-drop-hint { font-size: 0.72rem; color: var(--c-text3, #3d607a); }
+.ocr-drop-hint kbd { font-size: 0.65rem; }
+
+/* ---------- Preview + scanner glow ---------- */
+.ocr-preview {
+  position: relative;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--ocr-line);
+  background: #02060b;
+  line-height: 0;
+}
+.ocr-preview[hidden] { display: none; }
+.ocr-preview img {
+  display: block;
+  width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+}
+.ocr-preview-meta {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 9px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+  line-height: 1.4;
+  color: var(--ocr-cyan);
+  background: var(--ocr-glass-strong);
+  border: 1px solid var(--ocr-line);
+  border-radius: 99px;
+}
+.ocr-scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.ocr-scanline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 242, 254, 0.28), transparent);
+  border-bottom: 2px solid var(--ocr-cyan);
+  box-shadow: 0 6px 24px rgba(0, 242, 254, 0.55);
+  transform: translateY(-64px);
+}
+.ocr-preview.is-scanning { box-shadow: var(--ocr-glow), inset 0 0 28px rgba(0, 242, 254, 0.14); border-color: var(--ocr-line-hot); }
+.ocr-preview.is-scanning .ocr-scanline { opacity: 1; }
+.ocr-preview.is-scanning .ocr-scanline::before { animation: ocrSweep 1.7s ease-in-out infinite; }
+@keyframes ocrSweep {
+  0% { transform: translateY(-64px); }
+  100% { transform: translateY(calc(100% + 64px)); }
+}
+.ocr-preview.is-scanning .ocr-scanline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 242, 254, 0.05) 0 1px, transparent 1px 4px);
+}
+
+/* ---------- Buttons ---------- */
+.ocr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ocr-scan-btn {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 22px;
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--ocr-blue), #0072c6 60%, #005aa8);
+  box-shadow: 0 5px 0 #003d78, 0 8px 22px rgba(0, 162, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  position: relative;
+}
+.ocr-scan-btn:not(:disabled) { animation: ocrPulse 2.2s ease-in-out infinite; }
+.ocr-scan-btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.1); }
+.ocr-scan-btn:not(:disabled):active { transform: translateY(3px); box-shadow: 0 2px 0 #003d78, 0 3px 10px rgba(0, 162, 255, 0.3); }
+.ocr-scan-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: 0 3px 0 #003d78; animation: none; }
+.ocr-scan-btn.is-busy { animation: none; cursor: progress; }
+@keyframes ocrPulse {
+  0%, 100% { box-shadow: 0 5px 0 #003d78, 0 8px 22px rgba(0, 162, 255, 0.4), 0 0 0 0 rgba(0, 242, 254, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 5px 0 #003d78, 0 8px 26px rgba(0, 162, 255, 0.55), 0 0 0 12px rgba(0, 242, 254, 0), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+}
+.ocr-ghost-btn {
+  flex: 1 1 0;
+  padding: 8px 14px;
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--c-text2, #7aadcc);
+  background: var(--ocr-glass);
+  border: 1px solid var(--ocr-line);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.ocr-ghost-btn:hover:not(:disabled) { color: var(--ocr-cyan); border-color: var(--ocr-line-hot); box-shadow: var(--ocr-glow); }
+.ocr-ghost-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ocr-ghost-btn--danger:hover:not(:disabled) { color: var(--ocr-red); border-color: var(--ocr-red); box-shadow: none; }
+
+/* ---------- Live step tracker ---------- */
+.ocr-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin: 16px 0 6px;
+}
+.ocr-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--c-text3, #3d607a);
+}
+.ocr-step::before { /* connector to the next step */
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--ocr-line);
+  z-index: 0;
+}
+.ocr-step:last-child::before { display: none; }
+.ocr-step-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font-size: 0.7rem;
+  border-radius: 50%;
+  color: var(--c-text3, #3d607a);
+  background: var(--c-bg3, #0c1520);
+  border: 2px solid var(--ocr-line);
+  transition: all 0.25s ease;
+}
+.ocr-step.is-active { color: var(--ocr-cyan); }
+.ocr-step.is-active .ocr-step-dot {
+  color: var(--ocr-cyan);
+  border-color: var(--ocr-cyan);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.55);
+  animation: ocrDot 1s ease-in-out infinite alternate;
+}
+.ocr-step.is-done { color: var(--ocr-green); }
+.ocr-step.is-done .ocr-step-dot {
+  color: #04140b;
+  background: var(--ocr-green);
+  border-color: var(--ocr-green);
+  box-shadow: 0 0 12px rgba(0, 240, 128, 0.4);
+}
+.ocr-step.is-done::before { background: var(--ocr-green); }
+.ocr-step.is-error { color: var(--ocr-red); }
+.ocr-step.is-error .ocr-step-dot { color: #fff; background: var(--ocr-red); border-color: var(--ocr-red); }
+@keyframes ocrDot { from { transform: scale(0.92); } to { transform: scale(1.12); } }
+
+.ocr-status {
+  min-height: 1.4em;
+  margin-top: 8px;
+  font-size: 0.76rem;
+  text-align: center;
+  color: var(--c-text2, #7aadcc);
+}
+.ocr-status.is-error { color: var(--ocr-red); }
+.ocr-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--c-text2, #7aadcc);
+  background: rgba(79, 172, 254, 0.06);
+  border: 1px solid rgba(79, 172, 254, 0.18);
+  border-radius: 10px;
+}
+.ocr-note svg { flex: none; margin-top: 2px; color: var(--ocr-blue); }
+
+/* ---------- Intel tab: "View Scanned Card" badge ----------
+   The row is `hidden` (display:none, zero layout, zero margin) until a card
+   has been scanned, so the Intel tab is pixel-identical to the original
+   before any scan. */
+.ocr-verify-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.ocr-verify-row[hidden] { display: none; }
+.ocr-view-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ocr-cyan);
+  background: var(--ocr-glass);
+  border: 1px solid var(--ocr-line-hot);
+  border-radius: 99px;
+  cursor: pointer;
+  box-shadow: var(--ocr-glow);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.ocr-view-badge[hidden] { display: none; }
+.ocr-view-badge:hover,
+.ocr-view-badge[aria-expanded="true"] { background: rgba(0, 242, 254, 0.14); box-shadow: 0 0 26px rgba(0, 242, 254, 0.35); }
+
+/* ==========================================================================
+   FLOATING CARD INSPECTOR
+   No backdrop, no blur, no scroll lock: the window is a small fixed box and
+   the rest of the page stays sharp and fully interactive.
+   ========================================================================== */
+.ocr-inspector {
+  position: fixed;
+  top: 100px;
+  right: 30px;
+  width: 440px;
+  height: 320px;
+  min-width: 300px;
+  min-height: 220px;
+  max-width: 90vw;
+  max-height: 85vh;
+  z-index: var(--z-overlay, 2000); /* above the sticky nav (900), below modals/toasts */
+  display: none;
+  flex-direction: column;
+  overflow: hidden; /* required for CSS resize */
+  resize: both;
+  color: var(--c-text, #e0eeff);
+  background: var(--ocr-glass-strong);
+  border: 1px solid rgba(0, 242, 254, 0.55);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 242, 254, 0.08), 0 0 28px rgba(0, 242, 254, 0.18);
+  outline: none;
+}
+.ocr-inspector.is-open { display: flex; animation: ocrPop 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.ocr-inspector.is-dragging { box-shadow: 0 26px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 242, 254, 0.3), 0 0 40px rgba(0, 242, 254, 0.3); }
+@keyframes ocrPop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Native resizer made invisible; the custom grip below is drawn over it. */
+.ocr-inspector::-webkit-resizer { background: transparent; }
+.ocr-inspector::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none; /* never blocks the native resize handle underneath */
+  z-index: 5;
+  opacity: 0.85;
+  background: linear-gradient(
+    135deg,
+    transparent 0 42%,
+    var(--ocr-cyan) 42% 52%,
+    transparent 52% 64%,
+    var(--ocr-cyan) 64% 74%,
+    transparent 74%
+  );
+  filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.6));
+  border-radius: 0 0 8px 0;
+}
+
+/* Header = drag handle */
+.ocr-insp-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 6px 8px 6px 12px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none; /* lets touch drag the window instead of scrolling the page */
+  background: linear-gradient(180deg, rgba(0, 242, 254, 0.12), rgba(79, 172, 254, 0.04));
+  border-bottom: 1px solid var(--ocr-line);
+}
+.ocr-inspector.is-dragging .ocr-insp-head { cursor: grabbing; }
+.ocr-insp-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ocr-cyan);
+}
+.ocr-insp-zoom {
+  flex: none;
+  min-width: 38px;
+  text-align: right;
+  margin-right: 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+  color: var(--c-text2, #7aadcc);
+}
+.ocr-insp-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  font-family: var(--font-main, system-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ocr-cyan);
+  background: rgba(0, 242, 254, 0.07);
+  border: 1px solid var(--ocr-line);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.ocr-insp-btn:hover { background: rgba(0, 242, 254, 0.18); border-color: var(--ocr-line-hot); box-shadow: 0 0 10px rgba(0, 242, 254, 0.25); }
+.ocr-insp-btn:active { transform: translateY(1px); }
+.ocr-insp-btn--close { color: var(--ocr-red); background: rgba(255, 77, 106, 0.08); border-color: rgba(255, 77, 106, 0.3); }
+.ocr-insp-btn--close:hover { background: rgba(255, 77, 106, 0.22); border-color: var(--ocr-red); box-shadow: none; }
+
+/* Zoom / pan viewport */
+.ocr-insp-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none; /* we handle pinch + pan ourselves */
+  cursor: zoom-in;
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.03) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px,
+    #02060b;
+}
+.ocr-insp-viewport.is-zoomed { cursor: grab; }
+.ocr-insp-viewport.is-panning { cursor: grabbing; }
+.ocr-insp-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 0 0;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+.ocr-insp-viewport.is-animating .ocr-insp-img { transition: transform 0.18s ease; }
+
+.ocr-insp-foot {
+  flex: none;
+  padding: 4px 22px 5px 12px; /* right padding keeps text clear of the resize grip */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  color: var(--c-text3, #3d607a);
+  border-top: 1px solid var(--ocr-line);
+}
+
+/* Light theme */
+body.theme-light .ocr-card { box-shadow: 0 2px 0 rgba(0, 50, 120, 0.1), 0 6px 18px rgba(0, 50, 120, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9); }
+body.theme-light .ocr-step-dot { background: #fff; }
+body.theme-light .ocr-view-badge:hover { background: rgba(0, 119, 204, 0.1); }
+body.theme-light .ocr-inspector { border-color: rgba(0, 119, 204, 0.6); box-shadow: 0 16px 44px rgba(0, 50, 120, 0.3), 0 0 22px rgba(0, 119, 204, 0.16); }
+body.theme-light .ocr-insp-head { background: linear-gradient(180deg, rgba(0, 119, 204, 0.12), rgba(0, 119, 204, 0.03)); }
+body.theme-light .ocr-insp-btn { background: rgba(0, 119, 204, 0.07); }
+
+@media (max-width: 600px) {
+  .ocr-step { font-size: 0.6rem; }
+  .ocr-view-badge { font-size: 0.68rem; }
+  .ocr-inspector { right: 12px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ocr-card,
+  .ocr-scan-btn,
+  .ocr-inspector.is-open,
+  .ocr-step.is-active .ocr-step-dot,
+  .ocr-preview.is-scanning .ocr-scanline::before { animation: none !important; }
+  .ocr-insp-viewport.is-animating .ocr-insp-img { transition: none; }
+  .ocr-dropzone { transition: none; }
+}
+
+/* Print: never print the scanned card */
+@media print {
+  #tab-ocr, .ocr-inspector, .ocr-verify-row { display: none !important; }
+}
+
+/* ==========================================================================
+   CSP-SAFE REPLACEMENTS FOR FORMER INLINE STYLES (index.html)
+   .is-hidden-init : only prevents a flash before first paint. The boot IIFE
+   at the top of js/ui.js swaps it for inline display:none via CSSOM (CSP-safe)
+   and removes the class, so extractor.js / main.js toggle style.display
+   exactly as before. No !important on purpose.
+   ========================================================================== */
+html body .is-hidden-init {
+  display: none;
+}
+
+/* Former <style> block in <head> */
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
+
+/* Former <noscript> inline styles */
+.noscript-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #080a0d;
+  color: #00d4ff;
+  font-family: monospace;
+  text-align: center;
+  padding: 20px;
+}
+.noscript-title {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.noscript-text {
+  color: #7ab;
+  font-size: 14px;
+}
+
+/* Former margin-top on the Extraction History card */
+.recent-exports-card--spaced {
+  margin-top: 14px;
+}
