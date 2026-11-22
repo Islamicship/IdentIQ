@@ -53,7 +53,7 @@ try {
     }
     var APP_META = CFG.META || {
       name: "IdentIQ",
-      version: "v6.3.0",
+      version: "v6.3.1",
       released: "2024",
       developer: "Creative Men",
       devLogo: "assets/dev-logo.svg",
@@ -142,6 +142,7 @@ try {
         scAlt2: "Realistic ID tab",
         scAlt3: "Analytics tab",
         scAlt4: "Names tab",
+        scAlt5: "OCR Scanner tab",
         scAltS: "Open Settings",
         scCtrlEnter: "Extract / Generate",
         scEsc: "Close panel / calendar",
@@ -187,7 +188,7 @@ try {
         updateChecking: "Checking for updates…",
         updateDone: "✓ Already up to date",
         updateInstalling: "Update installing… reload to apply",
-        changelogTitle: "What's New in v6.3.0",
+        changelogTitle: "What's New in v6.3.1",
         changelog1:
           "Iqama OCR Intelligence: Client-side AI Vision extraction powered by Google Gemini",
         changelog2:
@@ -274,6 +275,7 @@ try {
         scAlt2: "شناختی کارڈ ٹیب",
         scAlt3: "تجزیات ٹیب",
         scAlt4: "اسماء ٹیب",
+        scAlt5: "او سی آر اسکینر ٹیب",
         scAltS: "ترتیبات کھولیں",
         scCtrlEnter: "نکالیں / بنائیں",
         scEsc: "پینل بند کریں",
@@ -319,7 +321,7 @@ try {
         updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
         updateDone: "✓ ایپ تازہ ترین ہے",
         updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-        changelogTitle: "v6.3.0 میں نیا کیا ہے",
+        changelogTitle: "v6.3.1 میں نیا کیا ہے",
         changelog1: "اقامہ او سی آر انٹیلیجنس: جیمینائی اے آئی وژن کے ذریعے اقامہ ڈیٹا ایکسٹریکشن",
         changelog2: "کینوس پری پروسیسنگ: شفاف PNG بیک گراؤنڈ درستگی اور سمارٹ امیج کمپریشن",
         changelog3: "انٹرایکٹو انسپیکٹر: زوم پریویو اور ون کلک ٹرمینل آٹو فلنگ",
@@ -807,19 +809,6 @@ try {
         esc(wipeCurrent) +
         "</p>" +
         "</div>" +
-        '<div class="sp-field sp-field--row">' +
-        '<span class="sp-field-label">' +
-        t("labelShortcutsBar") +
-        "</span>" +
-        '<label class="sp-toggle" title="' +
-        t("labelShortcutsBar") +
-        '">' +
-        '<input type="checkbox" id="spShortcutsBar"' +
-        (cfg.shortcutsVisible ? " checked" : "") +
-        ">" +
-        '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' +
-        "</label>" +
-        "</div>" +
         "</div>"
       );
     }
@@ -1107,89 +1096,64 @@ try {
         "</div>"
       );
     }
+    var SHORTCUT_ROWS = [
+      { keys: ["Alt", "1"], desc: "scAlt1" },
+      { keys: ["Alt", "2"], desc: "scAlt2" },
+      { keys: ["Alt", "3"], desc: "scAlt3" },
+      { keys: ["Alt", "4"], desc: "scAlt4" },
+      { keys: ["Alt", "5"], desc: "scAlt5" },
+      { keys: ["Alt", "S"], desc: "scAltS" },
+      { keys: ["Ctrl", "↵"], desc: "scCtrlEnter" },
+      { keys: ["Esc"], desc: "scEsc" },
+    ];
     /**
-     * Builds the HTML for the Shortcuts section with an enable toggle and a table of keyboard shortcuts.
+     * Builds one labelled toggle row; the label is linked to the checkbox via aria-labelledby.
+     * @param {string} id - Checkbox element id.
+     * @param {string} labelKey - Translation key for the label.
+     * @param {boolean} checked - Initial checked state.
+     * @returns {string} HTML string of the row.
+     */
+    function toggleRow(id, labelKey, checked) {
+      return (
+        '<div class="sp-field sp-field--row">' +
+        '<span class="sp-field-label" id="' + id + 'Lbl">' + t(labelKey) + "</span>" +
+        '<label class="sp-toggle">' +
+        '<input type="checkbox" id="' + id + '" aria-labelledby="' + id + 'Lbl"' +
+        (checked ? " checked" : "") + ">" +
+        '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' +
+        "</label>" +
+        "</div>"
+      );
+    }
+    /**
+     * Builds the HTML for the Shortcuts section with both toggles and a table of keyboard shortcuts.
      * @param {Object} cfg - Current settings object.
      * @returns {string} HTML string for the section.
      */
     function buildShortcuts(cfg) {
-      var rows = [
-        {
-          keys: ["Alt", "1"],
-          desc: "scAlt1",
-        },
-        {
-          keys: ["Alt", "2"],
-          desc: "scAlt2",
-        },
-        {
-          keys: ["Alt", "3"],
-          desc: "scAlt3",
-        },
-        {
-          keys: ["Alt", "4"],
-          desc: "scAlt4",
-        },
-        {
-          keys: ["Alt", "S"],
-          desc: "scAltS",
-        },
-        {
-          keys: ["Ctrl", "↵"],
-          desc: "scCtrlEnter",
-        },
-        {
-          keys: ["Esc"],
-          desc: "scEsc",
-        },
-      ];
-      var tableRows = rows
-        .map(function (r) {
-          var kbds = r.keys
-            .map(function (k) {
-              return '<kbd class="sp-kbd">' + k + "</kbd>";
-            })
-            .join('<span class="sp-plus">+</span>');
-          return (
-            '<tr><td class="sp-sc-keys">' +
-            kbds +
-            '</td><td class="sp-sc-desc">' +
-            t(r.desc) +
-            "</td></tr>"
-          );
-        })
-        .join("");
+      var tableRows = SHORTCUT_ROWS.map(function (r) {
+        var kbds = r.keys
+          .map(function (k) {
+            return '<kbd class="sp-kbd">' + k + "</kbd>";
+          })
+          .join('<span class="sp-plus">+</span>');
+        return (
+          '<tr><td class="sp-sc-keys">' + kbds +
+          '</td><td class="sp-sc-desc">' + t(r.desc) + "</td></tr>"
+        );
+      }).join("");
       return (
         '<div class="sp-content-inner">' +
-        '<h3 class="sp-content-title">' +
-        t("shortcutsTitle") +
-        "</h3>" +
-        '<div class="sp-field sp-field--row">' +
-        '<span class="sp-field-label">' +
-        t("labelEnableShortcuts") +
-        "</span>" +
-        '<label class="sp-toggle">' +
-        '<input type="checkbox" id="spShortcutsEnabled"' +
-        (cfg.shortcutsEnabled ? " checked" : "") +
-        ">" +
-        '<span class="sp-toggle-track"><span class="sp-toggle-thumb"></span></span>' +
-        "</label>" +
-        "</div>" +
+        '<h3 class="sp-content-title">' + t("shortcutsTitle") + "</h3>" +
+        toggleRow("spShortcutsEnabled", "labelEnableShortcuts", cfg.shortcutsEnabled) +
+        toggleRow("spShortcutsBar", "labelShortcutsBar", cfg.shortcutsVisible) +
         '<div class="sp-sc-table-wrap">' +
-        '<table class="sp-sc-table">' +
-        "<tbody>" +
-        tableRows +
-        "</tbody>" +
-        "</table>" +
+        '<table class="sp-sc-table"><tbody>' + tableRows + "</tbody></table>" +
         "</div>" +
         '<button class="sp-copy-shortcuts-btn" id="spCopyShortcuts">' +
-        ICONS.copy +
-        " " +
-        t("copyShortcuts") +
+        ICONS.copy + " " + t("copyShortcuts") +
         "</button>" +
-        '<p class="sp-note">' +
-        t("shortcutsNote") +
-        "</p>" +
+        '<p class="sp-note">' + t("shortcutsNote") + "</p>" +
         "</div>"
       );
     }
@@ -1832,13 +1796,6 @@ try {
         });
       }
       bindWipeGroup("spWipeGroup", "spWipeReadout");
-      var scBar = document.getElementById("spShortcutsBar");
-      if (scBar) {
-        scBar.addEventListener("change", function () {
-          saveProp("shortcutsVisible", scBar.checked);
-          applyShortcutsVisibility(scBar.checked);
-        });
-      }
     }
     /**
      * Wires up the theme and language cards to switch the app theme and language.
@@ -2201,7 +2158,7 @@ try {
       }
     }
     /**
-     * Wires up the shortcuts enable toggle and the copy-shortcuts button.
+     * Wires up the shortcuts enable toggle, the shortcuts-bar toggle and the copy-shortcuts button.
      * @param {Object} cfg - Current settings object.
      */
     function bindShortcuts(cfg) {
@@ -2212,18 +2169,21 @@ try {
           window._IS_shortcutsEnabled = scEnabled.checked;
         });
       }
+      var scBar = document.getElementById("spShortcutsBar");
+      if (scBar) {
+        scBar.addEventListener("change", function () {
+          saveProp("shortcutsVisible", scBar.checked);
+          applyShortcutsVisibility(scBar.checked);
+        });
+      }
       var copyBtn = document.getElementById("spCopyShortcuts");
       if (copyBtn) {
         copyBtn.addEventListener("click", function () {
-          var lines = [
-            "Alt + 1  — " + t("scAlt1"),
-            "Alt + 2  — " + t("scAlt2"),
-            "Alt + 3  — " + t("scAlt3"),
-            "Alt + 4  — " + t("scAlt4"),
-            "Alt + S  — " + t("scAltS"),
-            "Ctrl + ↵ — " + t("scCtrlEnter"),
-            "Esc      — " + t("scEsc"),
-          ];
+          var lines = SHORTCUT_ROWS.map(function (r) {
+            var k = r.keys.join(" + ");
+            while (k.length < 9) k += " ";
+            return k + " — " + t(r.desc);
+          });
           var text = lines.join("\n");
           /**
            * Shows the saved confirmation on the copy shortcuts button.
