@@ -103,6 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
     Digit2: "tab-generator",
     Digit3: "tab-analytics",
     Digit4: "tab-names",
+    Digit5: "tab-ocr",
   };
   /**
    * Handles global keyboard shortcuts: Alt+digit switches tabs, Ctrl/Cmd+Enter triggers the active tab's primary action, and Escape closes the calendar or virtual keyboard.
@@ -398,6 +399,16 @@ document.addEventListener("DOMContentLoaded", function () {
       _savedWipeMins = normWipeMins(IS.settings.read().wipeMinutes);
   } catch (e) {}
   var WIPE_MS = _savedWipeMins * 60 * 1e3;
+    (function purgeStaleHistory() {
+    try {
+      var h = IS.history.get();
+      var keep = h.filter(function (x) {
+        return x.ts && Date.now() - x.ts < WIPE_MS;
+      });
+      if (keep.length !== h.length)
+        localStorage.setItem("IS_history_v4", JSON.stringify(keep));
+    } catch (e) {}
+  })();
   /**
    * Updates the on-screen label that shows the configured privacy-wipe duration in minutes.
    * @param {number} mins - The wipe duration in minutes to display.
@@ -443,6 +454,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var hl = document.getElementById("inputHighlight");
     if (hl) hl.innerHTML = "";
     if (window.IS && IS.history) IS.history.clear();
+    window.dispatchEvent(new Event("IS_privacy_wipe"));
     if (window.IS && IS.showToast)
       IS.showToast("Privacy wipe complete: input and history cleared.", "info");
     if (wipeEl) wipeEl.textContent = "";
@@ -465,7 +477,7 @@ document.addEventListener("DOMContentLoaded", function () {
         doWipe();
         return;
       }
-      if (remaining <= 6e4 && !_wipeWarnShown) {
+      if (remaining <= Math.min(6e4, WIPE_MS / 2) && !_wipeWarnShown) {
         _wipeWarnShown = true;
         var s60 = Math.ceil(remaining / 1e3);
         IS.showToast("⏱ Privacy wipe in " + s60 + " seconds", "info", 4e3);
@@ -751,9 +763,9 @@ document.addEventListener("DOMContentLoaded", function () {
         );
       })
       .then(function () {
-        return navigator.serviceWorker.register("/service-worker.js", {
-          scope: "/",
-          updateViaCache: "none",
+        return navigator.serviceWorker.register("service-worker.js", {
+      scope: "./",
+      updateViaCache: "none",
         });
       })
       .then(function (reg) {
