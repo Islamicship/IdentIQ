@@ -53,7 +53,7 @@ try {
     }
     var APP_META = CFG.META || {
       name: "IdentIQ",
-      version: "v6.3.1",
+      version: "v6.3.2",
       released: "2024",
       developer: "Creative Men",
       devLogo: "assets/dev-logo.svg",
@@ -188,7 +188,7 @@ try {
         updateChecking: "Checking for updates…",
         updateDone: "✓ Already up to date",
         updateInstalling: "Update installing… reload to apply",
-        changelogTitle: "What's New in v6.3.1",
+        changelogTitle: "What's New in v6.3.2",
         changelog1:
           "Iqama OCR Intelligence: Client-side AI Vision extraction powered by Google Gemini",
         changelog2:
@@ -321,7 +321,7 @@ try {
         updateChecking: "اپ ڈیٹ چیک ہو رہا ہے…",
         updateDone: "✓ ایپ تازہ ترین ہے",
         updateInstalling: "اپ ڈیٹ انسٹال ہو رہا ہے… ری لوڈ کریں",
-        changelogTitle: "v6.3.1 میں نیا کیا ہے",
+        changelogTitle: "v6.3.2 میں نیا کیا ہے",
         changelog1: "اقامہ او سی آر انٹیلیجنس: جیمینائی اے آئی وژن کے ذریعے اقامہ ڈیٹا ایکسٹریکشن",
         changelog2: "کینوس پری پروسیسنگ: شفاف PNG بیک گراؤنڈ درستگی اور سمارٹ امیج کمپریشن",
         changelog3: "انٹرایکٹو انسپیکٹر: زوم پریویو اور ون کلک ٹرمینل آٹو فلنگ",

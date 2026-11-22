@@ -5,7 +5,7 @@
  * ===================================================================== */
 "use strict";
 
-const VERSION = "6.3.1";
+const VERSION = "6.3.2";
 const CACHE_PREFIX = "identiq-";
 const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
 const AUDIO_VERSION = 1;

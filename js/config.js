@@ -33,7 +33,7 @@
   };
 
   var CONFIG = {
-    VERSION: "6.3.1",
+    VERSION: "6.3.2",
     YEAR: 2026,
     COPYRIGHT_RANGE: "2024–2026",
     APP_NAME: "IdentIQ",
@@ -61,7 +61,7 @@
 
     META: {
       name: "IdentIQ",
-      version: "v6.3.1",
+      version: "v6.3.2",
       released: "2024",
       developer: "Creative Men",
       devLogo: "assets/dev-logo.svg",
