@@ -45,10 +45,25 @@ const HITS = new Map();
 function rateLimited(ip) {
   const now = Date.now();
   const arr = (HITS.get(ip) || []).filter((t) => now - t < 60000);
+  
+  if (arr.length >= 8) {
+    // Array ko mazeed bloat hone se roko aur LRU position refresh karo
+    HITS.delete(ip);
+    HITS.set(ip, arr);
+    return true;
+  }
+
   arr.push(now);
+  HITS.delete(ip);
   HITS.set(ip, arr);
-  if (HITS.size > 5000) HITS.clear();
-  return arr.length > 8;
+
+  // Sirf sab se purana entry drop karo (LRU eviction), sab clear mat karo
+  if (HITS.size > 5000) {
+    const oldestKey = HITS.keys().next().value;
+    if (oldestKey) HITS.delete(oldestKey);
+  }
+
+  return false;
 }
 
 function corsHeaders(origin) {
@@ -186,6 +201,7 @@ async function callGemini({ model, apiKey, image, mimeType, signal }) {
         maxOutputTokens: 4096,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
+        ...(/gemini-2\.5-flash/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {})
       },
     }),
     signal,
@@ -263,6 +279,11 @@ function normaliseDate(value) {
   return s;
 }
 
+const validGreg = (y, mo, d) => {
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d;
+};
+
 function normalise(raw) {
   const warnings = [];
 
@@ -293,6 +314,7 @@ function normalise(raw) {
     const m = dobHijri.match(datePattern);
     if (!m) warnings.push("Hijri date of birth is not in YYYY/MM/DD format: \"" + dobHijri + "\".");
     else if (Number(m[1]) < 1300 || Number(m[1]) > 1460) warnings.push("Hijri year " + m[1] + " looks wrong. Check it against the card.");
+    else if (Number(m[2]) < 1 || Number(m[2]) > 12 || Number(m[3]) < 1 || Number(m[3]) > 30) warnings.push("Hijri month/day looks wrong. Check it against the card.");
   }
 
   if (!dobGregorian) {
@@ -301,6 +323,7 @@ function normalise(raw) {
     const m = dobGregorian.match(datePattern);
     if (!m) warnings.push("Gregorian date of birth is not in YYYY/MM/DD format: \"" + dobGregorian + "\".");
     else if (Number(m[1]) < 1900 || Number(m[1]) > new Date().getUTCFullYear()) warnings.push("Gregorian year " + m[1] + " looks wrong. Check it against the card.");
+    else if (!validGreg(Number(m[1]), Number(m[2]), Number(m[3]))) warnings.push("Gregorian month/day looks wrong. Check it against the card.");
   }
 
   return {
@@ -328,8 +351,15 @@ exports.handler = async (event) => {
   const sameOrigin = Boolean(host) && originHost === host;
   if (!origin || (!sameOrigin && !ALLOWED_ORIGINS.has(origin))) return failure(403, "ORIGIN_NOT_ALLOWED", "This origin is not allowed to use the OCR service.", cors);
 
-    const ip = String((event.headers || {})["x-nf-client-connection-ip"] || "").trim();
-  if (ip && rateLimited(ip)) return failure(429, "RATE_LIMITED", "Too many scans. Wait a minute and retry.", { ...cors, "Retry-After": "60" });
+    const headers = event.headers || {};
+const ip = String(headers["x-nf-client-connection-ip"] || headers["client-ip"] || "").trim() || "unknown-ip";
+
+if (rateLimited(ip)) {
+  return failure(429, "RATE_LIMITED", "Too many scans. Wait a minute and retry.", { 
+    ...cors, 
+    "Retry-After": "60" 
+  });
+}
 
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
@@ -347,14 +377,22 @@ exports.handler = async (event) => {
     let result = null;
     let usedModel = null;
     for (let i = 0; i < models.length; i += 1) {
-      usedModel = models[i];
+    usedModel = models[i];
+    try {
       result = await callGemini({ model: usedModel, apiKey, image, mimeType, signal: controller.signal });
-      if ((result.status === 404 || result.status === 429 || result.status >= 500) && i < models.length - 1) {
-        console.warn("Model " + usedModel + " returned 404, trying " + models[i + 1] + ".");
-        continue;
-      }
-      break;
+    } catch (err) {
+      if (err && err.name === "AbortError") throw err;
+      console.warn("Model " + usedModel + " network error: " + (err && err.message));
+      if (i < models.length - 1) continue;
+      return failure(502, "GEMINI_UNAVAILABLE", "Gemini is temporarily unavailable. Retry in a few seconds.", cors);
     }
+
+    if ((result.status === 404 || result.status === 429 || result.status >= 500) && i < models.length - 1) {
+      console.warn("Model " + usedModel + " returned " + result.status + ", trying " + models[i + 1] + ".");
+      continue;
+    }
+    break;
+  }
 
     if (!result.ok) throw upstreamToHttpError(result, usedModel);
 

@@ -8,7 +8,8 @@
 const VERSION = "6.3.1";
 const CACHE_PREFIX = "identiq-";
 const CACHE_NAME = `${CACHE_PREFIX}v${VERSION}`;
-const CACHE_AUDIO = `${CACHE_PREFIX}audio-v1`;
+const AUDIO_VERSION = 1;
+const CACHE_AUDIO = `${CACHE_PREFIX}audio-v${AUDIO_VERSION}`;
 
 const SCOPE = self.registration.scope;
 
@@ -164,7 +165,8 @@ async function precache() {
  */
 async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
   const network = (async () =>
-    (await event.preloadResponse) || fetch(event.request))();
+    (await event.preloadResponse) ||
+    fetch(isNavigation ? event.request : new Request(event.request, { cache: "no-cache" })))();
 
     const navUrl = new URL(event.request.url);
   const okToCache = (res) =>
@@ -219,6 +221,19 @@ async function staleWhileRevalidate(event) {
  * @param {FetchEvent} event - The fetch event for the audio request.
  * @returns {Promise<Response>} Full audio response, a 206 partial response for range requests, or an error response.
  */
+const audioInflight = new Map();
+function downloadAudio(cleanUrl, cache) {
+  let p = audioInflight.get(cleanUrl);
+  if (!p) {
+    p = fetch(cleanUrl)
+      .then((res) => (isCacheable(res) ? cache.put(cleanUrl, res) : undefined))
+      .catch(() => {})
+      .finally(() => audioInflight.delete(cleanUrl));
+    audioInflight.set(cleanUrl, p);
+  }
+  return p;
+}
+
 async function audioCacheFirst(event) {
   const { request } = event;
   const cleanUrl = request.url.split("?")[0];
@@ -227,11 +242,9 @@ async function audioCacheFirst(event) {
   let response = await cache.match(cleanUrl);
 
   if (!response) {
-    let netRes;
-    try { netRes = await fetch(cleanUrl); } catch (err) { return Response.error(); }
-    if (!isCacheable(netRes)) return netRes;
-    try { await cache.put(cleanUrl, netRes.clone()); } catch (err) { /* quota: stream anyway */ }
-    response = netRes;
+    await downloadAudio(cleanUrl, cache);
+    response = await cache.match(cleanUrl);
+    if (!response) return fetch(cleanUrl).catch(() => Response.error());
   }
 
   const rangeHeader = request.headers.get("range");
@@ -389,7 +402,9 @@ self.addEventListener("message", (event) => {
           .keys()
           .then((keys) =>
             Promise.all(
-              keys.filter(isOwnCache).map((key) => caches.delete(key)),
+              keys
+                .filter((key) => isOwnCache(key) && key !== CACHE_AUDIO)
+                .map((key) => caches.delete(key)),
             ),
           )
           .then(precache)

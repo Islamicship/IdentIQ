@@ -93,6 +93,7 @@
     idleTimer: 0,
     inspPlaced: false,
     inspUrl: null,
+    wipePending: false,
   };
 
   class OcrError extends Error {
@@ -495,9 +496,16 @@
   async function decodeImage(file) {
     if ("createImageBitmap" in window) {
       try {
-        return await createImageBitmap(file); // honours EXIF orientation
+        return await createImageBitmap(file, {
+          resizeWidth: CONFIG.MAX_WIDTH,
+          resizeQuality: "high",
+        });
       } catch (_) {
-        /* fall back to <img> */
+        try {
+          return await createImageBitmap(file); // honours EXIF orientation fallback
+        } catch (_2) {
+          /* fall back to <img> */
+        }
       }
     }
     return new Promise((resolve, reject) => {
@@ -540,6 +548,7 @@
       ctx.drawImage(source, 0, 0, width, height);
 
       const blob = await canvasToBlob(canvas, quality);
+      canvas.width = canvas.height = 0; // Release canvas backing texture immediately
       best = { blob, width, height, quality };
       if (blob.size <= CONFIG.TARGET_BYTES) break;
 
@@ -547,7 +556,6 @@
       else if (width > CONFIG.MIN_WIDTH) width = Math.max(CONFIG.MIN_WIDTH, Math.round(width * 0.92));
       else break;
     }
-    if (typeof source.close === "function") source.close();
     return best;
   }
 
@@ -712,7 +720,12 @@
       stage = "compress";
       setStage("compress");
       await frames(1);
-      const packed = await compressImage(bitmap);
+      let packed;
+      try {
+        packed = await compressImage(bitmap);
+      } finally {
+        if (bitmap && typeof bitmap.close === "function") bitmap.close();
+      }
       const base64 = await blobToBase64(packed.blob);
       els.previewMeta.textContent = (state.file.name || "photo") + " · sent " + formatKb(packed.blob.size) + " @ " + packed.width + "×" + packed.height;
 
@@ -725,6 +738,8 @@
         throw new OcrError("NOTHING_READ", "Nothing could be read from this photo. Use a sharper, well-lit, full-card photo.");
       }
 
+      if (state.wipePending) return;
+
       state.scannedAt = new Date();
       stage = "done";
       setStage("done");
@@ -732,6 +747,7 @@
       resetIdleTimer();
 
       await new Promise((resolve) => setTimeout(resolve, CONFIG.HANDOFF_DELAY_MS));
+      if (state.wipePending) return;
       await handoffToIntel(record);
 
       if (record.warnings.length) {
@@ -748,6 +764,10 @@
       console.error("[ocr]", err && err.code ? err.code : "CLIENT_ERROR", message);
     } finally {
       setBusy(false);
+      if (state.wipePending) {
+        state.wipePending = false;
+        clearFile({ silent: true });
+      }
     }
   }
 
@@ -802,7 +822,16 @@
   els.scanBtn.addEventListener("click", runScan);
   els.changeBtn.addEventListener("click", () => !state.busy && els.fileInput.click());
   els.clearBtn.addEventListener("click", () => clearFile());
-    window.addEventListener("IS_privacy_wipe", () => clearFile({ silent: true }));
+    window.addEventListener("IS_privacy_wipe", () => {
+    if (state.busy) {
+      state.wipePending = true;
+      if (state.controller) {
+        try { state.controller.abort(); } catch (_) {}
+      }
+      return;
+    }
+    clearFile({ silent: true });
+  });
 
   // Activity inside the OCR UI counts for the privacy wipe.
   ["click", "keydown", "pointerdown"].forEach((type) => {

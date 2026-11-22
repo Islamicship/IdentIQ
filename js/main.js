@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
           .querySelectorAll(".history-delete-btn")
           .forEach(function (btn) {
             /**
-             * Deletes the clicked history entry from storage and re-renders the analytics view.
+             * Deletes the clicked history entry from session storage and re-renders the analytics view.
              * @returns {void} Nothing.
              */
             btn.addEventListener("click", function () {
@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
               if (isNaN(idx) || idx < 0 || idx >= hist.length) return;
               hist.splice(idx, 1);
               try {
-                localStorage.setItem("IS_history_v4", JSON.stringify(hist));
+                sessionStorage.setItem("IS_history_v4", JSON.stringify(hist));
               } catch (e) {}
               renderAnalytics();
             });
@@ -401,12 +401,13 @@ document.addEventListener("DOMContentLoaded", function () {
   var WIPE_MS = _savedWipeMins * 60 * 1e3;
     (function purgeStaleHistory() {
     try {
+      localStorage.removeItem("IS_history_v4"); // Purge legacy at-rest PII from disk
       var h = IS.history.get();
       var keep = h.filter(function (x) {
         return x.ts && Date.now() - x.ts < WIPE_MS;
       });
       if (keep.length !== h.length)
-        localStorage.setItem("IS_history_v4", JSON.stringify(keep));
+        sessionStorage.setItem("IS_history_v4", JSON.stringify(keep));
     } catch (e) {}
   })();
   /**

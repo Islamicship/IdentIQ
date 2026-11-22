@@ -264,7 +264,7 @@ try {
         confirmClearAll:
           "یہ آپ کی نکالنے کی تاریخ، تجزیات، پروفائل اور تمام ترتیبات مٹا دے گا۔ یہ واپس نہیں ہو سکتا۔",
         privacyNote:
-          "تمام ڈیٹا آپ کی ڈیوائس پر مقامی طور پر محفوظ ہے۔ کوئی ڈیٹا سرور کو نہیں بھیجا جاتا۔",
+          "ہسٹری، سیٹنگز اور تجزیات صرف اسی ڈیوائس پر رہتے ہیں۔ استثنا: OCR اسکینر کارڈ کی سائز بدلی ہوئی تصویر ہمارے سرور فنکشن اور Google Gemini کو پروسیسنگ کے لیے بھیجتا ہے، اور وائس ان پٹ آپ کے براؤزر کی اسپیچ سروس استعمال کرتا ہے۔",
         clearedToast: "✓ ڈیٹا صاف ہو گیا",
         dataManagement: "ڈیٹا مینجمنٹ",
         lastCleared: "آخری بار صاف: ",
@@ -1473,13 +1473,13 @@ try {
         APP_META.location +
         "</p>" +
         "<h5>1. ڈیٹا اکٹھا کرنا</h5>" +
-        "<p>IdentIQ کسی بھی بیرونی سرور پر آپ کا ذاتی ڈیٹا <strong>اکٹھا، منتقل یا محفوظ نہیں کرتا</strong>۔ تمام معلومات صرف آپ کے براؤزر کی <code>localStorage</code> میں محفوظ ہوتی ہیں۔</p>" +
+        "<p>تمام بنیادی ڈیٹا آپ کے براؤزر کی <code>localStorage</code> میں محفوظ ہوتا ہے۔ <strong>استثنا:</strong> اگر آپ OCR کارڈ اسکینر استعمال کرتے ہیں تو کارڈ کی سائز بدلی ہوئی تصویر پروسیسنگ کے لیے ہمارے Netlify سرور فنکشن اور Google Gemini کو بھیجی جاتی ہے، اور وائس ان پٹ کے لیے براؤزر کی بلٹ ان اسپیچ سروس استعمال ہوتی ہے۔ ہم کوئی شناختی ڈیٹا اپنے سرور پر محفوظ نہیں کرتے۔</p>" +
         "<h5>2. مقامی اسٹوریج</h5>" +
         "<p>درج ذیل ڈیٹا آپ کی ڈیوائس پر مقامی طور پر محفوظ ہو سکتا ہے:</p>" +
         "<ul><li>آپ کا نمائشی نام اور ای میل (اختیاری)</li><li>ایپ ترتیبات</li><li>نکالنے کی تاریخ اور تجزیات</li><li>تھیم اور زبان کی ترجیح</li></ul>" +
         "<p>یہ ڈیٹا آپ کی ڈیوائس نہیں چھوڑتا۔ آپ اسے <strong>رازداری → تمام ڈیٹا صاف کریں</strong> سے حذف کر سکتے ہیں۔</p>" +
         "<h5>3. تھرڈ پارٹی سروسز</h5>" +
-        "<p>IdentIQ کسی بھی اشتہاری یا ٹریکنگ سروس سے منسلک نہیں ہے۔ کوئی کوکی سیٹ نہیں ہوتی۔</p>" +
+        "<p>IdentIQ کسی بھی اشتہاری یا ٹریکنگ سروس سے منسلک نہیں ہے اور کوئی کوکی سیٹ نہیں ہوتی۔ صرف OCR اسکیننگ کے دوران Google Gemini API (تصویر سے ڈیٹا نکالنے کے لیے) استعمال ہوتی ہے۔</p>" +
         "<h5>4. رابطہ</h5>" +
         '<p>رازداری سے متعلق سوالات کے لیے: <a href="mailto:creativemen70@gmail.com" style="color:var(--c-accent)">creativemen70@gmail.com</a></p>'
       );
@@ -2133,6 +2133,10 @@ try {
             KEYS.LAST_CLEARED || "IS_last_cleared",
             Date.now().toString(),
           );
+          if (window.IS && IS.history && typeof IS.history.clear === "function") {
+            IS.history.clear();
+          }
+          window.dispatchEvent(new Event("IS_privacy_wipe"));
           if (window.IS && IS.showToast)
             IS.showToast(t("clearedToast"), "info");
           closePanel();
@@ -2489,6 +2493,11 @@ try {
           _overlay &&
           _overlay.classList.contains("sp-open")
         ) {
+          var privClose = document.getElementById("spPrivacyClose");
+          if (privClose) {
+            privClose.click();
+            return;
+          }
           closePanel();
         }
       });

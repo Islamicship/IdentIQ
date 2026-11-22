@@ -808,12 +808,12 @@ window.IS = window.IS || {};
   IS.history = {
     _max: IS.HISTORY_MAX,
     /**
-     * Reads the saved extraction history from local storage and returns only valid entries.
+     * Reads the saved extraction history from session storage and returns only valid entries.
      * @returns {Object[]} The history entries, or an empty array on error.
      */
     get: function () {
       try {
-        var a = JSON.parse(localStorage.getItem(HKEY) || "[]");
+        var a = JSON.parse(sessionStorage.getItem(HKEY) || "[]");
         if (!Array.isArray(a)) return [];
         return a.filter(function (x) {
           return x && typeof x === "object";
@@ -833,14 +833,15 @@ window.IS = window.IS || {};
       list.unshift(entry);
       list = list.slice(0, IS.HISTORY_MAX);
       try {
-        localStorage.setItem(HKEY, JSON.stringify(list));
+        sessionStorage.setItem(HKEY, JSON.stringify(list));
       } catch (e) {}
     },
     /**
-     * Removes the saved extraction history from local storage.
+     * Removes the saved extraction history from session storage and purges legacy local storage.
      */
     clear: function () {
       try {
+        sessionStorage.removeItem(HKEY);
         localStorage.removeItem(HKEY);
       } catch (e) {}
     },

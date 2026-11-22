@@ -104,7 +104,13 @@ _hijriFmtMem = next;
    * @returns {string} The escaped text.
    */
   function escHtml(s) {
-    return window.IS && IS.escHtml ? IS.escHtml(s) : String(s || "");
+    if (window.IS && IS.escHtml) return IS.escHtml(s);
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
   /**
    * Formats a moment instance with the given pattern in the English locale so digits stay Latin.
@@ -113,7 +119,13 @@ _hijriFmtMem = next;
    * @returns {string} The formatted date.
    */
   function fmt(m, pattern) {
-    return m.clone().locale("en").format(pattern);
+    if (!m || typeof m.isValid !== "function" || !m.isValid()) return "";
+    try {
+      var s = m.clone().locale("en").format(pattern);
+      return /^\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4}$/.test(s) ? s : "";
+    } catch (_) {
+      return "";
+    }
   }
   /**
    * Checks whether the moment-hijri plugin is loaded and usable.
@@ -995,6 +1007,7 @@ _hijriFmtMem = next;
         } catch (e) {}
         stopVoice();
       }
+      window.dispatchEvent(new Event("IS_privacy_wipe"));
       extract();
     });
   }
@@ -1165,7 +1178,7 @@ _hijriFmtMem = next;
      * Stops voice input, shows a temporary microphone error message and clears it after two seconds.
      */
     recognition.onerror = function (event) {
-      console.error("Asli Error Yeh Hai:", event.error);
+      console.error("[voice] Speech recognition error:", event.error);
       stopVoice();
       if (f.voiceStatus) f.voiceStatus.textContent = "⚠ Mic error";
       setTimeout(function () {
