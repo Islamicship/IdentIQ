@@ -578,6 +578,7 @@ window.IS = window.IS || {};
         CFG.VERSION,
       navNames: "Names",
       shortcut4: "[Alt+4] Names",
+      shortcut5: "[Alt+5] OCR",
       namesTitle: "Divine & Prophetic Names",
       namesTabHusna: "Names of Allah",
       namesTabNabi: 'Names of Muhammad <span class="names-saws">ﷺ</span>',
@@ -669,6 +670,7 @@ window.IS = window.IS || {};
         CFG.VERSION,
       navNames: "اسماء",
       shortcut4: "[Alt+4] اسماء",
+      shortcut5: "[Alt+5] او سی آر",
       namesTitle: "اسمائے الٰہی و نبوی",
       namesTabHusna: "اسماء الحسنیٰ",
       namesTabNabi: 'اسمائے محمد <span class="names-saws">ﷺ</span>',
@@ -827,6 +829,7 @@ window.IS = window.IS || {};
     save: function (entry) {
       if (!entry || typeof entry !== "object") return;
       var list = this.get();
+      if (entry.aqama) list = list.filter(function (x) { return x.aqama !== entry.aqama; });
       list.unshift(entry);
       list = list.slice(0, IS.HISTORY_MAX);
       try {
