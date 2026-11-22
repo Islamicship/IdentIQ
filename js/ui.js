@@ -21,7 +21,7 @@ window.IS = window.IS || {};
 (function (IS) {
   var CFG = IS.CONFIG ||
     window.APP_CONFIG || {
-      VERSION: "6.2.0",
+      VERSION: "6.3.0",
       COPYRIGHT_RANGE: "2024–2026",
       APP_NAME: "IdentIQ",
       DEVELOPER: "Creative Men",
