@@ -25,10 +25,10 @@
     RELATIVE_ENDPOINT: "/.netlify/functions/iqama-ocr",
 
     MAX_WIDTH: 1200,
-    MIN_WIDTH: 960,
+    MIN_WIDTH: 1100,
     JPEG_QUALITY: 0.75,
-    MIN_QUALITY: 0.45,
-    TARGET_BYTES: 50 * 1024,
+    MIN_QUALITY: 0.7,
+    TARGET_BYTES: 350 * 1024,
 
     MAX_INPUT_BYTES: 25 * 1024 * 1024,
     REQUEST_TIMEOUT_MS: 15000,
@@ -113,17 +113,8 @@
   /* ------------------------------------------------------------------
    * Feedback: reuse the app's #gen-toast element (CSS lives in style.css)
    * ------------------------------------------------------------------ */
-  let toastTimer = 0;
-  function toast(message, kind = "info", ms = 3600) {
-    const el = document.getElementById("gen-toast");
-    if (!el) return;
-    el.textContent = message;
-    el.classList.remove("toast-error", "toast-info");
-    if (kind === "error") el.classList.add("toast-error");
-    else if (kind === "info") el.classList.add("toast-info");
-    el.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show", "toast-error", "toast-info"), ms);
+      function toast(message, kind = "info", ms = 3600) {
+    if (window.IS && IS.showToast) IS.showToast(message, kind === "ok" ? undefined : kind, ms);
   }
 
   function setStatus(message, isError = false) {
@@ -580,35 +571,35 @@
     return CONFIG.RELATIVE_ENDPOINT;
   }
 
-  async function callApi(base64) {
+    async function callApi(base64) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT_MS);
-    let response;
     try {
-      response = await fetch(resolveEndpoint(), {
+      const response = await fetch(resolveEndpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64, mimeType: "image/jpeg" }),
         signal: controller.signal,
       });
+      let body = null;
+      try {
+        body = await response.json();
+      } catch (err) {
+        if (err && err.name === "AbortError") throw err;
+        throw new OcrError("NOT_JSON", "The OCR server did not return JSON (HTTP " + response.status + ").", response.status);
+      }
+      if (!response.ok || !body || body.success !== true) {
+        const e = (body && body.error) || {};
+        throw new OcrError(e.code || "HTTP_" + response.status, e.message || "Request failed with HTTP " + response.status + ".", response.status);
+      }
+      return body;
     } catch (err) {
+      if (err instanceof OcrError) throw err;
       if (err && err.name === "AbortError") throw new OcrError("CLIENT_TIMEOUT", "The server took too long to answer. Try again.");
       throw new OcrError("NETWORK", "Could not reach the OCR server. Check your connection and try again.");
     } finally {
       clearTimeout(timer);
     }
-
-    let body = null;
-    try {
-      body = await response.json();
-    } catch (_) {
-      throw new OcrError("NOT_JSON", "The OCR server did not return JSON (HTTP " + response.status + ").", response.status);
-    }
-    if (!response.ok || !body || body.success !== true) {
-      const e = (body && body.error) || {};
-      throw new OcrError(e.code || "HTTP_" + response.status, e.message || "Request failed with HTTP " + response.status + ".", response.status);
-    }
-    return body;
   }
 
   /* ------------------------------------------------------------------
@@ -811,6 +802,7 @@
   els.scanBtn.addEventListener("click", runScan);
   els.changeBtn.addEventListener("click", () => !state.busy && els.fileInput.click());
   els.clearBtn.addEventListener("click", () => clearFile());
+    window.addEventListener("IS_privacy_wipe", () => clearFile({ silent: true }));
 
   // Activity inside the OCR UI counts for the privacy wipe.
   ["click", "keydown", "pointerdown"].forEach((type) => {
