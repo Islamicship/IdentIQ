@@ -575,7 +575,14 @@
    * ------------------------------------------------------------------ */
   function resolveEndpoint() {
     const host = String(window.location.hostname || "").toLowerCase();
-    if (host === "github.io" || host.endsWith(".github.io")) return CONFIG.NETLIFY_ABSOLUTE_ENDPOINT;
+    if (
+      host === "github.io" ||
+      host.endsWith(".github.io") ||
+      host === "localhost" ||
+      host === "127.0.0.1"
+    ) {
+      return CONFIG.NETLIFY_ABSOLUTE_ENDPOINT;
+    }
     return CONFIG.RELATIVE_ENDPOINT;
   }
 
@@ -649,47 +656,20 @@
     const arabic = String((data && data.arabic_name) || "").replace(/\s+/g, " ").trim();
     const english = String((data && data.english_name) || "").replace(/\s+/g, " ").trim();
     let g = normalizeDate(data && data.dob_gregorian);
-    let h = normalizeDate(data && data.dob_hijri);
-
-    // Calendar mix-up guard: 13xx/14xx is Hijri, 19xx/20xx is Gregorian.
-    if (g && !h && yearOf(g) < 1700) { h = g; g = ""; }
-    else if (h && !g && yearOf(h) >= 1700) { g = h; h = ""; }
-    else if (g && h && yearOf(g) < 1700 && yearOf(h) >= 1700) { [g, h] = [h, g]; }
-
-    let filledG = false;
-    let filledH = false;
-    if (g && !h) {
-      const calc = gregorianToHijri(g);
-      if (calc) {
-        h = calc;
-        filledH = true;
-        warnings.push("Hijri date was calculated from the Gregorian date (Umm al-Qura) and can differ by a day from the card.");
-      } else {
-        warnings.push("Hijri date could not be calculated. The Gregorian date was still passed on.");
-      }
-    } else if (h && !g) {
-      const calc = hijriToGregorian(h);
-      if (calc) {
-        g = calc;
-        filledG = true;
-        warnings.push("Gregorian date was calculated from the Hijri date and can differ by a day from the card.");
-      }
-    }
 
     (serverWarnings || []).forEach((w) => {
-      if (filledH && /^Hijri date of birth was not read/i.test(w)) return;
-      if (filledG && /^Gregorian date of birth was not read/i.test(w)) return;
+      if (/^Hijri date of birth was not read/i.test(w)) return;
       warnings.push(w);
     });
 
-    return { iqama: digits, arabic, english, gregorian: g, hijri: h, warnings };
+    return { iqama: digits, arabic, english, gregorian: g, warnings };
   }
 
   /* ------------------------------------------------------------------
    * Synthetic paste handoff → extractor.js
    * ------------------------------------------------------------------ */
   function buildPasteBlock(r) {
-    return [r.iqama, r.arabic, r.english, r.gregorian, r.hijri].filter(Boolean).join("\n");
+    return [r.iqama, r.arabic, r.english, r.gregorian].filter(Boolean).join("\n");
   }
 
   async function handoffToIntel(record) {
