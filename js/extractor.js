@@ -53,9 +53,13 @@ document.addEventListener("DOMContentLoaded", function () {
    * Supports: YYYY/MM/DD (iYYYY/iMM/iDD) and D/M/YYYY (iD/iM/iYYYY)
    * @returns {string} The moment format pattern.
    */
+    var _hijriFmtMem = "iYYYY/iMM/iDD";
   function getHijriFormat() {
-    var saved = localStorage.getItem("identiq_hijri_fmt");
-    return saved === "iD/iM/iYYYY" ? "iD/iM/iYYYY" : "iYYYY/iMM/iDD";
+    try {
+      var s = localStorage.getItem("identiq_hijri_fmt");
+      if (s) _hijriFmtMem = s === "iD/iM/iYYYY" ? s : "iYYYY/iMM/iDD";
+    } catch (e) {}
+    return _hijriFmtMem;
   }
 
   // Hijri Format Pill Toggle & Live Switcher
@@ -71,7 +75,8 @@ document.addEventListener("DOMContentLoaded", function () {
     _hijriBtn.addEventListener("click", function (e) {
       e.preventDefault();
       var next = getHijriFormat() === "iYYYY/iMM/iDD" ? "iD/iM/iYYYY" : "iYYYY/iMM/iDD";
-      localStorage.setItem("identiq_hijri_fmt", next);
+      try { localStorage.setItem("identiq_hijri_fmt", next); } catch (err) {}
+_hijriFmtMem = next;
       updateHijriBtnText();
 
       // Live re-format if Gregorian date is already present on screen
@@ -132,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var RE = {
     id10: /\b[0-9]{10}\b/g,
     date: /[0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2}|[0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{4}/g,
-    enRun: /[A-Za-z][A-Za-z'’.\-]*(?:\s*(?:[-–—/|]+\s*|\s+)[A-Za-z][A-Za-z'’.\-]*)*/g,
+    enRun: /[A-Za-z][A-Za-z'’.\-]*(?:(?:\s*[-–—/|]+\s*|\s+)[A-Za-z][A-Za-z'’.\-]*)*/g,
     arName: new RegExp("[" + AR_L + "][" + AR_L + AR_M + " ]{4,}"),
     nameLead: /^\s*(?:FULL\s+)?NAME\b\s*/i,
     birthHint: /BIRTH|DOB|B\.?DATE|ميلاد|مولد/i,
@@ -792,7 +797,7 @@ document.addEventListener("DOMContentLoaded", function () {
       extract._lastSnap = snap;
       if (window.IS && IS.analytics)
         IS.analytics.increment("successfulExtractions");
-      if (window.IS && IS.history)
+      if (window.IS && IS.history && f.aqama && f.aqama.value)
         IS.history.save({
           nameAr: f.nameAr ? f.nameAr.value : "",
           nameEn: f.nameEn ? f.nameEn.value : "",
@@ -873,7 +878,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (dDiff < 0) {
           mDiff--;
-          var prevMonthDays = new Date(target.getFullYear(), target.getMonth(), 0).getDate();
+          var prevMonthDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
           dDiff += prevMonthDays;
         }
         if (mDiff < 0) {
