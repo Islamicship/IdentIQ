@@ -131,7 +131,7 @@ try {
         confirmClearAll:
           "This will erase your extraction history, analytics, profile, and all settings. This cannot be undone.",
         privacyNote:
-          "All data is stored locally on your device. Nothing is sent to any server.",
+          "History, settings and analytics stay on this device. Exceptions: the OCR Scanner sends the resized card photo to our server function and Google Gemini for processing, and voice input uses your browser's speech service.",
         clearedToast: "✓ Data cleared",
         dataManagement: "Data Management",
         lastCleared: "Last cleared: ",
@@ -930,7 +930,7 @@ try {
      * @returns {string} HTML string for the section.
      */
     function buildProfile(cfg) {
-      var avatarContent = cfg.avatarImage
+      var avatarContent = cfg.avatarImage && /^data:image\/png;base64,[A-Za-z0-9+\/=]+$/.test(cfg.avatarImage)
         ? '<img src="' +
           cfg.avatarImage +
           '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
@@ -1470,13 +1470,13 @@ try {
         APP_META.location +
         "</p>" +
         "<h5>1. Data We Collect</h5>" +
-        "<p>IdentIQ does <strong>not</strong> collect, transmit, or store any personal data on external servers. All information you enter — including names, emails, extracted identity data, and analytics — is stored exclusively in your browser's <code>localStorage</code> on your own device.</p>" +
+        "<p>IdentIQ runs no analytics or tracking. Extraction history, settings and profile are stored only in your browser's <code>localStorage</code>. The OCR Scanner is the exception: the card photo you choose is resized in your browser and sent to our server function and to Google Gemini to read the card. IdentIQ does not store it.</p>" +
         "<h5>2. Local Storage Only</h5>" +
         "<p>The following data may be saved locally on your device:</p>" +
         "<ul><li>Your display name and email (optional, for profile)</li><li>App settings and preferences</li><li>Extraction history and analytics counters</li><li>Theme and language preference</li></ul>" +
         "<p>None of this data leaves your device. You can delete it at any time via <strong>Privacy → Clear All Data</strong>.</p>" +
         "<h5>3. Third-Party Services</h5>" +
-        "<p>IdentIQ does not integrate with any third-party analytics, advertising, or tracking services. No cookies are set. No telemetry is sent.</p>" +
+        "<p>IdentIQ uses no advertising or analytics services. Third-party processing happens only when you use OCR Scanner (Netlify + Google Gemini API) or voice input (your browser's speech service). No cookies are set.</p>" +
         "<h5>4. Service Worker & Caching</h5>" +
         "<p>IdentIQ uses a service worker to cache app files locally for offline use. This cache contains only app code and assets — no user data is cached by the service worker.</p>" +
         "<h5>5. External Links</h5>" +
@@ -1633,6 +1633,7 @@ try {
      * Installs a keydown handler that keeps Tab focus cycling inside the open settings panel.
      */
     function setupFocusTrap() {
+      removeFocusTrap();
       var focusable =
         'button:not([disabled]), input, select, a[href], [tabindex]:not([tabindex="-1"])';
       /**
@@ -1692,6 +1693,7 @@ try {
       if (gearBtn) gearBtn.classList.add("sp-gear-btn--open");
       if (gearBtn) gearBtn.classList.remove("sp-gear-dot");
       setTimeout(function () {
+        if (!_overlay.classList.contains("sp-open")) return;
         var el = _panel.querySelector(
           ".sp-content input, .sp-content select, .sp-content button",
         );
@@ -1933,6 +1935,7 @@ try {
         avatarInput.addEventListener("change", function (e) {
           var file = e.target.files[0];
           if (!file) return;
+          if (!file.type || file.type.indexOf("image/") !== 0 || file.size > 8 * 1024 * 1024) return;
 
           var reader = new FileReader();
           /**
@@ -2270,21 +2273,24 @@ try {
           });
         }
       }
-      window.addEventListener(
-        "beforeinstallprompt",
-        function () {
-          if (
-            sessionStorage.getItem("pwa_installed") ||
-            localStorage.getItem("pwa_installed")
-          )
-            return;
-          var btn = document.getElementById("spInstallBtn");
-          if (btn) btn.style.display = "";
-        },
-        {
-          once: true,
-        },
-      );
+      if (!window._IS_bipBound) {
+        window._IS_bipBound = true;
+        window.addEventListener(
+          "beforeinstallprompt",
+          function () {
+            if (
+              sessionStorage.getItem("pwa_installed") ||
+              localStorage.getItem("pwa_installed")
+            )
+              return;
+            var btn = document.getElementById("spInstallBtn");
+            if (btn) btn.style.display = "";
+          },
+          {
+            once: true,
+          },
+        );
+      }
       var updateBtn = document.getElementById("spUpdateBtn");
       if (updateBtn) {
         updateBtn.addEventListener("click", function () {
