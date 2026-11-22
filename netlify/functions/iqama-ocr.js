@@ -41,6 +41,15 @@ function getOrigin(event) {
   const h = event.headers || {};
   return String(h.origin || h.Origin || "").trim();
 }
+const HITS = new Map();
+function rateLimited(ip) {
+  const now = Date.now();
+  const arr = (HITS.get(ip) || []).filter((t) => now - t < 60000);
+  arr.push(now);
+  HITS.set(ip, arr);
+  if (HITS.size > 5000) HITS.clear();
+  return arr.length > 8;
+}
 
 function corsHeaders(origin) {
   const headers = {
@@ -174,7 +183,7 @@ async function callGemini({ model, apiKey, image, mimeType, signal }) {
       safetySettings: SAFETY_SETTINGS,
       generationConfig: {
         temperature: 0,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },
@@ -195,28 +204,22 @@ async function callGemini({ model, apiKey, image, mimeType, signal }) {
 function upstreamToHttpError(result, model) {
   const g = result.json && result.json.error ? result.json.error : {};
   const googleMessage = String(g.message || "Gemini returned HTTP " + result.status + ".").slice(0, 300);
+  console.error("[upstream " + result.status + "] model=" + model + " " + googleMessage);
+
+  const unavailable = new HttpError(503, "SERVICE_UNAVAILABLE", "OCR service is temporarily unavailable. Please try again later.");
   const reason = (Array.isArray(g.details) ? g.details.map((d) => d && d.reason).find(Boolean) : "") || "";
 
-  if (reason === "API_KEY_INVALID" || /api key not valid/i.test(googleMessage)) {
-    return new HttpError(500, "INVALID_API_KEY", "Google rejected GEMINI_API_KEY. Create a new key in Google AI Studio and update the environment variable.");
-  }
-  if (result.status === 401 || result.status === 403) {
-    return new HttpError(500, "GEMINI_PERMISSION_DENIED", "Google denied the request (key permissions, region or billing). Google says: " + googleMessage);
-  }
-  if (result.status === 404) {
-    return new HttpError(500, "MODEL_NOT_FOUND", "Model \"" + model + "\" is not available for this key. Set GEMINI_MODEL to a current Gemini Flash model.");
-  }
-  if (result.status === 429) {
-    return new HttpError(429, "RATE_LIMITED", "Gemini quota or rate limit reached. Wait a minute and retry, or check quota and billing in Google AI Studio.");
-  }
+  if (reason === "API_KEY_INVALID" || /api key not valid/i.test(googleMessage)) return unavailable;
+  if (result.status === 401 || result.status === 403 || result.status === 404) return unavailable;
+  if (result.status === 429) return new HttpError(429, "RATE_LIMITED", "Quota or rate limit reached. Wait a minute and retry.");
   if (result.status === 400) {
     if (/image|inline_data|inlineData/i.test(googleMessage)) {
       return new HttpError(400, "UNREADABLE_IMAGE", "Gemini could not process this image. Try a different photo.");
     }
-    return new HttpError(500, "GEMINI_BAD_REQUEST", "Gemini rejected the request. Google says: " + googleMessage);
+    return unavailable;
   }
   if (result.status >= 500) return new HttpError(502, "GEMINI_UNAVAILABLE", "Gemini is temporarily unavailable. Retry in a few seconds.");
-  return new HttpError(502, "GEMINI_ERROR", googleMessage);
+  return new HttpError(502, "GEMINI_ERROR", "OCR provider error. Please try again.");
 }
 
 function readModelOutput(json) {
@@ -323,12 +326,15 @@ exports.handler = async (event) => {
   let originHost = "";
   try { originHost = origin ? new URL(origin).host.toLowerCase() : ""; } catch (_) { originHost = ""; }
   const sameOrigin = Boolean(host) && originHost === host;
-  if (origin && !sameOrigin && !ALLOWED_ORIGINS.has(origin)) return failure(403, "ORIGIN_NOT_ALLOWED", "This origin is not allowed to use the OCR service.", cors);
+  if (!origin || (!sameOrigin && !ALLOWED_ORIGINS.has(origin))) return failure(403, "ORIGIN_NOT_ALLOWED", "This origin is not allowed to use the OCR service.", cors);
+
+    const ip = String((event.headers || {})["x-nf-client-connection-ip"] || "").trim();
+  if (ip && rateLimited(ip)) return failure(429, "RATE_LIMITED", "Too many scans. Wait a minute and retry.", { ...cors, "Retry-After": "60" });
 
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
     console.error("GEMINI_API_KEY is not set.");
-    return failure(500, "MISSING_API_KEY", "Server is missing GEMINI_API_KEY. Add it to the Netlify environment variables (scope: Functions), then redeploy.", cors);
+    return failure(503, "SERVICE_UNAVAILABLE", "OCR service is temporarily unavailable. Please try again later.", cors);
   }
 
   const controller = new AbortController();
@@ -343,7 +349,7 @@ exports.handler = async (event) => {
     for (let i = 0; i < models.length; i += 1) {
       usedModel = models[i];
       result = await callGemini({ model: usedModel, apiKey, image, mimeType, signal: controller.signal });
-      if (result.status === 404 && i < models.length - 1) {
+      if ((result.status === 404 || result.status === 429 || result.status >= 500) && i < models.length - 1) {
         console.warn("Model " + usedModel + " returned 404, trying " + models[i + 1] + ".");
         continue;
       }
