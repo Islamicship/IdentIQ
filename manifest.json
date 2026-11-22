@@ -1,7 +1,7 @@
 {
   "name": "IdentIQ — Gulf Identity Intelligence",
   "short_name": "IdentIQ",
-  "description": "IdentIQ v4.4 — Gulf & South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Pakistan. Powered by Creative AI Engine.",
+  "description": "IdentIQ v6.2.0 — Gulf & South-Asian Identity Extraction and Realistic ID Generator. Built by Creative Men, Pakistan. Powered by Creative AI Engine.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -11,7 +11,7 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["productivity", "utilities"],
-  "iarc_rating_id": "",
+  
   "icons": [
     {
       "src": "assets/logo.png",
@@ -85,7 +85,6 @@
     "location": "Jhang, Punjab, Pakistan",
     "contact": "creativemen70@gmail.com",
     "projects": [
-      "https://nexux-gen.netlify.app",
       "https://personal-ocr-tool.netlify.app",
       "https://deen-toolkit.netlify.app"
     ]
