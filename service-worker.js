@@ -45,8 +45,8 @@ const PRECACHE = [
   "./assets/dev-logo.svg",
 ].map(toURL);
 
-const TIMEOUT_NAVIGATION = 4000;
-const TIMEOUT_CORE = 3000;
+const TIMEOUT_NAVIGATION = 8000;
+const TIMEOUT_CORE = 8000;
 const CORE_DESTINATIONS = new Set(["script", "style", "worker"]);
 
 /**
@@ -166,10 +166,17 @@ async function networkFirst(event, cacheKey, timeoutMs, isNavigation) {
   const network = (async () =>
     (await event.preloadResponse) || fetch(event.request))();
 
+    const navUrl = new URL(event.request.url);
+  const okToCache = (res) =>
+    isCacheable(res) &&
+    (!isNavigation ||
+      (/\/(index\.html)?$/.test(navUrl.pathname) &&
+        (res.headers.get("Content-Type") || "").includes("text/html")));
+
   event.waitUntil(
     network
       .then((res) =>
-        isCacheable(res) ? safePut(cacheKey, res.clone()) : undefined,
+        okToCache(res) ? safePut(cacheKey, res.clone()) : undefined,
       )
       .catch(() => {}),
   );
@@ -220,28 +227,32 @@ async function audioCacheFirst(event) {
   let response = await cache.match(cleanUrl);
 
   if (!response) {
-    try {
-      const netRes = await fetch(cleanUrl);
-      if (isCacheable(netRes)) {
-        await cache.put(cleanUrl, netRes.clone());
-        response = netRes;
-      } else {
-        return netRes;
-      }
-    } catch (err) {
-      return Response.error();
-    }
+    let netRes;
+    try { netRes = await fetch(cleanUrl); } catch (err) { return Response.error(); }
+    if (!isCacheable(netRes)) return netRes;
+    try { await cache.put(cleanUrl, netRes.clone()); } catch (err) { /* quota: stream anyway */ }
+    response = netRes;
   }
 
   const rangeHeader = request.headers.get("range");
   if (!rangeHeader) return response;
 
-  const arrayBuffer = await response.arrayBuffer();
-  const bytes = /^bytes=(\d+)-(\d+)?$/.exec(rangeHeader);
-  if (!bytes) return response;
+  const bytes = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+  if (!bytes || (bytes[1] === "" && bytes[2] === "")) return response;
 
-  const start = Number(bytes[1]);
-  const end = bytes[2] ? Number(bytes[2]) : arrayBuffer.byteLength - 1;
+  const arrayBuffer = await response.arrayBuffer();
+  const total = arrayBuffer.byteLength;
+  let start, end;
+  if (bytes[1] === "") {
+    start = Math.max(0, total - Number(bytes[2]));
+    end = total - 1;
+  } else {
+    start = Number(bytes[1]);
+    end = bytes[2] ? Math.min(Number(bytes[2]), total - 1) : total - 1;
+  }
+  if (start >= total || start > end) {
+    return new Response(null, { status: 416, headers: { "Content-Range": "bytes */" + total } });
+  }
   const chunk = arrayBuffer.slice(start, end + 1);
 
   return new Response(chunk, {
@@ -332,6 +343,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+    if (url.pathname.startsWith("/.netlify/") || url.pathname.startsWith("/api/")) return;
 
   if (request.destination === "audio" || url.pathname.includes("/audio/")) {
     event.respondWith(audioCacheFirst(event));
