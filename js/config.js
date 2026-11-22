@@ -49,6 +49,7 @@
       STORAGE_KEYS.LANG,
       STORAGE_KEYS.THEME,
       STORAGE_KEYS.NAMES,
+      "identiq_hijri_fmt",
     ],
 
     DEFAULTS: {
